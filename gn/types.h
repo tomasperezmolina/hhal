@@ -11,6 +11,7 @@ typedef struct gn_kernel_t {
     int cluster_id;
     int mem_tile;
     size_t size;
+    int unit_id;
 } gn_kernel;
 
 typedef struct gn_buffer_t {

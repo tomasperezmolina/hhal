@@ -25,7 +25,7 @@ namespace hhal {
         std::ifstream input_file(image_path, std::ifstream::in | std::ifstream::ate);
 
         if (!input_file.is_open()) {
-            throw std::runtime_error("CudaHHAL: Unable to open kernel file.");
+            return NvidiaManagerExitCode::ERROR;
         }
 
         size_t input_size = (size_t) input_file.tellg();
