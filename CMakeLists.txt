@@ -16,6 +16,7 @@ set(EXPORT_DIR ${MANGO_ROOT}/lib/cmake/hhal)
 set(SOURCES hhal.cpp 
     nvidia/manager.cpp 
     gn/manager.cpp 
+    gn/mm.cpp
     gn/gn/hnemu/hnemu.cpp
     gn/gn/hnemu/logger.cpp
     hn/manager.cpp
@@ -24,16 +25,21 @@ set(HEADERS hhal.h)
 
 add_library(hhal SHARED ${SOURCES} ${HEADERS})
 add_executable(nvidia_launch_kernel test/nvidia_launch_kernel.cpp)
+add_executable(gn_launch_kernel     test/gn_launch_kernel.cpp)
 
 target_include_directories(hhal PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:${INCLUDE_DIR}>)
 
 target_include_directories(nvidia_launch_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(gn_launch_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 find_package(cuda_manager CONFIG REQUIRED HINTS /opt/mango/lib/cmake)
 
 target_link_libraries(hhal PUBLIC cuda_manager)
 target_link_libraries(nvidia_launch_kernel PRIVATE hhal)
+target_link_libraries(gn_launch_kernel PRIVATE hhal)
 
 configure_file(test/saxpy saxpy COPYONLY)
+
+add_subdirectory(test)

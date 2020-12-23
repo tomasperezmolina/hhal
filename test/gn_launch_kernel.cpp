@@ -3,35 +3,65 @@
 #include <stdio.h>
 
 #include "hhal.h"
+#include "gn/mm.h"
 
 #include <stdlib.h>
 
 struct kernel {
     int id;
+    std::string image_path;
     size_t image_size;
 };
 
 struct buffer {
     int id;
     size_t size;
+    std::vector<int> kernels_in;
+    std::vector<int> kernels_out;
 };
 
 struct event {
     int id;
+    std::vector<int> kernels_in;
+    std::vector<int> kernels_out;
+};
+
+enum class ArgType {
+    BUFFER,
+    EVENT,
+    SCALAR
+};
+
+struct Arg {
+    ArgType type;
+    int data;
 };
 
 using namespace hhal;
 
-#define KERNEL_PATH "/opt/mango/usr/local/share/matrix_multiplication/matrix_multiplication_dev"
+#define KERNEL_PATH "test/kernel/matrix_multiplication_dev"
 #define KID 1
 #define B1 1
 #define B2 2
 #define B3 3
 
+int event_id_gen = 0;
+
 int kernel_unit_id;
 std::map<int, mango::mango_addr_t> event_addresses;
 
-void resource_allocation(HHAL &hhal, struct kernel kernel, std::vector<struct buffer> buffers, std::vector<struct event> events) {
+typedef struct registered_kernel_t {
+    struct kernel k;
+    int kernel_termination_event;
+    std::vector<int> task_events;
+} registered_kernel;
+
+typedef struct registered_buffer_t {
+    struct buffer b;
+    int event;
+} registered_buffer;
+
+void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<registered_buffer> buffers, std::vector<struct event> events) {
 	printf("[DummyRM] resource_allocation\n");
 
 	static int u_pid = 0;
@@ -49,7 +79,7 @@ void resource_allocation(HHAL &hhal, struct kernel kernel, std::vector<struct bu
 
     auto unit_type =  UnitType::GN;
     types.push_back(unit_type);
-    printf("[DummyRM] resource_allocation: kernel %d type %d\n", kernel.id, unit_type);
+    printf("[DummyRM] resource_allocation: kernel %d type %d\n", kernel.k.id, unit_type);
 
 
     auto status = hhal.gn_manager.find_units_set(default_cluster_id, types, tiles_dst);
@@ -73,14 +103,14 @@ void resource_allocation(HHAL &hhal, struct kernel kernel, std::vector<struct bu
     mango_unit_id_t unit = 0;
 
     gn_kernel kernel_info;
-    kernel_info.id = kernel.id;
+    kernel_info.id = kernel.k.id;
     kernel_info.cluster_id = default_cluster_id;
     kernel_info.mem_tile = default_memory;
     kernel_info.physical_addr = kernel_address++;
-    kernel_info.size = kernel.image_size;
+    kernel_info.size = kernel.k.image_size;
     kernel_info.unit_id = tiles_dst[unit];
-    kernel_info.virtual_addr = 0;
-    kernel_info.tlb = 0;
+    kernel_info.task_events = kernel.task_events;
+    kernel_info.termination_event = kernel.kernel_termination_event;
 
     // Hack for deallocation
     kernel_unit_id = kernel_info.unit_id;
@@ -91,8 +121,11 @@ void resource_allocation(HHAL &hhal, struct kernel kernel, std::vector<struct bu
 
 	for(auto &et : events) {
         gn_event info;
+        info.id = et.id;
         info.physical_addr = event_address++;
         info.cluster_id = default_cluster_id;
+        info.kernels_in = et.kernels_in;
+        info.kernels_out = et.kernels_out;
 
         mango_addr_t phy_addr = event_address++;
         auto status = hhal.gn_manager.get_synch_register_addr(default_cluster_id, &phy_addr, 1);
@@ -110,9 +143,12 @@ void resource_allocation(HHAL &hhal, struct kernel kernel, std::vector<struct bu
 
 	for(auto &bt : buffers) {
         gn_buffer info;
-        info.id = bt.id;
+        info.id = bt.b.id;
         info.cluster_id = default_cluster_id;
-        info.size = bt.size;
+        info.size = bt.b.size;
+        info.event = bt.event;
+        info.kernels_in = bt.b.kernels_in;
+        info.kernels_out = bt.b.kernels_out;
         mango_mem_id_t memory = default_memory;
         mango_addr_t phy_addr = buffer_address++;
 
@@ -186,9 +222,15 @@ void kernel_function(int *A, int *B, int *C, int rows, int cols) {
 	return;
 }
 
-uint32_t read(HHAL &hhal, struct event event) {
+void write(HHAL &hhal, int event_id, uint8_t value) {
+    if (hhal.write_sync_register(event_id, value) != HHALExitCode::OK) {
+        printf("Writing to sync register failed.\n");
+    }
+}
+
+uint32_t read(HHAL &hhal, int event_id) {
     uint8_t value;
-    if (hhal.read_sync_register(event.id, &value) != HHALExitCode::OK) {
+    if (hhal.read_sync_register(event_id, &value) != HHALExitCode::OK) {
         printf("Read synch register failed!\n");
     }
     return value;
@@ -198,7 +240,7 @@ uint32_t read(HHAL &hhal, struct event event) {
 uint32_t lock(HHAL &hhal, struct event event) {
 	uint32_t value;
 	do {
-		value = read(hhal, event);
+		value = read(hhal, event.id);
 	} while (value == 0);
 	return value;
 }
@@ -213,17 +255,14 @@ void wait(HHAL &hhal, struct event event, uint32_t state) {
 
 		if (value != state) {
 			printf("Expected %d, instead it's %d\n", state, value);
-
-            if (hhal.write_sync_register(event.id, value) != HHALExitCode::OK) {
-                printf("Writing to sync register failed.\n");
-            }
+            write(hhal, event.id, value);
 			// std::this_thread::yield();
 		}
 
 	} while (value != state);
 }
 
-std::string get_arguments(HHAL &hhal) {
+std::string get_arguments(HHAL &hhal, struct kernel kernel, std::vector<struct Arg> &args) {
 	std::stringstream ss;
 
 	//get full memory size
@@ -232,41 +271,125 @@ std::string get_arguments(HHAL &hhal) {
     num_clusters = hhal.gn_manager.num_clusters;
 
     for (uint32_t cluster_id = 0; cluster_id< num_clusters; cluster_id++){
-        hhal_tile_description_t htd = HHAL::get().get_tiles(cluster_id);
+        hhal_tile_description_t htd = hhal.gn_manager.get_tiles(cluster_id);
         for (int i = 0; i < htd.total_tiles; i++) {
-            mem_size += HHAL::get().get_memory_size(cluster_id, i);
+            mem_size += hhal.gn_manager.get_memory_size(cluster_id, i);
         }
     }
-    ss << kernel->get_kernel()->get_kernel_version(arch_type);
+    ss << kernel.image_path;
     ss << " 0x" << std::hex << mem_size;
 
-	for (const auto arg : args) {
+    auto &tlb = hhal.gn_manager.tlbs[kernel.id];
 
-		if (p_instanceof<BufferArg>(arg) || p_instanceof<EventArg>(arg)) {
-			ss << " 0x" << std::hex << arg->get_value();
-		}
-		else if ( p_instanceof<ScalarArg<mango_size_t>>(arg) 
-			 || p_instanceof<ScalarArg<char>>(arg) 
-			 || p_instanceof<ScalarArg<unsigned char>>(arg) 
-			 || p_instanceof<ScalarArg<short>>(arg) 
-			 || p_instanceof<ScalarArg<unsigned short>>(arg) 
-			 || p_instanceof<ScalarArg<int>>(arg) 
-			 || p_instanceof<ScalarArg<unsigned int>>(arg) 
-			 || p_instanceof<ScalarArg<float>>(arg)
- 		) {
-			ss << " " << arg->get_value();
-		}
-		else {
-			mango_log->Warn("Unrecognized class in argument vectors.");
-		}
+	for (const auto &arg : args) {
+        switch (arg.type) {
+            case ArgType::BUFFER:
+                ss << " 0x" << std::hex << tlb.get_virt_addr_buffer(arg.data);
+                break;
+            case ArgType::EVENT:
+                ss << " 0x" << std::hex << tlb.get_virt_addr_event(arg.data);
+                break;
+            case ArgType::SCALAR:
+                ss << " " << arg.data;
+                break;
+            default:
+                printf("Unknown argument\n");
+                break;
+        }
 	}
 
 	return ss.str();
 
 }
 
+registered_kernel register_kernel(struct kernel kernel) {
+    return {
+        kernel,
+        event_id_gen++,
+        // 3 "Kernel tasks events" are added for some reason, 
+        // there is a TODO in libmango because it is not clear what this is doing or if its needed.
+        {event_id_gen++, event_id_gen++, event_id_gen++},
+    };
+}
+
+
+registered_buffer register_buffer(struct buffer buffer) {
+    return {
+        buffer,
+        event_id_gen++,
+    };
+};
+
+void do_memory_management(HHAL &hhal, MM &mm) {
+    std::vector<gn_buffer>  buffers;
+    std::vector<gn_event>   events;
+    std::vector<gn_kernel>  kernels;
+
+    for(auto &b_pair: hhal.gn_manager.buffer_info) {
+        buffers.push_back(b_pair.second);
+    }
+    for(auto &e_pair: hhal.gn_manager.event_info) {
+        events.push_back(e_pair.second);
+    }
+    for(auto &k_pair: hhal.gn_manager.kernel_info) {
+        kernels.push_back(k_pair.second);
+    }
+
+    mm.set_vaddr_kernels(hhal.gn_manager, kernels);
+	mm.set_vaddr_buffers(hhal.gn_manager, buffers);
+	mm.set_vaddr_events(hhal.gn_manager, events);
+}
+
+std::vector<Arg> arguments_setup(HHAL &hhal, registered_kernel kernel, std::vector<Arg> base_args) {
+    std::vector<Arg> args;
+    auto event = kernel.kernel_termination_event;
+	auto tlb = hhal.gn_manager.tlbs[kernel.k.id];
+
+	args.push_back({ArgType::EVENT, event});
+
+	for(const auto ev : kernel.task_events) {
+		args.push_back({ArgType::EVENT, ev});
+	}
+
+    args.insert(args.end(), base_args.begin(), base_args.end());
+    return args;
+}
+
+#define UNUSED(x) ((void)x)
+
+void prepare_events_registers(HHAL &hhal, std::vector<struct event> events, std::vector<registered_buffer> buffers) {
+
+	// This function will initialize the event values to zero
+
+	for(auto &et : events) {
+		// It follows a strange pattern:
+		// - We read the value (this should change to zero the register)
+		read(hhal, et.id);
+		// - We re-read the value and now must be zero
+		int value = read(hhal, et.id);
+		assert( 0 == value );
+		UNUSED(value);
+	}
+
+	for(auto &bt : buffers) {
+		auto et = bt.event;
+
+		// assert(et->get_phy_addr() != 0); needed?
+
+		read(hhal, et);	// Read the event BEFORE writing it to allow the initialization
+				// in case of write-accumulare register
+		int value = read(hhal, et);
+		assert( 0 == value );
+		UNUSED(value);
+
+        const int WRITE = 2;
+        write(hhal, et, WRITE);
+	}
+}
+
 int main(void) {
     HHAL hhal;
+    MM mm;
 
     std::ifstream kernel_fd(KERNEL_PATH, std::ifstream::in | std::ifstream::ate);
     size_t kernel_size = (size_t) kernel_fd.tellg() + 1;
@@ -298,9 +421,8 @@ int main(void) {
     // /* initialization of the mango context */
     // mango_init("matrix_multiplication", "test_manga");
 
-    char kernel_file[] = "/opt/mango/usr/local/share/matrix_multiplication/matrix_multiplication_dev";
-
-    struct kernel kernel = { KID, kernel_size };
+    struct kernel kernel = { KID, KERNEL_PATH, kernel_size };
+    registered_kernel r_kernel = register_kernel(kernel);
 
     // kernelfunction *k = mango_kernelfunction_init();
     // #ifdef GNEMU
@@ -314,47 +436,46 @@ int main(void) {
     // mango_buffer_t b3 = mango_register_memory(B3, rows*columns*sizeof(int), BUFFER, 1, 0, k1);
 
     std::vector<struct buffer> buffers = {
-        {B1, buffer_size},
-        {B2, buffer_size},
-        {B3, buffer_size},
+        {B1, buffer_size, {}, {KID}},
+        {B2, buffer_size, {}, {KID}},
+        {B3, buffer_size, {KID}, {}},
     };
-
-    int event_id_gen = 0;
-    std::vector<struct event> events = {
-        {event_id_gen++},
-        {event_id_gen++},
-        {event_id_gen++}
-    };
+    std::vector<registered_buffer> r_buffers;
+    for(auto &b: buffers) {
+        r_buffers.push_back(register_buffer(b));
+    }
 
     /* Registration of task graph */
     // mango_task_graph_t *tg = mango_task_graph_create(1, 3, 0, k1, b1, b2, b3);
 
-    struct event buffer_event = events[2]; // buffer 3 event
-    struct event kernel_termination_event; // ????
-    kernel_termination_event.id = event_id_gen++;
-    events.push_back(kernel_termination_event);
+    struct event buffer_event = {r_buffers[2].event}; // buffer 3 event
+    struct event kernel_termination_event = {r_kernel.kernel_termination_event};
 
-    // 3 "Kernel tasks events" are added for some reason, 
-    // there is a TODO in libmango because it is not clear what this is doing or if its needed.
-    for(int i = 0; i < 3; i++) {
-        events.push_back({event_id_gen++});
+    std::vector<struct event> events;
+    events.push_back({r_kernel.kernel_termination_event, {r_kernel.k.id}, {r_kernel.k.id}});
+    for(int e_id: r_kernel.task_events) {
+        events.push_back({e_id, {r_kernel.k.id}, {r_kernel.k.id}});
+    }
+    for(auto &b: r_buffers) {
+        events.push_back({b.event, b.b.kernels_in, b.b.kernels_out});
     }
 
     /* resource allocation */
     // mango_resource_allocation(tg);
-    resource_allocation(hhal, kernel, buffers, events);
+    resource_allocation(hhal, r_kernel, r_buffers, events);
+    do_memory_management(hhal, mm);
+    prepare_events_registers(hhal, events, r_buffers);
 
     /* Execution preparation */
-    mango_arg_t *arg1 = mango_arg( k1, &b1, sizeof(uint64_t), BUFFER );
-    mango_arg_t *arg2 = mango_arg( k1, &b2, sizeof(uint64_t), BUFFER );
-    mango_arg_t *arg3 = mango_arg( k1, &b3, sizeof(uint64_t), BUFFER );
-    mango_arg_t *arg4 = mango_arg( k1, &rows, sizeof(uint32_t), SCALAR );
-    mango_arg_t *arg5 = mango_arg( k1, &columns, sizeof(uint32_t), SCALAR );
-    mango_event_t e = mango_get_buffer_event(b3);
-    mango_arg_t *arg6 = mango_arg( k1, &e, sizeof(uint64_t), EVENT );
 
-    mango_args_t *args = mango_set_args(k1, 6, arg1, arg2, arg3, arg4, arg5, arg6);
+    struct Arg arg1 = {ArgType::BUFFER, buffers[0].id};
+    struct Arg arg2 = {ArgType::BUFFER, buffers[1].id};
+    struct Arg arg3 = {ArgType::BUFFER, buffers[2].id};
+    struct Arg arg4 = {ArgType::SCALAR, rows};
+    struct Arg arg5 = {ArgType::SCALAR, columns};
+    struct Arg arg6 = {ArgType::EVENT,  buffer_event.id};
 
+    std::vector<Arg> args = arguments_setup(hhal, r_kernel, {arg1, arg2, arg3, arg4, arg5, arg6});
 
     /* Data transfer host->device */
     hhal.write_to_memory(B1, A, buffer_size);
@@ -365,7 +486,11 @@ int main(void) {
     /* spawn kernel */
     // mango_event_t ev = mango_start_kernel(k1, args, 0);
 
-    std::string arguments = "???";
+    std::string arguments = get_arguments(hhal, kernel, args);
+    printf("Kernel argument string:\n", arguments.c_str());
+    printf("%s\n", arguments.c_str());
+    // Gotta write 0 to the event before starting the kernel
+    write(hhal, kernel_termination_event.id, 0);
     hhal.kernel_start(KID, arguments);
 
     /* reading results */

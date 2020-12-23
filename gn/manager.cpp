@@ -34,6 +34,7 @@ GNManagerExitCode GNManager::initialize() {
 
     uint32_t num_clusters;
     HNemu::instance()->get_num_clusters(&num_clusters);
+    printf("Num clusters: %d\n", num_clusters);
 
     init_semaphore();
     if (sem_id == NULL) {
@@ -76,7 +77,7 @@ GNManagerExitCode GNManager::initialize() {
     this->num_clusters = num_clusters;
 
     // sync registers offset
-    for (mango_cluster_id_t cluster_id = 0; cluster_id< num_clusters; cluster_id++) {
+    for (mango_cluster_id_t cluster_id = 0; cluster_id < num_clusters; cluster_id++) {
         std::vector <mango_addr_t> regs(MANGO_REG_SIZE, MANGO_REG_UNUSED);
         event_register_off.emplace(std::make_pair(cluster_id, regs));
     }
@@ -117,6 +118,7 @@ GNManagerExitCode GNManager::finalize() {
 
 GNManagerExitCode GNManager::assign_kernel(gn_kernel *info) {
     kernel_info[info->id] = *info;
+    tlbs[info->id] = TLB();
     return GNManagerExitCode::OK;
 }
 

@@ -32,6 +32,10 @@
 
 namespace hhal {
 
+HHAL::HHAL() {
+    gn_manager.initialize();
+}
+
 HHALExitCode HHAL::assign_kernel(Unit unit, hhal_kernel *info) {
     kernel_to_unit[info->id] = unit;
     switch (unit) {

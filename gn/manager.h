@@ -10,6 +10,8 @@
 #include "gn/gn/mango_types.h"
 #include "gn/types.h"
 
+#include "gn/tlb.h"
+
 using namespace mango;
 
 typedef struct hhal_tile_description {
@@ -62,13 +64,23 @@ class GNManager {
         GNManagerExitCode get_synch_register_addr(mango_cluster_id_t cluster, mango_addr_t *reg_address, bool isINCRWRITE_REG);
         void release_synch_register_addr(mango_cluster_id_t cluster, mango_addr_t reg_address);
 
+        inline hhal_tile_description_t get_tiles(mango_cluster_id_t cluster_id) const { return tiles.at(cluster_id); }
+
+        GNManagerExitCode set_tlb_entry(mango_cluster_id_t cluster, mango_unit_id_t unit,
+                               hhal_tlb_entry_type_t type, mango_addr_t virtual_addr,
+			                   mango_size_t size, mango_addr_t phy_addr, mango_mem_id_t memory) { return GNManagerExitCode::OK; }
+
+        void clear_tlb() {}
+
+        mango_addr_t get_virtual_address_alignment(hhal_tlb_entry_type_t) const { return 0x0; }
+
+
         int num_clusters;
-
-    private:
+        std::map<int, TLB> tlbs;
         std::map<int, gn_kernel> kernel_info;
-        std::map<int, gn_buffer> buffer_info;
         std::map<int, gn_event> event_info;
-
+        std::map<int, gn_buffer> buffer_info;
+    private:
         bool initialized = false;
         int max_buffers = 2048;
         int max_kernels = 2048;

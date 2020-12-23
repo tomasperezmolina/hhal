@@ -20,6 +20,8 @@ enum class HHALExitCode {
 
 class HHAL {
     public:
+        HHAL();
+
         HHALExitCode assign_kernel(Unit unit, hhal_kernel *info);
         HHALExitCode assign_buffer(Unit unit, hhal_buffer *info);
         HHALExitCode assign_event (Unit unit, hhal_event *info);
