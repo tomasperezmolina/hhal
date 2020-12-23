@@ -115,18 +115,18 @@ GNManagerExitCode GNManager::finalize() {
     return GNManagerExitCode::OK;
 }
 
-GNManagerExitCode GNManager::assign_kernel(gn_kernel info) {
-    kernel_info[info.id] = info;
+GNManagerExitCode GNManager::assign_kernel(gn_kernel *info) {
+    kernel_info[info->id] = *info;
     return GNManagerExitCode::OK;
 }
 
-GNManagerExitCode GNManager::assign_buffer(gn_buffer info) {
-    buffer_info[info.id] = info;
+GNManagerExitCode GNManager::assign_buffer(gn_buffer *info) {
+    buffer_info[info->id] = *info;
     return GNManagerExitCode::OK;
 }
 
-GNManagerExitCode GNManager::assign_event(gn_event info) {
-    event_info[info.id] = info;
+GNManagerExitCode GNManager::assign_event(gn_event *info) {
+    event_info[info->id] = *info;
     return GNManagerExitCode::OK;
 }
 

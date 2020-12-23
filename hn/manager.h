@@ -16,9 +16,9 @@ enum class HNManagerExitCode {
 
 class HNManager {
     public:
-        HNManagerExitCode assign_kernel(hn_kernel info);
-        HNManagerExitCode assign_buffer(hn_buffer info);
-        HNManagerExitCode assign_event(hn_event info);
+        HNManagerExitCode assign_kernel(hn_kernel *info);
+        HNManagerExitCode assign_buffer(hn_buffer *info);
+        HNManagerExitCode assign_event(hn_event *info);
 
         HNManagerExitCode kernel_write(int kernel_id, std::string image_path);
         HNManagerExitCode kernel_start(int kernel_id, std::string arguments);

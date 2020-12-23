@@ -1,5 +1,7 @@
 #include <map>
 
+#include "types.h"
+
 #include "gn/types.h"
 #include "gn/manager.h"
 
@@ -11,12 +13,6 @@
 
 namespace hhal {
 
-enum class Unit {
-    GN,
-    HN,
-    NVIDIA
-};
-
 enum class HHALExitCode {
     OK,
     ERROR,
@@ -24,17 +20,9 @@ enum class HHALExitCode {
 
 class HHAL {
     public:
-        HHALExitCode assign_kernel_to_gn(gn_kernel info);
-        HHALExitCode assign_kernel_to_hn(hn_kernel info);
-        HHALExitCode assign_kernel_to_nvidia(nvidia_kernel info);
-
-        HHALExitCode assign_buffer_to_gn(gn_buffer info);
-        HHALExitCode assign_buffer_to_hn(hn_buffer info);
-        HHALExitCode assign_buffer_to_nvidia(nvidia_buffer info);
-
-        HHALExitCode assign_event_to_gn(gn_event info);
-        HHALExitCode assign_event_to_hn(hn_event info);
-        HHALExitCode assign_event_to_nvidia(nvidia_event info);
+        HHALExitCode assign_kernel(Unit unit, hhal_kernel *info);
+        HHALExitCode assign_buffer(Unit unit, hhal_buffer *info);
+        HHALExitCode assign_event (Unit unit, hhal_event *info);
 
         HHALExitCode kernel_write(int kernel_id, std::string image_path);
         HHALExitCode kernel_start(int kernel_id, std::string arguments);

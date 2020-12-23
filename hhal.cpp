@@ -32,49 +32,55 @@
 
 namespace hhal {
 
-HHALExitCode HHAL::assign_kernel_to_gn(gn_kernel info) {
-    kernel_to_unit[info.id] = Unit::GN;
-    MAP_GN_EXIT_CODE(gn_manager.assign_kernel(info));
+HHALExitCode HHAL::assign_kernel(Unit unit, hhal_kernel *info) {
+    kernel_to_unit[info->id] = unit;
+    switch (unit) {
+        case Unit::GN:
+            MAP_GN_EXIT_CODE(gn_manager.assign_kernel((gn_kernel *) info));
+            break;
+        case Unit::HN:
+            MAP_HN_EXIT_CODE(hn_manager.assign_kernel((hn_kernel *)info));
+            break;
+        case Unit::NVIDIA:
+            MAP_NVIDIA_EXIT_CODE(nvidia_manager.assign_kernel((nvidia_kernel *)info));
+            break;
+        default:
+            return HHALExitCode::ERROR;
+    }
 }
 
-HHALExitCode HHAL::assign_kernel_to_hn(hn_kernel info) {
-    kernel_to_unit[info.id] = Unit::HN;
-    MAP_HN_EXIT_CODE(hn_manager.assign_kernel(info));
+HHALExitCode HHAL::assign_buffer(Unit unit, hhal_buffer *info) {
+    buffer_to_unit[info->id] = unit;
+    switch (unit) {
+        case Unit::GN:
+            MAP_GN_EXIT_CODE(gn_manager.assign_buffer((gn_buffer *) info));
+            break;
+        case Unit::HN:
+            MAP_HN_EXIT_CODE(hn_manager.assign_buffer((hn_buffer *) info));
+            break;
+        case Unit::NVIDIA:
+            MAP_NVIDIA_EXIT_CODE(nvidia_manager.assign_buffer((nvidia_buffer *) info));
+            break;
+        default:
+            return HHALExitCode::ERROR;
+    }
 }
 
-HHALExitCode HHAL::assign_kernel_to_nvidia(nvidia_kernel info) {
-    kernel_to_unit[info.id] = Unit::NVIDIA;
-    MAP_NVIDIA_EXIT_CODE(nvidia_manager.assign_kernel(info));
-}
-
-HHALExitCode HHAL::assign_buffer_to_gn(gn_buffer info) {
-    buffer_to_unit[info.id] = Unit::GN;
-    MAP_GN_EXIT_CODE(gn_manager.assign_buffer(info));
-}
-
-HHALExitCode HHAL::assign_buffer_to_hn(hn_buffer info) {
-    buffer_to_unit[info.id] = Unit::HN;
-    MAP_HN_EXIT_CODE(hn_manager.assign_buffer(info));
-}
-
-HHALExitCode HHAL::assign_buffer_to_nvidia(nvidia_buffer info) {
-    buffer_to_unit[info.id] = Unit::NVIDIA;
-    MAP_NVIDIA_EXIT_CODE(nvidia_manager.assign_buffer(info));
-}
-
-HHALExitCode HHAL::assign_event_to_gn(gn_event info) {
-    event_to_unit[info.id] = Unit::GN;
-    MAP_GN_EXIT_CODE(gn_manager.assign_event(info));
-}
-
-HHALExitCode HHAL::assign_event_to_hn(hn_event info) {
-    event_to_unit[info.id] = Unit::HN;
-    MAP_HN_EXIT_CODE(hn_manager.assign_event(info));
-}
-
-HHALExitCode HHAL::assign_event_to_nvidia(nvidia_event info) {
-    event_to_unit[info.id] = Unit::NVIDIA;
-    MAP_NVIDIA_EXIT_CODE(nvidia_manager.assign_event(info));
+HHALExitCode HHAL::assign_event(Unit unit, hhal_event *info) {
+    event_to_unit[info->id] = unit;
+    switch (unit) {
+        case Unit::GN:
+            MAP_GN_EXIT_CODE(gn_manager.assign_event((gn_event *) info));
+            break;
+        case Unit::HN:
+            MAP_HN_EXIT_CODE(hn_manager.assign_event((hn_event *) info));
+            break;
+        case Unit::NVIDIA:
+            MAP_NVIDIA_EXIT_CODE(nvidia_manager.assign_event((nvidia_event *) info));
+            break;
+        default:
+            return HHALExitCode::ERROR;
+    }
 }
 
 HHALExitCode HHAL::kernel_write(int kernel_id, std::string image_path) {

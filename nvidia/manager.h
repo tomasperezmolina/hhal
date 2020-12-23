@@ -17,9 +17,9 @@ enum class NvidiaManagerExitCode {
 
 class NvidiaManager {
     public:
-        NvidiaManagerExitCode assign_kernel(nvidia_kernel info);
-        NvidiaManagerExitCode assign_buffer(nvidia_buffer info);
-        NvidiaManagerExitCode assign_event(nvidia_event info);
+        NvidiaManagerExitCode assign_kernel(nvidia_kernel *info);
+        NvidiaManagerExitCode assign_buffer(nvidia_buffer *info);
+        NvidiaManagerExitCode assign_event(nvidia_event *info);
 
         NvidiaManagerExitCode kernel_write(int kernel_id, std::string image_path);
         NvidiaManagerExitCode kernel_start(int kernel_id, std::string arguments);

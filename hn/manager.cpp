@@ -1,13 +1,13 @@
 #include "hn/manager.h"
 
 namespace hhal {
-    HNManagerExitCode HNManager::assign_kernel(hn_kernel info) {
+    HNManagerExitCode HNManager::assign_kernel(hn_kernel *info) {
         return HNManagerExitCode::OK;
     }
-    HNManagerExitCode HNManager::assign_buffer(hn_buffer info) {
+    HNManagerExitCode HNManager::assign_buffer(hn_buffer *info) {
         return HNManagerExitCode::OK;
     }
-    HNManagerExitCode HNManager::assign_event(hn_event info) {
+    HNManagerExitCode HNManager::assign_event(hn_event *info) {
         return HNManagerExitCode::OK;
     }
     HNManagerExitCode HNManager::kernel_write(int kernel_id, std::string image_path) {

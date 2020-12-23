@@ -4,18 +4,18 @@
 
 namespace hhal {
 
-    NvidiaManagerExitCode NvidiaManager::assign_kernel(nvidia_kernel info) {
-        kernel_info[info.id] = info;
+    NvidiaManagerExitCode NvidiaManager::assign_kernel(nvidia_kernel *info) {
+        kernel_info[info->id] = *info;
         return NvidiaManagerExitCode::OK;
     }
 
-    NvidiaManagerExitCode NvidiaManager::assign_buffer(nvidia_buffer info) {
-        buffer_info[info.id] = info;
+    NvidiaManagerExitCode NvidiaManager::assign_buffer(nvidia_buffer *info) {
+        buffer_info[info->id] = *info;
         return NvidiaManagerExitCode::OK;
     }
 
-    NvidiaManagerExitCode NvidiaManager::assign_event(nvidia_event info) {
-        event_info[info.id] = info;
+    NvidiaManagerExitCode NvidiaManager::assign_event(nvidia_event *info) {
+        event_info[info->id] = *info;
         return NvidiaManagerExitCode::OK;
     }
 

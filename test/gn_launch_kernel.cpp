@@ -85,7 +85,7 @@ void resource_allocation(HHAL &hhal, struct kernel kernel, std::vector<struct bu
     // Hack for deallocation
     kernel_unit_id = kernel_info.unit_id;
 
-    hhal.assign_kernel_to_gn(kernel_info);
+    hhal.assign_kernel(hhal::Unit::GN, (hhal_kernel *) &kernel_info);
 
     printf("[DummyRM] resource_allocation: %d tiles reserved\n", num_tiles);
 
@@ -105,7 +105,7 @@ void resource_allocation(HHAL &hhal, struct kernel kernel, std::vector<struct bu
         info.physical_addr = phy_addr;
         // hack for deallocation
         event_addresses[info.id] = info.physical_addr;
-        hhal.assign_event_to_gn(info);
+        hhal.assign_event(hhal::Unit::GN, (hhal_event *) &info);
 	}
 
 	for(auto &bt : buffers) {
@@ -121,7 +121,7 @@ void resource_allocation(HHAL &hhal, struct kernel kernel, std::vector<struct bu
         printf("[DummyRM] resource_allocation: buffer=%d, memory=%d, phy_addr=0x%x\n", info.id, memory, phy_addr);
         info.mem_tile = memory;
         info.physical_addr = phy_addr;
-        hhal.assign_buffer_to_gn(info);
+        hhal.assign_buffer(hhal::Unit::GN, (hhal_buffer *) &info);
         hhal.allocate_memory(info.id);
 	}
 

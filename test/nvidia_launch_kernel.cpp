@@ -33,12 +33,12 @@ struct buffer {
 // and a library for kernel execution which handles whats in the main function.
 void resource_management(HHAL &hhal, struct kernel kernel, std::vector<struct buffer> &buffers) {
     nvidia_kernel k1 = { kernel.id, 0, kernel.id, kernel.image_size };
-    hhal.assign_kernel_to_nvidia(k1);
+    hhal.assign_kernel(hhal::Unit::NVIDIA, (hhal_kernel *) &k1);
     hhal.allocate_kernel(KERNEL_ID);
 
     for (auto &buf: buffers) {
         nvidia_buffer buffer = { buf.id, 0, buf.id, buf.size };
-        hhal.assign_buffer_to_nvidia(buffer);
+        hhal.assign_buffer(hhal::Unit::NVIDIA, (hhal_buffer *) &buffer);
         hhal.allocate_memory(buffer.id);
     }
 }
