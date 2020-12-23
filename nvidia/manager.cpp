@@ -47,8 +47,8 @@ namespace hhal {
         return NvidiaManagerExitCode::OK;
     }
 
-    NvidiaManagerExitCode NvidiaManager::kernel_start(int kernel_id, std::string arguments) {
-        CudaApiExitCode err = cuda_api.launch_kernel(arguments.c_str(), arguments.size());
+    NvidiaManagerExitCode NvidiaManager::kernel_start_string_args(int kernel_id, std::string arguments) {
+        CudaApiExitCode err = cuda_api.launch_kernel_string_args(arguments.c_str(), arguments.size());
 
         if (err != OK) {
             return NvidiaManagerExitCode::ERROR;

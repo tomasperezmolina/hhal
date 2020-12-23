@@ -108,7 +108,7 @@ HHALExitCode HHAL::kernel_start(int kernel_id, std::string arguments) {
             MAP_HN_EXIT_CODE(hn_manager.kernel_start(kernel_id, arguments));
             break;
         case Unit::NVIDIA:
-            MAP_NVIDIA_EXIT_CODE(nvidia_manager.kernel_start(kernel_id, arguments));
+            MAP_NVIDIA_EXIT_CODE(nvidia_manager.kernel_start_string_args(kernel_id, arguments));
             break;
         default:
             break;

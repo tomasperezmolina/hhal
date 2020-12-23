@@ -78,9 +78,9 @@ int main(void) {
     // Set up arguments
     // Doing it this way to easily convert them to string, in reality you need to manually create the string
     ValueArg  arg_a = {VALUE, a};
-    BufferArg arg_x = {BUFFER, nullptr, BUFFER_X_ID, buffer_size, true};
-    BufferArg arg_y = {BUFFER, nullptr, BUFFER_Y_ID, buffer_size, true};
-    BufferArg arg_o = {BUFFER, nullptr, BUFFER_O_ID, buffer_size, false};
+    BufferArg arg_x = {BUFFER, BUFFER_X_ID, true};
+    BufferArg arg_y = {BUFFER, BUFFER_Y_ID, true};
+    BufferArg arg_o = {BUFFER, BUFFER_O_ID, false};
     ValueArg  arg_n = {VALUE, (float)n};
 
     std::vector<void *> args { &arg_a, &arg_x, &arg_y, &arg_o, &arg_n };
@@ -96,6 +96,11 @@ int main(void) {
     for (size_t i = 0; i < 10; ++i) { // first 10 results only
         std::cout << a << " * " << x[i] << " + " << y[i] << " = " << o[i] << '\n';
     }
+
+    hhal.release_kernel(KERNEL_ID);
+    hhal.release_memory(BUFFER_X_ID);
+    hhal.release_memory(BUFFER_Y_ID);
+    hhal.release_memory(BUFFER_O_ID);
 
     delete[] x;
     delete[] y;

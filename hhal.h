@@ -26,6 +26,11 @@ class HHAL {
 
         HHALExitCode kernel_write(int kernel_id, std::string image_path);
         HHALExitCode kernel_start(int kernel_id, std::string arguments);
+
+        //TODO kernel_start(int kernel_id, void *args) for starting kernels without an argument string
+        // in nvidia's case, args would have function name, threads, blocks and arg array
+        
+
         HHALExitCode allocate_memory(int buffer_id);
         HHALExitCode release_memory(int buffer_id);
         HHALExitCode allocate_kernel(int kernel_id);
