@@ -141,7 +141,7 @@ GNManagerExitCode GNManager::kernel_write(int kernel_id, std::string image_path)
             info.cluster_id, image_path.c_str(), info.mem_tile, info.physical_addr);
     return GNManagerExitCode::OK;
 }
-GNManagerExitCode GNManager::kernel_start(int kernel_id, std::string arguments) {
+GNManagerExitCode GNManager::kernel_start_string_args(int kernel_id, std::string arguments) {
     assert(initialized == true);
     assert(arguments.size() > 0);
     gn_kernel &info = kernel_info[kernel_id];

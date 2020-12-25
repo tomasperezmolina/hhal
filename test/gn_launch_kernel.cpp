@@ -491,7 +491,7 @@ int main(void) {
     printf("%s\n", arguments.c_str());
     // Gotta write 0 to the event before starting the kernel
     write(hhal, kernel_termination_event.id, 0);
-    hhal.kernel_start(KID, arguments);
+    hhal.kernel_start_string_args(KID, arguments);
 
     /* reading results */
     // mango_wait(e);
