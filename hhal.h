@@ -1,3 +1,6 @@
+#ifndef HHAL_H
+#define HHAL_H
+
 #include <map>
 
 #include "types.h"
@@ -52,3 +55,5 @@ class HHAL {
 };
 
 }
+
+#endif //HHAL_H

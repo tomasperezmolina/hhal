@@ -3,9 +3,12 @@
 #include <stdio.h>
 
 #include "hhal.h"
+#include "event_utils.h"
 #include "gn/mm.h"
 
 #include <stdlib.h>
+
+#define UNUSED(x) ((void)x)
 
 struct kernel {
     int id;
@@ -61,6 +64,9 @@ typedef struct registered_buffer_t {
     int event;
 } registered_buffer;
 
+void prepare_events_registers(HHAL &hhal, std::vector<struct event> events, std::vector<registered_buffer> buffers);
+void do_memory_management(GNManager &manager);
+
 void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<registered_buffer> buffers, std::vector<struct event> events) {
 	printf("[DummyRM] resource_allocation\n");
 
@@ -77,10 +83,9 @@ void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<regis
     std::vector<mango_unit_type_t> types;
     std::vector<mango_unit_id_t> tiles_dst (num_tiles);
 
-    auto unit_type =  UnitType::GN;
+    auto unit_type = UnitType::GN;
     types.push_back(unit_type);
     printf("[DummyRM] resource_allocation: kernel %d type %d\n", kernel.k.id, unit_type);
-
 
     auto status = hhal.gn_manager.find_units_set(default_cluster_id, types, tiles_dst);
     if (status == GNManagerExitCode::ERROR){
@@ -161,6 +166,8 @@ void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<regis
         hhal.allocate_memory(info.id);
 	}
 
+    do_memory_management(hhal.gn_manager);
+    prepare_events_registers(hhal, events, buffers);
 }
 
 void resource_deallocation(HHAL &hhal, struct kernel kernel, std::vector<struct buffer> buffers, std::vector<struct event> events) {
@@ -237,29 +244,78 @@ uint32_t read(HHAL &hhal, int event_id) {
 }
 
 
-uint32_t lock(HHAL &hhal, struct event event) {
-	uint32_t value;
-	do {
-		value = read(hhal, event.id);
-	} while (value == 0);
-	return value;
+uint32_t lock(HHAL &hhal, int event_id) {
+    uint32_t value;
+    do {
+        value = read(hhal, event_id);
+    } while (value == 0);
+    return value;
 }
 
 
-void wait(HHAL &hhal, struct event event, uint32_t state) {
+void wait(HHAL &hhal, int event_id, uint32_t state) {
+    uint32_t value;
+    printf("Wait state %d: id %d", state, event_id);
+    do {
+        value = lock(hhal, event_id);
 
-	uint32_t value;
-	printf("Wait state %d: id %d", state, event.id);
-	do {
-		value = lock(hhal, event);
+        if (value != state) {
+            printf("Expected %d, instead it's %d\n", state, value);
+            write(hhal, event_id, value);
+        }
 
-		if (value != state) {
-			printf("Expected %d, instead it's %d\n", state, value);
-            write(hhal, event.id, value);
-			// std::this_thread::yield();
-		}
+    } while (value != state);
+}
 
-	} while (value != state);
+void do_memory_management(GNManager &manager) {
+    MM mm;
+    std::vector<gn_buffer>  buffers;
+    std::vector<gn_event>   events;
+    std::vector<gn_kernel>  kernels;
+
+    for(auto &b_pair: manager.buffer_info) {
+        buffers.push_back(b_pair.second);
+    }
+    for(auto &e_pair: manager.event_info) {
+        events.push_back(e_pair.second);
+    }
+    for(auto &k_pair: manager.kernel_info) {
+        kernels.push_back(k_pair.second);
+    }
+
+    mm.set_vaddr_kernels(manager, kernels);
+	mm.set_vaddr_buffers(manager, buffers);
+	mm.set_vaddr_events(manager, events);
+}
+
+void prepare_events_registers(HHAL &hhal, std::vector<struct event> events, std::vector<registered_buffer> buffers) {
+    printf("Preparing event registers\n");
+	// This function will initialize the event values to zero
+
+	for(auto &et : events) {
+		// It follows a strange pattern:
+		// - We read the value (this should change to zero the register)
+		read(hhal, et.id);
+		// - We re-read the value and now must be zero
+		int value = read(hhal, et.id);
+		assert( 0 == value );
+		UNUSED(value);
+	}
+
+	for(auto &bt : buffers) {
+		auto et_id = bt.event;
+
+		// assert(et->get_phy_addr() != 0); needed?
+
+		read(hhal, et_id);	// Read the event BEFORE writing it to allow the initialization
+				// in case of write-accumulare register
+		int value = read(hhal, et_id);
+		assert( 0 == value );
+		UNUSED(value);
+
+        const int WRITE = 2;
+        write(hhal, et_id, WRITE);
+	}
 }
 
 std::string get_arguments(HHAL &hhal, struct kernel kernel, std::vector<struct Arg> &args) {
@@ -320,26 +376,6 @@ registered_buffer register_buffer(struct buffer buffer) {
     };
 };
 
-void do_memory_management(HHAL &hhal, MM &mm) {
-    std::vector<gn_buffer>  buffers;
-    std::vector<gn_event>   events;
-    std::vector<gn_kernel>  kernels;
-
-    for(auto &b_pair: hhal.gn_manager.buffer_info) {
-        buffers.push_back(b_pair.second);
-    }
-    for(auto &e_pair: hhal.gn_manager.event_info) {
-        events.push_back(e_pair.second);
-    }
-    for(auto &k_pair: hhal.gn_manager.kernel_info) {
-        kernels.push_back(k_pair.second);
-    }
-
-    mm.set_vaddr_kernels(hhal.gn_manager, kernels);
-	mm.set_vaddr_buffers(hhal.gn_manager, buffers);
-	mm.set_vaddr_events(hhal.gn_manager, events);
-}
-
 std::vector<Arg> arguments_setup(HHAL &hhal, registered_kernel kernel, std::vector<Arg> base_args) {
     std::vector<Arg> args;
     auto event = kernel.kernel_termination_event;
@@ -355,41 +391,8 @@ std::vector<Arg> arguments_setup(HHAL &hhal, registered_kernel kernel, std::vect
     return args;
 }
 
-#define UNUSED(x) ((void)x)
-
-void prepare_events_registers(HHAL &hhal, std::vector<struct event> events, std::vector<registered_buffer> buffers) {
-
-	// This function will initialize the event values to zero
-
-	for(auto &et : events) {
-		// It follows a strange pattern:
-		// - We read the value (this should change to zero the register)
-		read(hhal, et.id);
-		// - We re-read the value and now must be zero
-		int value = read(hhal, et.id);
-		assert( 0 == value );
-		UNUSED(value);
-	}
-
-	for(auto &bt : buffers) {
-		auto et = bt.event;
-
-		// assert(et->get_phy_addr() != 0); needed?
-
-		read(hhal, et);	// Read the event BEFORE writing it to allow the initialization
-				// in case of write-accumulare register
-		int value = read(hhal, et);
-		assert( 0 == value );
-		UNUSED(value);
-
-        const int WRITE = 2;
-        write(hhal, et, WRITE);
-	}
-}
-
 int main(void) {
     HHAL hhal;
-    MM mm;
 
     std::ifstream kernel_fd(KERNEL_PATH, std::ifstream::in | std::ifstream::ate);
     size_t kernel_size = (size_t) kernel_fd.tellg() + 1;
@@ -463,8 +466,7 @@ int main(void) {
     /* resource allocation */
     // mango_resource_allocation(tg);
     resource_allocation(hhal, r_kernel, r_buffers, events);
-    do_memory_management(hhal, mm);
-    prepare_events_registers(hhal, events, r_buffers);
+    printf("resource allocation done\n");
 
     /* Execution preparation */
 
@@ -487,21 +489,20 @@ int main(void) {
     // mango_event_t ev = mango_start_kernel(k1, args, 0);
 
     std::string arguments = get_arguments(hhal, kernel, args);
-    printf("Kernel argument string:\n", arguments.c_str());
-    printf("%s\n", arguments.c_str());
+    printf("Kernel argument string:\n%s\n", arguments.c_str());
     // Gotta write 0 to the event before starting the kernel
     write(hhal, kernel_termination_event.id, 0);
     hhal.kernel_start_string_args(KID, arguments);
 
     /* reading results */
     // mango_wait(e);
-    wait(hhal, buffer_event, 1);
+    wait(hhal, buffer_event.id, 1);
     // mango_read(C, b3, DIRECT, 0);
     hhal.read_from_memory(B3, C, buffer_size);
 
     /* wait for kernel completion */
     // mango_wait(ev);
-    wait(hhal, kernel_termination_event, 1);
+    wait(hhal, kernel_termination_event.id, 1);
 
 
     /* shut down the mango infrastructure */

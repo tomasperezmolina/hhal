@@ -74,6 +74,7 @@ class GNManager {
 
         mango_addr_t get_virtual_address_alignment(hhal_tlb_entry_type_t) const { return 0x0; }
 
+        GNManagerExitCode do_memory_management();
 
         int num_clusters;
         std::map<int, TLB> tlbs;

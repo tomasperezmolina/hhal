@@ -33,7 +33,10 @@
 namespace hhal {
 
 HHAL::HHAL() {
-    gn_manager.initialize();
+    GNManagerExitCode ec = gn_manager.initialize();
+    if (ec != GNManagerExitCode::OK) {
+        printf("[Error] Could not initialized GNManager\n");
+    }
 }
 
 HHALExitCode HHAL::assign_kernel(Unit unit, hhal_kernel *info) {
@@ -114,6 +117,7 @@ HHALExitCode HHAL::kernel_start(int kernel_id, void *arguments) {
 }
 
 HHALExitCode HHAL::kernel_start_string_args(int kernel_id, std::string arguments) {
+    printf("Starting kernel\n");
     switch (kernel_to_unit[kernel_id]) {
         case Unit::GN:
             MAP_GN_EXIT_CODE(gn_manager.kernel_start_string_args(kernel_id, arguments));

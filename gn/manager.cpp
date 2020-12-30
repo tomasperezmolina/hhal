@@ -7,6 +7,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "gn/mm.h"
+
 #define MANGO_ROOT "/opt/mango"
 
 #define MANGO_SEMAPHORE       "mango_sem"
@@ -40,6 +42,7 @@ GNManagerExitCode GNManager::initialize() {
     if (sem_id == NULL) {
         return GNManagerExitCode::ERROR;
     }
+    printf("Sem_id: %p\n", sem_id);
 
     mode_t old_mask = umask(0);
     f_mem = open(MANGO_DEVICE_MEMORY,O_RDWR | O_CREAT, 0666);
@@ -220,7 +223,12 @@ GNManagerExitCode GNManager::read_sync_register(int event_id, uint8_t *data) {
     reg_address -= info.cluster_id * MANGO_REG_SIZE * 4;
     reg_address /= sizeof(mango_addr_t);
 
-    sem_wait(sem_id);
+    if (sem_wait(sem_id) == -1) {
+        printf("sem wait failed!\n");
+    }
+    else {
+        printf("sem wait success\n");
+    }
 
     uint8_t result = mem[reg_address];
     mem[reg_address]=0;
@@ -269,6 +277,7 @@ void GNManager::init_semaphore(void) {
 
     GNManager::sem_id = sem_open(MANGO_SEMAPHORE, O_CREAT, 0666, 1);
     if (sem_id == SEM_FAILED) {
+        printf("GNLibHHAL: Unable to init semaphore.\n");
         throw std::runtime_error("GNLibHHAL: Unable to init semaphore.");
     }
     umask(old_mask);
@@ -403,6 +412,27 @@ GNManagerExitCode GNManager::release_units_set(mango_cluster_id_t cluster, const
         return GNManagerExitCode::ERROR;
     else
         return GNManagerExitCode::OK;
+}
+
+GNManagerExitCode GNManager::do_memory_management() {
+    MM mm;
+    std::vector<gn_buffer>  buffers;
+    std::vector<gn_event>   events;
+    std::vector<gn_kernel>  kernels;
+
+    for(auto &b_pair: buffer_info) {
+        buffers.push_back(b_pair.second);
+    }
+    for(auto &e_pair: event_info) {
+        events.push_back(e_pair.second);
+    }
+    for(auto &k_pair: kernel_info) {
+        kernels.push_back(k_pair.second);
+    }
+
+    mm.set_vaddr_kernels(*this, kernels);
+	mm.set_vaddr_buffers(*this, buffers);
+	mm.set_vaddr_events(*this, events);
 }
 
 }
