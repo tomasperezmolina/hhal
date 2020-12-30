@@ -6,7 +6,13 @@
 #include <cstdint>
 
 #include "nvidia/types.h"
-#include "cuda_api.h"
+
+// There should be a cleaner solution to enable/disable a manager.
+// If its not done here it would have to be done at the hhal.cpp for each function.
+// For now this seems like the lowest effort approach.
+#ifdef ENABLE_NVIDIA
+    #include "cuda_api.h"
+#endif
 
 namespace hhal {
 
@@ -17,6 +23,7 @@ enum class NvidiaManagerExitCode {
 
 class NvidiaManager {
     public:
+#ifdef ENABLE_NVIDIA
         NvidiaManagerExitCode assign_kernel(nvidia_kernel *info);
         NvidiaManagerExitCode assign_buffer(nvidia_buffer *info);
         NvidiaManagerExitCode assign_event(nvidia_event *info);
@@ -34,13 +41,62 @@ class NvidiaManager {
         NvidiaManagerExitCode read_from_memory(int buffer_id, void *dest, size_t size);
         NvidiaManagerExitCode write_sync_register(int event_id, uint8_t data);
         NvidiaManagerExitCode read_sync_register(int event_id, uint8_t *data);
+#else
+        inline NvidiaManagerExitCode assign_kernel(nvidia_kernel *info) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+        inline NvidiaManagerExitCode assign_buffer(nvidia_buffer *info) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+        inline NvidiaManagerExitCode assign_event(nvidia_event *info) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+
+        inline NvidiaManagerExitCode kernel_write(int kernel_id, std::string image_path) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+
+        inline NvidiaManagerExitCode kernel_start(int kernel_id, void *arguments) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+        inline NvidiaManagerExitCode kernel_start_string_args(int kernel_id, std::string arguments) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+
+        inline NvidiaManagerExitCode allocate_memory(int buffer_id) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+        inline NvidiaManagerExitCode allocate_kernel(int kernel_id) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+        inline NvidiaManagerExitCode release_memory(int buffer_id) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+        inline NvidiaManagerExitCode release_kernel(int kernel_id) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+        inline NvidiaManagerExitCode write_to_memory(int buffer_id, const void *source, size_t size) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+        inline NvidiaManagerExitCode read_from_memory(int buffer_id, void *dest, size_t size) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+        inline NvidiaManagerExitCode write_sync_register(int event_id, uint8_t data) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+        inline NvidiaManagerExitCode read_sync_register(int event_id, uint8_t *data) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+#endif
 
     private:
         std::map<int, nvidia_kernel> kernel_info;
         std::map<int, nvidia_buffer> buffer_info;
         std::map<int, nvidia_event> event_info;
 
+#ifdef ENABLE_NVIDIA
         CudaApi cuda_api;
+#endif
         uint8_t data;
 };
 
