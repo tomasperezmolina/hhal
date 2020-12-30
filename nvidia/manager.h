@@ -22,8 +22,10 @@ class NvidiaManager {
         NvidiaManagerExitCode assign_event(nvidia_event *info);
 
         NvidiaManagerExitCode kernel_write(int kernel_id, std::string image_path);
-        // TODO kernel_start(kernel_id, ..., char *args)
+
+        NvidiaManagerExitCode kernel_start(int kernel_id, void *arguments);
         NvidiaManagerExitCode kernel_start_string_args(int kernel_id, std::string arguments);
+
         NvidiaManagerExitCode allocate_memory(int buffer_id);
         NvidiaManagerExitCode allocate_kernel(int kernel_id);
         NvidiaManagerExitCode release_memory(int buffer_id);

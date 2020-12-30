@@ -13,7 +13,7 @@ namespace hhal {
     HNManagerExitCode HNManager::kernel_write(int kernel_id, std::string image_path) {
         return HNManagerExitCode::OK;
     }
-    HNManagerExitCode HNManager::kernel_start(int kernel_id, std::string arguments) {
+    HNManagerExitCode HNManager::kernel_start_string_args(int kernel_id, std::string arguments) {
         return HNManagerExitCode::OK;
     }
     HNManagerExitCode HNManager::write_to_memory(int buffer_id, const void *source, size_t size) {

@@ -47,6 +47,19 @@ namespace hhal {
         return NvidiaManagerExitCode::OK;
     }
 
+    NvidiaManagerExitCode NvidiaManager::kernel_start(int kernel_id, void *arguments) {
+        nvidia_kernel_args *args = (nvidia_kernel_args *) arguments;
+        CudaApiExitCode err = cuda_api.launch_kernel(kernel_id, args->function_name, args->arg_array, args->arg_count);
+
+        if (err != OK) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+
+        // TODO a separate thread should set this to indicate the kernel is done, also the arguments should specify the kernel.
+        write_sync_register(0, 1);
+        return NvidiaManagerExitCode::OK;
+    }
+
     NvidiaManagerExitCode NvidiaManager::kernel_start_string_args(int kernel_id, std::string arguments) {
         CudaApiExitCode err = cuda_api.launch_kernel_string_args(arguments.c_str(), arguments.size());
 

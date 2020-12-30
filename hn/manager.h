@@ -21,7 +21,7 @@ class HNManager {
         HNManagerExitCode assign_event(hn_event *info);
 
         HNManagerExitCode kernel_write(int kernel_id, std::string image_path);
-        HNManagerExitCode kernel_start(int kernel_id, std::string arguments);
+        HNManagerExitCode kernel_start_string_args(int kernel_id, std::string arguments);
 
         // BBQUE handles HN memory directly from now
         // HNManagerExitCode allocate_memory(int buffer_id);

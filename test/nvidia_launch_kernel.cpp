@@ -28,6 +28,14 @@ struct buffer {
     size_t size;
 };
 
+struct kernel_args {
+    char *function_name;
+    //int threads;
+    //int blocks;
+    int arg_count;
+    char *arg_array;
+};
+
 // This should be handled in the RM side, it lives here for now as there are not two libraries at the moment.
 // In the future there would be a library for RM which handles this,
 // and a library for kernel execution which handles whats in the main function.
@@ -75,8 +83,34 @@ int main(void) {
     hhal.write_to_memory(BUFFER_X_ID, x, buffer_size);
     hhal.write_to_memory(BUFFER_Y_ID, y, buffer_size);
 
+
+
     // Set up arguments
-    // Doing it this way to easily convert them to string, in reality you need to manually create the string
+    int arg_count = 5;
+    char *args = (char *) malloc(sizeof(ValueArg) * 2 + sizeof(BufferArg) * 3);
+    char *current_arg = args;
+
+    ValueArg *arg_a = (ValueArg *) current_arg;
+    *arg_a = {VALUE, a};
+    current_arg += sizeof(ValueArg);
+
+    BufferArg *arg_x = (BufferArg *) current_arg;
+    *arg_x = {BUFFER, BUFFER_X_ID, true};
+    current_arg += sizeof(BufferArg);
+
+    BufferArg *arg_y = (BufferArg *) current_arg;
+    *arg_y = {BUFFER, BUFFER_Y_ID, true};
+    current_arg += sizeof(BufferArg);
+
+    BufferArg *arg_o = (BufferArg *) current_arg;
+    *arg_o = {BUFFER, BUFFER_O_ID, false};
+    current_arg += sizeof(BufferArg);
+
+    ValueArg *arg_n = (ValueArg *) current_arg;
+    *arg_n = {VALUE, (float)n};
+    current_arg += sizeof(ValueArg);
+
+    /* String args
     ValueArg  arg_a = {VALUE, a};
     BufferArg arg_x = {BUFFER, BUFFER_X_ID, true};
     BufferArg arg_y = {BUFFER, BUFFER_Y_ID, true};
@@ -88,8 +122,13 @@ int main(void) {
     // Arguments to a string
     std::string arguments = args_to_string(KERNEL_NAME, KERNEL_ID, args);
 
+    hhal.kernel_start_string_args(KERNEL_ID, arguments);
+    */
+
+    kernel_args kernel_arguments = { (char *) KERNEL_NAME, arg_count, args };
+
     // Launch kernel
-    hhal.kernel_start(KERNEL_ID, arguments);
+    hhal.kernel_start(KERNEL_ID, &kernel_arguments);
 
     hhal.read_from_memory(BUFFER_O_ID, o, buffer_size);
 
@@ -102,6 +141,7 @@ int main(void) {
     hhal.release_memory(BUFFER_Y_ID);
     hhal.release_memory(BUFFER_O_ID);
 
+    free(args);
     delete[] x;
     delete[] y;
     delete[] o;
