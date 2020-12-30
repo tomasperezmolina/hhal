@@ -3,12 +3,12 @@ project(matrix_multiplication_kernel LANGUAGES C CXX)
 set(Main_File main.c)
 
 set_source_files_properties(${Main_File}
-						   PROPERTIES GENERATED TRUE)
+    PROPERTIES GENERATED TRUE)
 
 add_custom_target (matrix_multiplication_main_gen
-        COMMAND ${MANGO_ROOT}/usr/bin/mango_gen_kernel_entry.py GN ${CMAKE_CURRENT_SOURCE_DIR}/matrix_multiplication_dev.c
-        COMMENT "Generating main.c..."
-        WORKING_DIRECTORY "${CMAKE_CURRENT_BUILD_DIR}"
+    COMMAND ${MANGO_ROOT}/usr/bin/mango_gen_kernel_entry.py GN ${CMAKE_CURRENT_SOURCE_DIR}/matrix_multiplication_dev.c
+    COMMENT "Generating main.c..."
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BUILD_DIR}"
 )
 
 add_executable(matrix_multiplication_dev matrix_multiplication_dev.c ${Main_File})
