@@ -223,15 +223,10 @@ GNManagerExitCode GNManager::read_sync_register(int event_id, uint8_t *data) {
     reg_address -= info.cluster_id * MANGO_REG_SIZE * 4;
     reg_address /= sizeof(mango_addr_t);
 
-    if (sem_wait(sem_id) == -1) {
-        printf("sem wait failed!\n");
-    }
-    else {
-        printf("sem wait success\n");
-    }
+    sem_wait(sem_id);
 
     uint8_t result = mem[reg_address];
-    mem[reg_address]=0;
+    mem[reg_address] = 0;
 
     sem_post(sem_id);
 
