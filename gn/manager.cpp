@@ -39,10 +39,9 @@ GNManagerExitCode GNManager::initialize() {
     printf("Num clusters: %d\n", num_clusters);
 
     init_semaphore();
-    if (sem_id == NULL) {
+    if (sem_id == NULL || sem_id == SEM_FAILED) {
         return GNManagerExitCode::ERROR;
     }
-    printf("Sem_id: %p\n", sem_id);
 
     mode_t old_mask = umask(0);
     f_mem = open(MANGO_DEVICE_MEMORY,O_RDWR | O_CREAT, 0666);
@@ -273,7 +272,6 @@ void GNManager::init_semaphore(void) {
     GNManager::sem_id = sem_open(MANGO_SEMAPHORE, O_CREAT, 0666, 1);
     if (sem_id == SEM_FAILED) {
         printf("GNLibHHAL: Unable to init semaphore.\n");
-        throw std::runtime_error("GNLibHHAL: Unable to init semaphore.");
     }
     umask(old_mask);
 
@@ -428,6 +426,39 @@ GNManagerExitCode GNManager::do_memory_management() {
     mm.set_vaddr_kernels(*this, kernels);
 	mm.set_vaddr_buffers(*this, buffers);
 	mm.set_vaddr_events(*this, events);
+}
+
+GNManagerExitCode GNManager::prepare_events_registers() {
+    printf("Preparing event registers\n");
+    // This function will initialize the event values to zero
+    GNManagerExitCode ec;
+
+	for(auto &et_pair : event_info) {
+        // It follows a strange pattern:
+        // - We read the value (this should change to zero the register)
+        uint8_t value;
+        ec = read_sync_register(et_pair.first, &value);
+        if (ec != GNManagerExitCode::OK) return ec;
+        // - We re-read the value and now must be zero
+        ec = read_sync_register(et_pair.first, &value);
+        if (ec != GNManagerExitCode::OK) return ec;
+        assert( 0 == value );
+    }
+
+	for(auto &bt_pair : buffer_info) {
+        auto et_id = bt_pair.second.event;
+
+        // Read the event BEFORE writing it to allow the initialization
+        // in case of write-accumulare register
+        uint8_t value;
+        ec = read_sync_register(et_id, &value); 
+        if (ec != GNManagerExitCode::OK) return ec;
+        assert( 0 == value );
+
+        const int WRITE = 2;
+        ec = write_sync_register(et_id, WRITE);
+        if (ec != GNManagerExitCode::OK) return ec;
+    }
 }
 
 }

@@ -63,8 +63,6 @@ typedef struct registered_buffer_t {
     int event;
 } registered_buffer;
 
-void prepare_events_registers(HHAL &hhal, std::vector<struct event> events, std::vector<registered_buffer> buffers);
-
 void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<registered_buffer> buffers, std::vector<struct event> events) {
 	printf("[DummyRM] resource_allocation\n");
 
@@ -165,7 +163,7 @@ void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<regis
 	}
 
     hhal.gn_manager.do_memory_management();
-    prepare_events_registers(hhal, events, buffers);
+    hhal.gn_manager.prepare_events_registers();
 }
 
 void resource_deallocation(HHAL &hhal, struct kernel kernel, std::vector<struct buffer> buffers, std::vector<struct event> events) {
@@ -225,37 +223,6 @@ void kernel_function(int *A, int *B, int *C, int rows, int cols) {
     }
   }
 	return;
-}
-
-
-void prepare_events_registers(HHAL &hhal, std::vector<struct event> events, std::vector<registered_buffer> buffers) {
-    printf("Preparing event registers\n");
-    // This function will initialize the event values to zero
-
-	for(auto &et : events) {
-        // It follows a strange pattern:
-        // - We read the value (this should change to zero the register)
-        events::read(hhal, et.id);
-        // - We re-read the value and now must be zero
-        int value = events::read(hhal, et.id);
-        assert( 0 == value );
-        UNUSED(value);
-    }
-
-	for(auto &bt : buffers) {
-        auto et_id = bt.event;
-
-        // assert(et->get_phy_addr() != 0); needed?
-
-        events::read(hhal, et_id);	// Read the event BEFORE writing it to allow the initialization
-                // in case of write-accumulare register
-        int value = events::read(hhal, et_id);
-        assert( 0 == value );
-        UNUSED(value);
-
-        const int WRITE = 2;
-        events::write(hhal, et_id, WRITE);
-    }
 }
 
 std::string get_arguments(HHAL &hhal, struct kernel kernel, std::vector<struct Arg> &args) {
