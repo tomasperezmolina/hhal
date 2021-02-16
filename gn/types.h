@@ -2,6 +2,7 @@
 #define GN_TYPES_H
 
 #include <vector>
+#include <string>
 
 namespace hhal {
 
@@ -17,6 +18,7 @@ typedef struct gn_kernel_t {
     int unit_id;
     std::vector<int> task_events;
     int termination_event;
+    std::string image_path;
 } gn_kernel;
 
 typedef struct gn_buffer_t {

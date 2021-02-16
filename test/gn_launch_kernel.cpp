@@ -4,10 +4,7 @@
 
 #include "hhal.h"
 #include "event_utils.h"
-
-#include <stdlib.h>
-
-#define UNUSED(x) ((void)x)
+#include "arguments.h"
 
 struct kernel {
     int id;
@@ -26,17 +23,6 @@ struct event {
     int id;
     std::vector<int> kernels_in;
     std::vector<int> kernels_out;
-};
-
-enum class ArgType {
-    BUFFER,
-    EVENT,
-    SCALAR
-};
-
-struct Arg {
-    ArgType type;
-    int data;
 };
 
 using namespace hhal;
@@ -225,46 +211,6 @@ void kernel_function(int *A, int *B, int *C, int rows, int cols) {
 	return;
 }
 
-std::string get_arguments(HHAL &hhal, struct kernel kernel, std::vector<struct Arg> &args) {
-	std::stringstream ss;
-
-	//get full memory size
-    uint32_t num_clusters;
-    unsigned long long mem_size = 0;
-    num_clusters = hhal.gn_manager.num_clusters;
-
-    for (uint32_t cluster_id = 0; cluster_id< num_clusters; cluster_id++){
-        hhal_tile_description_t htd = hhal.gn_manager.get_tiles(cluster_id);
-        for (int i = 0; i < htd.total_tiles; i++) {
-            mem_size += hhal.gn_manager.get_memory_size(cluster_id, i);
-        }
-    }
-    ss << kernel.image_path;
-    ss << " 0x" << std::hex << mem_size;
-
-    auto &tlb = hhal.gn_manager.tlbs[kernel.id];
-
-	for (const auto &arg : args) {
-        switch (arg.type) {
-            case ArgType::BUFFER:
-                ss << " 0x" << std::hex << tlb.get_virt_addr_buffer(arg.data);
-                break;
-            case ArgType::EVENT:
-                ss << " 0x" << std::hex << tlb.get_virt_addr_event(arg.data);
-                break;
-            case ArgType::SCALAR:
-                ss << " " << arg.data;
-                break;
-            default:
-                printf("Unknown argument\n");
-                break;
-        }
-	}
-
-	return ss.str();
-
-}
-
 registered_kernel register_kernel(struct kernel kernel) {
     return {
         kernel,
@@ -275,7 +221,6 @@ registered_kernel register_kernel(struct kernel kernel) {
     };
 }
 
-
 registered_buffer register_buffer(struct buffer buffer) {
     return {
         buffer,
@@ -283,46 +228,23 @@ registered_buffer register_buffer(struct buffer buffer) {
     };
 };
 
-std::vector<Arg> arguments_setup(HHAL &hhal, registered_kernel kernel, std::vector<Arg> base_args) {
-    std::vector<Arg> args;
-    auto event = kernel.kernel_termination_event;
-	auto tlb = hhal.gn_manager.tlbs[kernel.k.id];
-
-	args.push_back({ArgType::EVENT, event});
-
-	for(const auto ev : kernel.task_events) {
-		args.push_back({ArgType::EVENT, ev});
-	}
-
-    args.insert(args.end(), base_args.begin(), base_args.end());
-    return args;
-}
-
 int main(void) {
     HHAL hhal;
 
     std::ifstream kernel_fd(KERNEL_PATH, std::ifstream::in | std::ifstream::ate);
     size_t kernel_size = (size_t) kernel_fd.tellg() + 1;
 
-    int *A;
-    int *B;
-    int *C;
-    int *D;
-    int rows;
-    int columns;
-    int out=0;
-
-    rows = 5;
-    columns = 5;
+    int rows = 5;
+    int columns = 5;
 
     size_t buffer_dim = rows*columns;
     size_t buffer_size = buffer_dim*sizeof(int); 
 
     /* matrix allocation */
-    A = new int[buffer_dim];
-    B = new int[buffer_dim];
-    C = new int[buffer_dim];
-    D = new int[buffer_dim];
+    int A[buffer_dim];
+    int B[buffer_dim];
+    int C[buffer_dim];
+    int D[buffer_dim];
 
     /* input matrices initialization */
     init_matrix(A, rows, columns);
@@ -373,18 +295,18 @@ int main(void) {
     /* resource allocation */
     // mango_resource_allocation(tg);
     resource_allocation(hhal, r_kernel, r_buffers, events);
+    hhal.kernel_write(kernel.id, kernel.image_path);
     printf("resource allocation done\n");
 
     /* Execution preparation */
 
-    struct Arg arg1 = {ArgType::BUFFER, buffers[0].id};
-    struct Arg arg2 = {ArgType::BUFFER, buffers[1].id};
-    struct Arg arg3 = {ArgType::BUFFER, buffers[2].id};
-    struct Arg arg4 = {ArgType::SCALAR, rows};
-    struct Arg arg5 = {ArgType::SCALAR, columns};
-    struct Arg arg6 = {ArgType::EVENT,  buffer_event.id};
-
-    std::vector<Arg> args = arguments_setup(hhal, r_kernel, {arg1, arg2, arg3, arg4, arg5, arg6});
+    Arguments args;
+    args.add_buffer({buffers[0].id});
+    args.add_buffer({buffers[1].id});
+    args.add_buffer({buffers[2].id});
+    args.add_scalar({&rows, sizeof(rows), ScalarType::INT});
+    args.add_scalar({&columns, sizeof(columns), ScalarType::INT});
+    args.add_event({buffer_event.id});
 
     /* Data transfer host->device */
     hhal.write_to_memory(B1, A, buffer_size);
@@ -395,11 +317,9 @@ int main(void) {
     /* spawn kernel */
     // mango_event_t ev = mango_start_kernel(k1, args, 0);
 
-    std::string arguments = get_arguments(hhal, kernel, args);
-    printf("Kernel argument string:\n%s\n", arguments.c_str());
     // Gotta write 0 to the event before starting the kernel
     events::write(hhal, kernel_termination_event.id, 0);
-    hhal.kernel_start_string_args(KID, arguments);
+    hhal.kernel_start2(KID, args);
 
     /* reading results */
     // mango_wait(e);
@@ -411,29 +331,30 @@ int main(void) {
     // mango_wait(ev);
     events::wait(hhal, kernel_termination_event.id, 1);
 
-
     /* shut down the mango infrastructure */
     // mango_resource_deallocation(tg);
     // mango_task_graph_destroy_all(tg);
     // mango_release();
     resource_deallocation(hhal, kernel, buffers, events);
 
-
     /* check results */
     kernel_function(A, B, D, rows, columns);
 
-    for(int i=0; i<rows; i++)
-        for(int j=0; j<columns; j++)
+    int out = 0;
+    for(int i = 0; i < rows; i++) {
+        for(int j = 0; j < columns; j++) {
             if(D[i*columns+j]!=C[i*columns+j]) {
                 printf("Incorrect value at %d, %d: %d vs %d\n", i, j, D[i*columns+j], C[i*columns+j]);
                 out++;
             }
+        }
+    }
 
     if (out) {
         printf("Detected %d errors in the computation\n", out);
-        exit(out);
     } else {
         printf("Matrix multiplication correctly performed\n");
-        exit(0);
     }
+
+    return out;
 }

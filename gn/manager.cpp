@@ -138,11 +138,42 @@ GNManagerExitCode GNManager::kernel_write(int kernel_id, std::string image_path)
     assert(initialized == true);
     assert(image_path.size() > 0);
     gn_kernel &info = kernel_info[kernel_id];
+    info.image_path = image_path;
 
     log_hhal.Debug("[GNLibHHAL] kernel_write: cluster=%d,  image_path=%s, memory=%d, address=0x%x",
             info.cluster_id, image_path.c_str(), info.mem_tile, info.physical_addr);
     return GNManagerExitCode::OK;
 }
+
+GNManagerExitCode GNManager::kernel_start2(int kernel_id, const Arguments &arguments) {
+    gn_kernel &info = kernel_info[kernel_id];
+
+    Arguments full_args;
+    auto event = info.termination_event;
+    auto tlb = tlbs[info.id];
+
+    full_args.add_event({event});
+
+    for(const auto ev : info.task_events) {
+        full_args.add_event({ev});
+    }
+
+    full_args.add_arguments(arguments);
+
+    std::string str_args;
+    GNManagerExitCode ec;
+    ec = get_string_arguments(kernel_id, full_args, str_args);
+    if (ec != GNManagerExitCode::OK) {
+        return GNManagerExitCode::ERROR;
+    }
+    printf("Kernel argument string:\n%s\n", str_args.c_str());
+    ec = kernel_start_string_args(kernel_id, str_args);
+    if (ec != GNManagerExitCode::OK) {
+        return GNManagerExitCode::ERROR;
+    }
+    return GNManagerExitCode::OK;
+}
+
 GNManagerExitCode GNManager::kernel_start_string_args(int kernel_id, std::string arguments) {
     assert(initialized == true);
     assert(arguments.size() > 0);
@@ -459,6 +490,75 @@ GNManagerExitCode GNManager::prepare_events_registers() {
         ec = write_sync_register(et_id, WRITE);
         if (ec != GNManagerExitCode::OK) return ec;
     }
+}
+
+GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args, std::string &str_args) {
+	std::stringstream ss;
+
+	//get full memory size
+    unsigned long long mem_size = 0;
+
+    for (uint32_t cluster_id = 0; cluster_id < num_clusters; cluster_id++){
+        hhal_tile_description_t htd = tiles.at(cluster_id);
+        for (int i = 0; i < htd.total_tiles; i++) {
+            mem_size += get_memory_size(cluster_id, i);
+        }
+    }
+
+    gn_kernel &info = kernel_info[kernel_id];
+
+    if (info.image_path == "") {
+        printf("No kernel path\n");
+        return GNManagerExitCode::ERROR;
+    }
+
+    ss << info.image_path;
+    ss << " 0x" << std::hex << mem_size;
+
+    auto &tlb = tlbs[info.id];
+
+	for (const auto &arg : args.get_args()) {
+        switch (arg.type) {
+            case ArgumentType::BUFFER:
+                ss << " 0x" << std::hex << tlb.get_virt_addr_buffer(arg.buffer.id);
+                break;
+            case ArgumentType::EVENT:
+                ss << " 0x" << std::hex << tlb.get_virt_addr_event(arg.event.id);
+                break;
+            case ArgumentType::SCALAR:
+                if (arg.scalar.type == ScalarType::INT) {
+                    switch (arg.scalar.size)
+                    {
+                    case sizeof(int8_t):
+                        ss << " " << *(int8_t*)arg.scalar.address;
+                        break;
+                    case sizeof(int16_t):
+                        ss << " " << *(int16_t*)arg.scalar.address;
+                        break;
+                    case sizeof(int32_t):
+                        ss << " " << *(int32_t*)arg.scalar.address;
+                        break;
+                    case sizeof(int64_t):
+                        ss << " " << *(int64_t*)arg.scalar.address;
+                        break;
+                    default:
+                        printf("Unknown scalar int size\n");
+                        return GNManagerExitCode::ERROR;
+                    }
+                }
+                else {
+                    printf("Float scalars not supported\n");
+                    return GNManagerExitCode::ERROR;
+                }
+                break;
+            default:
+                printf("Unknown argument\n");
+                return GNManagerExitCode::ERROR;
+        }
+	}
+    str_args = ss.str();
+
+	return GNManagerExitCode::OK;
 }
 
 }

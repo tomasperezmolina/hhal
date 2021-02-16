@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <semaphore.h>
 
+#include "arguments.h"
+
 #include "gn/gn/hnemu/hnemu.h"
 #include "gn/gn/mango_types.h"
 #include "gn/types.h"
@@ -45,6 +47,7 @@ class GNManager {
 
         GNManagerExitCode kernel_write(int kernel_id, std::string image_path);
         GNManagerExitCode kernel_start_string_args(int kernel_id, std::string arguments);
+        GNManagerExitCode kernel_start2(int kernel_id, const Arguments &arguments);
 
         GNManagerExitCode allocate_memory(int buffer_id);
         GNManagerExitCode release_memory(int buffer_id);
@@ -77,12 +80,14 @@ class GNManager {
         GNManagerExitCode do_memory_management();
         GNManagerExitCode prepare_events_registers();
 
-        int num_clusters;
+        
         std::map<int, TLB> tlbs;
         std::map<int, gn_kernel> kernel_info;
         std::map<int, gn_event> event_info;
         std::map<int, gn_buffer> buffer_info;
+
     private:
+        int num_clusters;
         bool initialized = false;
         int max_buffers = 2048;
         int max_kernels = 2048;
@@ -97,6 +102,8 @@ class GNManager {
         static int f_mem;
         static std::map<mango_cluster_id_t, std::vector<mango_addr_t>> event_register_off;
         static void init_semaphore(void);
+
+        GNManagerExitCode get_string_arguments(int kernel_id, Arguments &args, std::string &str_args);
 };
 
 }
