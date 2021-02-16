@@ -7,8 +7,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "gn/mm.h"
-
 #define MANGO_ROOT "/opt/mango"
 
 #define MANGO_SEMAPHORE       "mango_sem"

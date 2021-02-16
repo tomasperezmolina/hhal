@@ -1,4 +1,4 @@
-#include "mm.h"
+#include "gn/manager.h"
 
 #include <assert.h>
 #include <iostream>
@@ -7,7 +7,7 @@ using namespace mango;
 
 namespace hhal {
 
-void MM::set_tlb_kb(GNManager &manager, mango_id_t unit, mango_id_t mem_bank, mango_addr_t starting_addr,
+void GNManager::MM::set_tlb_kb(GNManager &manager, mango_id_t unit, mango_id_t mem_bank, mango_addr_t starting_addr,
             mango_size_t size, mango_addr_t phy_addr, int is_kernel,
             uint32_t cluster_id) const noexcept {
 
@@ -20,15 +20,15 @@ void MM::set_tlb_kb(GNManager &manager, mango_id_t unit, mango_id_t mem_bank, ma
     }
 }
 
-MM::MM() noexcept {
+GNManager::MM::MM() noexcept {
     printf("[info] Local Memory Manager (virtual addresses) initializing...");
 }
 
-MM::~MM() noexcept {
+GNManager::MM::~MM() noexcept {
     // Nothing to do
 }
 
-mango_exit_code_t MM::set_vaddr_kernels(GNManager &manager, std::vector<gn_kernel> &kernels) noexcept {
+mango_exit_code_t GNManager::MM::set_vaddr_kernels(GNManager &manager, std::vector<gn_kernel> &kernels) noexcept {
 
     entries.clear();
 
@@ -66,7 +66,7 @@ mango_exit_code_t MM::set_vaddr_kernels(GNManager &manager, std::vector<gn_kerne
     return ExitCode::SUCCESS;
 }
 
-mango_exit_code_t MM::set_vaddr_buffers(GNManager &manager, std::vector<gn_buffer> &buffers) noexcept {
+mango_exit_code_t GNManager::MM::set_vaddr_buffers(GNManager &manager, std::vector<gn_buffer> &buffers) noexcept {
 
     for(auto &b : buffers){
         printf("[Debug] Mapping input buffers...\n");
@@ -88,7 +88,7 @@ mango_exit_code_t MM::set_vaddr_buffers(GNManager &manager, std::vector<gn_buffe
 
 }
 
-mango_exit_code_t MM::set_vaddr_events(GNManager &manager, std::vector<gn_event> &events) noexcept {
+mango_exit_code_t GNManager::MM::set_vaddr_events(GNManager &manager, std::vector<gn_event> &events) noexcept {
     printf("[Debug] Mapping events...\n");
 
     for(auto &e : events) {
@@ -138,7 +138,7 @@ mango_exit_code_t MM::set_vaddr_events(GNManager &manager, std::vector<gn_event>
     return ExitCode::SUCCESS;
 }
 
-void MM::set_buff_tlb(GNManager &manager, gn_kernel &k, gn_buffer &b) noexcept {
+void GNManager::MM::set_buff_tlb(GNManager &manager, gn_kernel &k, gn_buffer &b) noexcept {
 
     auto &tlb = manager.tlbs[k.id];
 
@@ -175,7 +175,7 @@ void MM::set_buff_tlb(GNManager &manager, gn_kernel &k, gn_buffer &b) noexcept {
 
 }
 
-void MM::set_event_tlb(GNManager &manager, gn_kernel &k, gn_event &e) noexcept {
+void GNManager::MM::set_event_tlb(GNManager &manager, gn_kernel &k, gn_event &e) noexcept {
 
     // const auto unit = k->get_assigned_unit();
     const auto unit_arch = UnitType::GN;
