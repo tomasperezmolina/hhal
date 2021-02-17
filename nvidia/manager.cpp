@@ -1,6 +1,8 @@
 #include <fstream>
+#include <algorithm>
 
 #include "nvidia/manager.h"
+#include "kernel_arguments.h"
 
 namespace hhal {
 
@@ -44,12 +46,95 @@ namespace hhal {
         if (err != OK) {
             return NvidiaManagerExitCode::ERROR;
         }
+
+        // For now we assume that the function name is equal to the filename
+        std::string function_name = image_path;
+
+        // Remove directory if present.
+        const size_t last_slash_idx = function_name.find_last_of("/");
+        if (std::string::npos != last_slash_idx) {
+            function_name.erase(0, last_slash_idx + 1);
+        }
+
+        // Remove extension if present.
+        const size_t period_idx = function_name.rfind('.');
+        if (std::string::npos != period_idx) {
+            function_name.erase(period_idx);
+        }
+        info.function_name = function_name;
+
         return NvidiaManagerExitCode::OK;
     }
 
     NvidiaManagerExitCode NvidiaManager::kernel_start(int kernel_id, void *arguments) {
         nvidia_kernel_args *args = (nvidia_kernel_args *) arguments;
         CudaApiExitCode err = cuda_api.launch_kernel(kernel_id, args->function_name, args->arg_array, args->arg_count);
+
+        if (err != OK) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+
+        // TODO a separate thread should set this to indicate the kernel is done, also the arguments should specify the kernel.
+        write_sync_register(0, 1);
+        return NvidiaManagerExitCode::OK;
+    }
+
+    NvidiaManagerExitCode NvidiaManager::kernel_start2(int kernel_id, const Arguments &arguments) {
+        auto &args = arguments.get_args();
+        int arg_count = args.size();
+        size_t arg_array_size = 0;
+        for(auto &arg: args) {
+            switch (arg.type) {
+                case ArgumentType::BUFFER:
+                    arg_array_size += sizeof(cuda_manager::BufferArg);
+                    break;
+                case ArgumentType::EVENT:
+                    printf("Events not supported yet\n");
+                    return NvidiaManagerExitCode::ERROR; 
+                    break;
+                case ArgumentType::SCALAR:
+                    if (arg.scalar.type == ScalarType::FLOAT && arg.scalar.size == sizeof(float)) {
+                        arg_array_size += sizeof(cuda_manager::ValueArg);
+                    }
+                    else {
+                        printf("Only floats are supported at the moment\n");
+                        return NvidiaManagerExitCode::ERROR; 
+                    }
+                    break;
+                default:
+                    printf("Unknown argument\n");
+                    return NvidiaManagerExitCode::ERROR; 
+            }
+        }
+
+        char *arg_array = (char*) malloc(arg_array_size);
+        char *current_arg = arg_array;
+
+        for(auto &arg: args) {
+            switch (arg.type) {
+                case ArgumentType::BUFFER: {
+                    auto &b_info = buffer_info[arg.buffer.id];
+                    auto &in_kernels = b_info.kernels_in;
+                    bool is_in = std::find(in_kernels.begin(), in_kernels.end(), kernel_id) != in_kernels.end();
+                    auto *arg_x = (cuda_manager::BufferArg *) current_arg;
+                    *arg_x = {cuda_manager::BUFFER, b_info.id, is_in};
+                    current_arg += sizeof(cuda_manager::BufferArg);
+                    break;
+                } 
+                case ArgumentType::SCALAR: {
+                    auto *arg_a = (cuda_manager::ValueArg *) current_arg;
+                    *arg_a = {cuda_manager::VALUE, * (float*) arg.scalar.address};
+                    current_arg += sizeof(cuda_manager::ValueArg);
+                    arg_array_size += sizeof(cuda_manager::ValueArg);
+                    break;
+                }
+                default:
+                    printf("This should not happen\n");
+                    return NvidiaManagerExitCode::ERROR;
+            }
+        }
+
+        CudaApiExitCode err = cuda_api.launch_kernel(kernel_id, kernel_info[kernel_id].function_name.c_str(), arg_array, arg_count);
 
         if (err != OK) {
             return NvidiaManagerExitCode::ERROR;

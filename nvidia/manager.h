@@ -5,6 +5,7 @@
 #include <string>
 #include <cstdint>
 
+#include "arguments.h"
 #include "nvidia/types.h"
 
 // There should be a cleaner solution to enable/disable a manager.
@@ -32,6 +33,7 @@ class NvidiaManager {
 
         NvidiaManagerExitCode kernel_start(int kernel_id, void *arguments);
         NvidiaManagerExitCode kernel_start_string_args(int kernel_id, std::string arguments);
+        NvidiaManagerExitCode kernel_start2(int kernel_id, const Arguments &arguments);
 
         NvidiaManagerExitCode allocate_memory(int buffer_id);
         NvidiaManagerExitCode allocate_kernel(int kernel_id);
@@ -62,7 +64,9 @@ class NvidiaManager {
         inline NvidiaManagerExitCode kernel_start_string_args(int kernel_id, std::string arguments) {
             return NvidiaManagerExitCode::ERROR;
         }
-
+        inline NvidiaManagerExitCode kernel_start2(int kernel_id, const Arguments &arguments) {
+            return NvidiaManagerExitCode::ERROR;
+        }
         inline NvidiaManagerExitCode allocate_memory(int buffer_id) {
             return NvidiaManagerExitCode::ERROR;
         }

@@ -136,9 +136,11 @@ HHALExitCode HHAL::kernel_start_string_args(int kernel_id, std::string arguments
 HHALExitCode HHAL::kernel_start2(int kernel_id, const Arguments &arguments) {
     printf("Starting kernel\n");
     switch (kernel_to_unit[kernel_id]) {
-        
         case Unit::GN:
             MAP_GN_EXIT_CODE(gn_manager.kernel_start2(kernel_id, arguments));
+            break;
+        case Unit::NVIDIA:
+            MAP_NVIDIA_EXIT_CODE(nvidia_manager.kernel_start2(kernel_id, arguments));
             break;
         default:
             break;

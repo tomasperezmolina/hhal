@@ -8,7 +8,6 @@
 
 struct kernel {
     int id;
-    std::string image_path;
     size_t image_size;
 };
 
@@ -253,7 +252,7 @@ int main(void) {
     // /* initialization of the mango context */
     // mango_init("matrix_multiplication", "test_manga");
 
-    struct kernel kernel = { KID, KERNEL_PATH, kernel_size };
+    struct kernel kernel = { KID, kernel_size };
     registered_kernel r_kernel = register_kernel(kernel);
 
     // kernelfunction *k = mango_kernelfunction_init();
@@ -295,7 +294,7 @@ int main(void) {
     /* resource allocation */
     // mango_resource_allocation(tg);
     resource_allocation(hhal, r_kernel, r_buffers, events);
-    hhal.kernel_write(kernel.id, kernel.image_path);
+    hhal.kernel_write(kernel.id, KERNEL_PATH);
     printf("resource allocation done\n");
 
     /* Execution preparation */
