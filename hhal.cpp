@@ -35,7 +35,7 @@ namespace hhal {
 HHAL::HHAL() {
     GNManagerExitCode ec = gn_manager.initialize();
     if (ec != GNManagerExitCode::OK) {
-        printf("[Error] Could not initialized GNManager\n");
+        printf("[Error] Could not initialize GNManager\n");
     }
 }
 

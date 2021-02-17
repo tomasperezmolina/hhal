@@ -7,6 +7,8 @@
 #include "kernel_arguments.h"
 #include "cuda_argument_parser.h"
 
+#include "test/mango_arguments.h"
+
 #define KERNEL_PATH "saxpy"
 
 #define KERNEL_ID 1
@@ -17,22 +19,10 @@
 using namespace hhal;
 using namespace cuda_manager;
 
-struct kernel {
-    int id;
-    size_t image_size;
-};
-
-struct buffer {
-    int id;
-    size_t size;
-    std::vector<int> kernels_in;
-    std::vector<int> kernels_out;
-};
-
 // This should be handled in the RM side, it lives here for now as there are not two libraries at the moment.
 // In the future there would be a library for RM which handles this,
 // and a library for kernel execution which handles whats in the main function.
-void resource_management(HHAL &hhal, struct kernel kernel, std::vector<struct buffer> &buffers) {
+void resource_management(HHAL &hhal, mango_kernel kernel, std::vector<mango_buffer> &buffers) {
     nvidia_kernel k1 = { kernel.id, 0, kernel.id, kernel.image_size };
     hhal.assign_kernel(hhal::Unit::NVIDIA, (hhal_kernel *) &k1);
     hhal.allocate_kernel(KERNEL_ID);
@@ -50,7 +40,7 @@ int main(void) {
     std::ifstream kernel_fd(KERNEL_PATH, std::ifstream::in | std::ifstream::ate);
     size_t kernel_size = (size_t) kernel_fd.tellg() + 1;
 
-    struct kernel kernel = { KERNEL_ID, kernel_size };
+    mango_kernel kernel = { KERNEL_ID, kernel_size };
 
     // Setup input and output buffers
     size_t n = 100;
@@ -63,7 +53,7 @@ int main(void) {
         y[i] = static_cast<float>(i * 2);
     }
 
-    std::vector<struct buffer> buffers = {
+    std::vector<mango_buffer> buffers = {
         {BUFFER_X_ID, buffer_size, {KERNEL_ID}, {}},
         {BUFFER_Y_ID, buffer_size, {KERNEL_ID}, {}},
         {BUFFER_O_ID, buffer_size, {}, {KERNEL_ID}},

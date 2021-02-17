@@ -6,23 +6,7 @@
 #include "event_utils.h"
 #include "arguments.h"
 
-struct kernel {
-    int id;
-    size_t image_size;
-};
-
-struct buffer {
-    int id;
-    size_t size;
-    std::vector<int> kernels_in;
-    std::vector<int> kernels_out;
-};
-
-struct event {
-    int id;
-    std::vector<int> kernels_in;
-    std::vector<int> kernels_out;
-};
+#include "test/mango_arguments.h"
 
 using namespace hhal;
 
@@ -38,17 +22,17 @@ int kernel_unit_id;
 std::map<int, mango::mango_addr_t> event_addresses;
 
 typedef struct registered_kernel_t {
-    struct kernel k;
+    mango_kernel k;
     int kernel_termination_event;
     std::vector<int> task_events;
 } registered_kernel;
 
 typedef struct registered_buffer_t {
-    struct buffer b;
+    mango_buffer b;
     int event;
 } registered_buffer;
 
-void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<registered_buffer> buffers, std::vector<struct event> events) {
+void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<registered_buffer> buffers, std::vector<mango_event> events) {
 	printf("[DummyRM] resource_allocation\n");
 
 	static int u_pid = 0;
@@ -151,7 +135,7 @@ void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<regis
     hhal.gn_manager.prepare_events_registers();
 }
 
-void resource_deallocation(HHAL &hhal, struct kernel kernel, std::vector<struct buffer> buffers, std::vector<struct event> events) {
+void resource_deallocation(HHAL &hhal, mango_kernel kernel, std::vector<mango_buffer> buffers, std::vector<mango_event> events) {
 	printf("[DummyRM] resource_deallocation\n");
     mango_cluster_id_t default_cluster_id = 0;
     mango_size_t num_tiles = 1;
@@ -210,7 +194,7 @@ void kernel_function(int *A, int *B, int *C, int rows, int cols) {
 	return;
 }
 
-registered_kernel register_kernel(struct kernel kernel) {
+registered_kernel register_kernel(mango_kernel kernel) {
     return {
         kernel,
         event_id_gen++,
@@ -220,7 +204,7 @@ registered_kernel register_kernel(struct kernel kernel) {
     };
 }
 
-registered_buffer register_buffer(struct buffer buffer) {
+registered_buffer register_buffer(mango_buffer buffer) {
     return {
         buffer,
         event_id_gen++,
@@ -252,7 +236,7 @@ int main(void) {
     // /* initialization of the mango context */
     // mango_init("matrix_multiplication", "test_manga");
 
-    struct kernel kernel = { KID, kernel_size };
+    mango_kernel kernel = { KID, kernel_size };
     registered_kernel r_kernel = register_kernel(kernel);
 
     // kernelfunction *k = mango_kernelfunction_init();
@@ -266,7 +250,7 @@ int main(void) {
     // mango_buffer_t b2 = mango_register_memory(B2, rows*columns*sizeof(int), BUFFER, 0, 1, k1);
     // mango_buffer_t b3 = mango_register_memory(B3, rows*columns*sizeof(int), BUFFER, 1, 0, k1);
 
-    std::vector<struct buffer> buffers = {
+    std::vector<mango_buffer> buffers = {
         {B1, buffer_size, {}, {KID}},
         {B2, buffer_size, {}, {KID}},
         {B3, buffer_size, {KID}, {}},
@@ -279,10 +263,10 @@ int main(void) {
     /* Registration of task graph */
     // mango_task_graph_t *tg = mango_task_graph_create(1, 3, 0, k1, b1, b2, b3);
 
-    struct event buffer_event = {r_buffers[2].event}; // buffer 3 event
-    struct event kernel_termination_event = {r_kernel.kernel_termination_event};
+    mango_event buffer_event = {r_buffers[2].event}; // buffer 3 event
+    mango_event kernel_termination_event = {r_kernel.kernel_termination_event};
 
-    std::vector<struct event> events;
+    std::vector<mango_event> events;
     events.push_back({r_kernel.kernel_termination_event, {r_kernel.k.id}, {r_kernel.k.id}});
     for(int e_id: r_kernel.task_events) {
         events.push_back({e_id, {r_kernel.k.id}, {r_kernel.k.id}});
