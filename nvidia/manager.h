@@ -31,9 +31,7 @@ class NvidiaManager {
 
         NvidiaManagerExitCode kernel_write(int kernel_id, std::string image_path);
 
-        NvidiaManagerExitCode kernel_start(int kernel_id, void *arguments);
-        NvidiaManagerExitCode kernel_start_string_args(int kernel_id, std::string arguments);
-        NvidiaManagerExitCode kernel_start2(int kernel_id, const Arguments &arguments);
+        NvidiaManagerExitCode kernel_start(int kernel_id, const Arguments &arguments);
 
         NvidiaManagerExitCode allocate_memory(int buffer_id);
         NvidiaManagerExitCode allocate_kernel(int kernel_id);
@@ -53,18 +51,10 @@ class NvidiaManager {
         inline NvidiaManagerExitCode assign_event(nvidia_event *info) {
             return NvidiaManagerExitCode::ERROR;
         }
-
         inline NvidiaManagerExitCode kernel_write(int kernel_id, std::string image_path) {
             return NvidiaManagerExitCode::ERROR;
         }
-
-        inline NvidiaManagerExitCode kernel_start(int kernel_id, void *arguments) {
-            return NvidiaManagerExitCode::ERROR;
-        }
-        inline NvidiaManagerExitCode kernel_start_string_args(int kernel_id, std::string arguments) {
-            return NvidiaManagerExitCode::ERROR;
-        }
-        inline NvidiaManagerExitCode kernel_start2(int kernel_id, const Arguments &arguments) {
+        inline NvidiaManagerExitCode kernel_start(int kernel_id, const Arguments &arguments) {
             return NvidiaManagerExitCode::ERROR;
         }
         inline NvidiaManagerExitCode allocate_memory(int buffer_id) {

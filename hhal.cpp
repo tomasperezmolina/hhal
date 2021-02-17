@@ -106,41 +106,14 @@ HHALExitCode HHAL::kernel_write(int kernel_id, std::string image_path) {
     }
 }
 
-HHALExitCode HHAL::kernel_start(int kernel_id, void *arguments) {
-    switch (kernel_to_unit[kernel_id]) {
-        case Unit::NVIDIA:
-            MAP_NVIDIA_EXIT_CODE(nvidia_manager.kernel_start(kernel_id, (nvidia_kernel_args *) arguments));
-            break;
-        default:
-            break;
-    }
-}
-
-HHALExitCode HHAL::kernel_start_string_args(int kernel_id, std::string arguments) {
+HHALExitCode HHAL::kernel_start(int kernel_id, const Arguments &arguments) {
     printf("Starting kernel\n");
     switch (kernel_to_unit[kernel_id]) {
         case Unit::GN:
-            MAP_GN_EXIT_CODE(gn_manager.kernel_start_string_args(kernel_id, arguments));
-            break;
-        case Unit::HN:
-            MAP_HN_EXIT_CODE(hn_manager.kernel_start_string_args(kernel_id, arguments));
+            MAP_GN_EXIT_CODE(gn_manager.kernel_start(kernel_id, arguments));
             break;
         case Unit::NVIDIA:
-            MAP_NVIDIA_EXIT_CODE(nvidia_manager.kernel_start_string_args(kernel_id, arguments));
-            break;
-        default:
-            break;
-    }
-}
-
-HHALExitCode HHAL::kernel_start2(int kernel_id, const Arguments &arguments) {
-    printf("Starting kernel\n");
-    switch (kernel_to_unit[kernel_id]) {
-        case Unit::GN:
-            MAP_GN_EXIT_CODE(gn_manager.kernel_start2(kernel_id, arguments));
-            break;
-        case Unit::NVIDIA:
-            MAP_NVIDIA_EXIT_CODE(nvidia_manager.kernel_start2(kernel_id, arguments));
+            MAP_NVIDIA_EXIT_CODE(nvidia_manager.kernel_start(kernel_id, arguments));
             break;
         default:
             break;

@@ -32,9 +32,7 @@ class HHAL {
 
         HHALExitCode kernel_write(int kernel_id, std::string image_path);
 
-        HHALExitCode kernel_start(int kernel_id, void *arguments);
-        HHALExitCode kernel_start2(int kernel_id, const Arguments &arguments);
-        HHALExitCode kernel_start_string_args(int kernel_id, std::string arguments);
+        HHALExitCode kernel_start(int kernel_id, const Arguments &arguments);
 
         HHALExitCode allocate_memory(int buffer_id);
         HHALExitCode release_memory(int buffer_id);

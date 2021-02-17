@@ -86,7 +86,7 @@ int main(void) {
     arguments.add_scalar({&n_float, sizeof(float), ScalarType::FLOAT});
 
     // Launch kernel
-    hhal.kernel_start2(KERNEL_ID, arguments);
+    hhal.kernel_start(KERNEL_ID, arguments);
 
     hhal.read_from_memory(BUFFER_O_ID, o, buffer_size);
 

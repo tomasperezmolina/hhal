@@ -46,8 +46,7 @@ class GNManager {
         GNManagerExitCode assign_event(gn_event *info);
 
         GNManagerExitCode kernel_write(int kernel_id, std::string image_path);
-        GNManagerExitCode kernel_start_string_args(int kernel_id, std::string arguments);
-        GNManagerExitCode kernel_start2(int kernel_id, const Arguments &arguments);
+        GNManagerExitCode kernel_start(int kernel_id, const Arguments &arguments);
 
         GNManagerExitCode allocate_memory(int buffer_id);
         GNManagerExitCode release_memory(int buffer_id);
@@ -90,6 +89,7 @@ class GNManager {
         static void init_semaphore(void);
 
         GNManagerExitCode get_string_arguments(int kernel_id, Arguments &args, std::string &str_args);
+        GNManagerExitCode kernel_start_string_args(int kernel_id, std::string arguments);
 
         inline GNManagerExitCode set_tlb_entry(mango_cluster_id_t cluster, mango_unit_id_t unit,
                                hhal_tlb_entry_type_t type, mango_addr_t virtual_addr,

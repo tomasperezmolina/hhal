@@ -143,7 +143,7 @@ GNManagerExitCode GNManager::kernel_write(int kernel_id, std::string image_path)
     return GNManagerExitCode::OK;
 }
 
-GNManagerExitCode GNManager::kernel_start2(int kernel_id, const Arguments &arguments) {
+GNManagerExitCode GNManager::kernel_start(int kernel_id, const Arguments &arguments) {
     gn_kernel &info = kernel_info[kernel_id];
 
     Arguments full_args;

@@ -318,7 +318,7 @@ int main(void) {
 
     // Gotta write 0 to the event before starting the kernel
     events::write(hhal, kernel_termination_event.id, 0);
-    hhal.kernel_start2(KID, args);
+    hhal.kernel_start(KID, args);
 
     /* reading results */
     // mango_wait(e);
