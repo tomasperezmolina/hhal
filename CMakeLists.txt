@@ -21,7 +21,6 @@ set(NVIDIA_SOURCES nvidia/manager.cpp)
 
 set(SOURCES 
     hhal.cpp
-    event_utils.cpp
     gn/manager.cpp 
     gn/mm.cpp
     gn/gn/hnemu/hnemu.cpp
@@ -65,5 +64,10 @@ if(ENABLE_NVIDIA)
     configure_file(test/saxpy saxpy COPYONLY)
 endif(ENABLE_NVIDIA)
 
+install(TARGETS hhal EXPORT hhalConfig LIBRARY DESTINATION ${LIB_DIR})
+
+install(FILES ${HEADERS} DESTINATION ${INCLUDE_DIR})
+
+install(EXPORT hhalConfig DESTINATION ${EXPORT_DIR})
 
 add_subdirectory(test)
