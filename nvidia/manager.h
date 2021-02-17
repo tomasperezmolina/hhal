@@ -4,9 +4,12 @@
 #include <map>
 #include <string>
 #include <cstdint>
+#include <mutex>
 
 #include "arguments.h"
 #include "nvidia/types.h"
+#include "nvidia/event_registry.h"
+#include "nvidia/thread_pool.h"
 
 // There should be a cleaner solution to enable/disable a manager.
 // If its not done here it would have to be done at the hhal.cpp for each function.
@@ -41,6 +44,9 @@ class NvidiaManager {
         NvidiaManagerExitCode read_from_memory(int buffer_id, void *dest, size_t size);
         NvidiaManagerExitCode write_sync_register(int event_id, uint8_t data);
         NvidiaManagerExitCode read_sync_register(int event_id, uint8_t *data);
+
+        NvidiaManagerExitCode allocate_event(int event_id);
+        NvidiaManagerExitCode release_event(int event_id);
 #else
         inline NvidiaManagerExitCode assign_kernel(nvidia_kernel *info) {
             return NvidiaManagerExitCode::ERROR;
@@ -81,12 +87,23 @@ class NvidiaManager {
         inline NvidiaManagerExitCode read_sync_register(int event_id, uint8_t *data) {
             return NvidiaManagerExitCode::ERROR;
         }
+        inline NvidiaManagerExitCode allocate_event(int event_id) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+        inline NvidiaManagerExitCode release_event(int event_id) {
+            return NvidiaManagerExitCode::ERROR;
+        }
 #endif
 
     private:
         std::map<int, nvidia_kernel> kernel_info;
         std::map<int, nvidia_buffer> buffer_info;
         std::map<int, nvidia_event> event_info;
+        
+        ThreadPool thread_pool;
+        EventRegistry registry;
+
+        void launch_kernel(int kernel_id, char *arg_array, int arg_count);
 
 #ifdef ENABLE_NVIDIA
         CudaApi cuda_api;

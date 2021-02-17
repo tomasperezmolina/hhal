@@ -230,4 +230,24 @@ HHALExitCode HHAL::read_sync_register(int event_id, uint8_t *data) {
     }
 }
 
+HHALExitCode HHAL::allocate_event(int event_id) {
+    switch (event_to_unit[event_id]) {
+        case Unit::NVIDIA:
+            MAP_NVIDIA_EXIT_CODE(nvidia_manager.allocate_event(event_id));
+            break;
+        default:
+            break;
+    }
+}
+
+HHALExitCode HHAL::release_event(int event_id) {
+    switch (event_to_unit[event_id]) {
+        case Unit::NVIDIA:
+            MAP_NVIDIA_EXIT_CODE(nvidia_manager.release_event(event_id));
+            break;
+        default:
+            break;
+    }
+}
+
 }

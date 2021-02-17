@@ -9,6 +9,7 @@ typedef struct nvidia_kernel_t {
     int mem_id;
     size_t size;
     std::string function_name;
+    int termination_event;
 } nvidia_kernel;
 
 typedef struct nvidia_buffer_t {

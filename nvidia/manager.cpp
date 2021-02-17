@@ -1,5 +1,7 @@
 #include <fstream>
 #include <algorithm>
+#include <thread>
+#include <functional>
 
 #include "nvidia/manager.h"
 #include "kernel_arguments.h"
@@ -121,15 +123,21 @@ namespace hhal {
             }
         }
 
+        thread_pool.push_task(std::bind(&NvidiaManager::launch_kernel, this, kernel_id, arg_array, arg_count));
+
+        return NvidiaManagerExitCode::OK;
+    }
+
+    void NvidiaManager::launch_kernel(int kernel_id, char *arg_array, int arg_count) {
+        // Should we add mutexes for the kernel and event maps? They should not be modified after being assigned anyway.
+        auto &termination_event = event_info[kernel_info[kernel_id].termination_event];
         CudaApiExitCode err = cuda_api.launch_kernel(kernel_id, kernel_info[kernel_id].function_name.c_str(), arg_array, arg_count);
 
         if (err != OK) {
-            return NvidiaManagerExitCode::ERROR;
+            printf("[Error] Error launching kernel\n");
         }
 
-        // TODO a separate thread should set this to indicate the kernel is done, also the arguments should specify the kernel.
-        write_sync_register(0, 1);
-        return NvidiaManagerExitCode::OK;
+        write_sync_register(termination_event.id, 1);
     }
 
     NvidiaManagerExitCode NvidiaManager::allocate_memory(int buffer_id) {
@@ -205,14 +213,34 @@ namespace hhal {
     }
 
     NvidiaManagerExitCode NvidiaManager::write_sync_register(int event_id, uint8_t data) {
-        this->data = data;
+        auto ec = registry.write_event(event_id, data);
+        if (ec != EventRegistryExitCode::OK) {
+            return NvidiaManagerExitCode::ERROR;
+        }
         return NvidiaManagerExitCode::OK;
     }
 
     NvidiaManagerExitCode NvidiaManager::read_sync_register(int event_id, uint8_t *data) {
-        uint8_t res = this->data;
-        this->data = 0;
-        *data = res;
+        auto ec = registry.read_event(event_id, data);
+        if (ec != EventRegistryExitCode::OK) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+        return NvidiaManagerExitCode::OK;
+    }
+
+    NvidiaManagerExitCode NvidiaManager::allocate_event(int event_id) {
+        auto ec = registry.add_event(event_id);
+        if (ec != EventRegistryExitCode::OK) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+        return NvidiaManagerExitCode::OK;
+    }
+
+    NvidiaManagerExitCode NvidiaManager::release_event(int event_id) {
+        auto ec = registry.remove_event(event_id);
+        if (ec != EventRegistryExitCode::OK) {
+            return NvidiaManagerExitCode::ERROR;
+        }
         return NvidiaManagerExitCode::OK;
     }
 }

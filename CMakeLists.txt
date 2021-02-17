@@ -17,10 +17,15 @@ set(EXPORT_DIR ${MANGO_ROOT}/lib/cmake/hhal)
 
 set(ENABLE_NVIDIA true)
 
-set(NVIDIA_SOURCES nvidia/manager.cpp)
+set(NVIDIA_SOURCES 
+    nvidia/manager.cpp 
+    nvidia/thread_pool.cpp 
+    nvidia/event_registry.cpp
+)
 
 set(SOURCES 
     hhal.cpp
+    event_utils.cpp
     gn/manager.cpp 
     gn/mm.cpp
     gn/gn/hnemu/hnemu.cpp

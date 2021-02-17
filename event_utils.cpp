@@ -28,7 +28,7 @@ uint32_t lock(HHAL &hhal, int event_id) {
 
 void wait(HHAL &hhal, int event_id, uint32_t state) {
     uint32_t value;
-    printf("Wait state %d: id %d", state, event_id);
+    printf("Wait state %d: id %d\n", state, event_id);
     do {
         value = lock(hhal, event_id);
 
