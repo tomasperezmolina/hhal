@@ -3,14 +3,6 @@
 
 namespace hhal {
 
-typedef struct nvidia_kernel_args_t {
-    char *function_name;
-    //int threads;
-    //int blocks;
-    int arg_count;
-    char *arg_array;
-} nvidia_kernel_args;
-
 typedef struct nvidia_kernel_t {
     int id;
     int gpu_id;

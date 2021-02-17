@@ -46,7 +46,7 @@ int main(void) {
     size_t n = 100;
     size_t buffer_size = n * sizeof(float);
     float a = 2.5f;
-    float *x = new float[n], *y = new float[n], *o = new float[n];
+    float x[n], y[n], o[n];
 
     for (size_t i = 0; i < n; ++i) {
         x[i] = static_cast<float>(i);
@@ -88,8 +88,4 @@ int main(void) {
     hhal.release_memory(BUFFER_X_ID);
     hhal.release_memory(BUFFER_Y_ID);
     hhal.release_memory(BUFFER_O_ID);
-
-    delete[] x;
-    delete[] y;
-    delete[] o;
 }

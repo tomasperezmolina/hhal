@@ -1,8 +1,6 @@
 #ifndef HHAL_TYPES_H
 #define HHAL_TYPES_H
 
-
-
 namespace hhal {
 
 enum class Unit {
