@@ -33,7 +33,11 @@ if(ENABLE_NVIDIA)
     set(SOURCES ${SOURCES} ${NVIDIA_SOURCES})
 endif(ENABLE_NVIDIA)
 
-set(HEADERS hhal.h)
+set(HEADERS 
+    hhal.h 
+    arguments.h 
+    types.h
+    )
 
 add_library(hhal SHARED ${SOURCES} ${HEADERS})
 
@@ -45,7 +49,7 @@ add_executable(gn_launch_kernel test/gn_launch_kernel.cpp)
 
 target_link_libraries(hhal PRIVATE pthread)
 
-target_include_directories(hhal PRIVATE
+target_include_directories(hhal PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:${INCLUDE_DIR}>)
 
@@ -70,4 +74,8 @@ install(FILES ${HEADERS} DESTINATION ${INCLUDE_DIR})
 
 install(EXPORT hhalConfig DESTINATION ${EXPORT_DIR})
 
+
+add_subdirectory(gn)
+add_subdirectory(hn)
+add_subdirectory(nvidia)
 add_subdirectory(test)
