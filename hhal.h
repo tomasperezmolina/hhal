@@ -47,6 +47,9 @@ class HHAL {
 
         HHALExitCode allocate_kernel(int kernel_id);
         HHALExitCode release_kernel(int kernel_id);
+
+        HHALExitCode allocate_event(int event_id);
+        HHALExitCode release_event(int event_id);
         // -----------------------
         
         GNManager gn_manager;

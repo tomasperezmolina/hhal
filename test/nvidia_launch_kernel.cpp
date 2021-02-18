@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "hhal.h"
+#include "event_utils.h"
 
 #include "kernel_arguments.h"
 #include "cuda_argument_parser.h"
@@ -19,11 +20,18 @@
 using namespace hhal;
 using namespace cuda_manager;
 
+typedef struct registered_kernel_t {
+    mango_kernel k;
+    int kernel_termination_event;
+} registered_kernel;
+
+int event_id_gen = 0;
+
 // This should be handled in the RM side, it lives here for now as there are not two libraries at the moment.
 // In the future there would be a library for RM which handles this,
 // and a library for kernel execution which handles whats in the main function.
-void resource_management(HHAL &hhal, mango_kernel kernel, std::vector<mango_buffer> &buffers) {
-    nvidia_kernel k1 = { kernel.id, 0, kernel.id, kernel.image_size };
+void resource_management(HHAL &hhal, const mango_kernel &kernel, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events) {
+    nvidia_kernel k1 = { kernel.id, 0, kernel.id, kernel.image_size, "", event_id_gen++ };
     hhal.assign_kernel(hhal::Unit::NVIDIA, (hhal_kernel *) &k1);
     hhal.allocate_kernel(KERNEL_ID);
 
@@ -32,6 +40,19 @@ void resource_management(HHAL &hhal, mango_kernel kernel, std::vector<mango_buff
         hhal.assign_buffer(hhal::Unit::NVIDIA, (hhal_buffer *) &buffer);
         hhal.allocate_memory(buffer.id);
     }
+
+    for (auto &ev: events) {
+        nvidia_event event = { ev.id };
+        hhal.assign_event(hhal::Unit::NVIDIA, (hhal_event *) &event);
+        hhal.allocate_event(event.id);
+    }
+}
+
+registered_kernel register_kernel(mango_kernel kernel) {
+    return {
+        kernel,
+        event_id_gen++,
+    };
 }
 
 int main(void) {
@@ -41,12 +62,16 @@ int main(void) {
     size_t kernel_size = (size_t) kernel_fd.tellg() + 1;
 
     mango_kernel kernel = { KERNEL_ID, kernel_size };
+    registered_kernel r_kernel = register_kernel(kernel);
+
+    mango_event kernel_termination_event = {r_kernel.kernel_termination_event};
+    std::vector<mango_event> events = {kernel_termination_event};
 
     // Setup input and output buffers
     size_t n = 100;
     size_t buffer_size = n * sizeof(float);
     float a = 2.5f;
-    float *x = new float[n], *y = new float[n], *o = new float[n];
+    float x[n], y[n], o[n];
 
     for (size_t i = 0; i < n; ++i) {
         x[i] = static_cast<float>(i);
@@ -59,7 +84,7 @@ int main(void) {
         {BUFFER_O_ID, buffer_size, {}, {KERNEL_ID}},
     };
 
-    resource_management(hhal, kernel, buffers);
+    resource_management(hhal, kernel, buffers, events);
 
     hhal.kernel_write(KERNEL_ID, KERNEL_PATH);
 
@@ -77,6 +102,9 @@ int main(void) {
 
     // Launch kernel
     hhal.kernel_start(KERNEL_ID, arguments);
+    printf("Before kernel finishes!\n");
+
+    events::wait(hhal, kernel_termination_event.id, 1);
 
     hhal.read_from_memory(BUFFER_O_ID, o, buffer_size);
 
@@ -88,8 +116,4 @@ int main(void) {
     hhal.release_memory(BUFFER_X_ID);
     hhal.release_memory(BUFFER_Y_ID);
     hhal.release_memory(BUFFER_O_ID);
-
-    delete[] x;
-    delete[] y;
-    delete[] o;
 }
