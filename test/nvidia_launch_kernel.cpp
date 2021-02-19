@@ -86,7 +86,9 @@ int main(void) {
 
     resource_management(hhal, kernel, buffers, events);
 
-    hhal.kernel_write(KERNEL_ID, KERNEL_PATH);
+    const std::map<hhal::Unit, std::string> kernel_images = {{hhal::Unit::NVIDIA, KERNEL_PATH}};
+
+    hhal.kernel_write(KERNEL_ID, kernel_images);
 
     hhal.write_to_memory(BUFFER_X_ID, x, buffer_size);
     hhal.write_to_memory(BUFFER_Y_ID, y, buffer_size);

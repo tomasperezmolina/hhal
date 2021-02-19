@@ -90,16 +90,32 @@ HHALExitCode HHAL::assign_event(Unit unit, hhal_event *info) {
     }
 }
 
-HHALExitCode HHAL::kernel_write(int kernel_id, std::string image_path) {
+HHALExitCode HHAL::kernel_write(int kernel_id, const std::map<Unit, std::string> &kernel_images) {
+    std::map<Unit, std::string>::const_iterator it;
     switch (kernel_to_unit[kernel_id]) {
         case Unit::GN:
-            MAP_GN_EXIT_CODE(gn_manager.kernel_write(kernel_id, image_path));
+            it = kernel_images.find(Unit::GN);
+            if (it == kernel_images.end()) {
+                printf("No kernel image for GN\n");
+                return HHALExitCode::ERROR;
+            }
+            MAP_GN_EXIT_CODE(gn_manager.kernel_write(kernel_id, it->second));
             break;
         case Unit::HN:
-            MAP_HN_EXIT_CODE(hn_manager.kernel_write(kernel_id, image_path));
+            it = kernel_images.find(Unit::HN);
+            if (it == kernel_images.end()) {
+                printf("No kernel image for HN\n");
+                return HHALExitCode::ERROR;
+            }
+            MAP_HN_EXIT_CODE(hn_manager.kernel_write(kernel_id, it->second));
             break;
         case Unit::NVIDIA:
-            MAP_NVIDIA_EXIT_CODE(nvidia_manager.kernel_write(kernel_id, image_path));
+            it = kernel_images.find(Unit::NVIDIA);
+            if (it == kernel_images.end()) {
+                printf("No kernel image for NVIDIA\n");
+                return HHALExitCode::ERROR;
+            }
+            MAP_NVIDIA_EXIT_CODE(nvidia_manager.kernel_write(kernel_id, it->second));
             break;
         default:
             break;

@@ -278,7 +278,9 @@ int main(void) {
     /* resource allocation */
     // mango_resource_allocation(tg);
     resource_allocation(hhal, r_kernel, r_buffers, events);
-    hhal.kernel_write(kernel.id, KERNEL_PATH);
+
+    const std::map<hhal::Unit, std::string> kernel_images = {{hhal::Unit::GN, KERNEL_PATH}};
+    hhal.kernel_write(kernel.id, kernel_images);
     printf("resource allocation done\n");
 
     /* Execution preparation */

@@ -27,7 +27,7 @@ class HHAL {
         HHAL();
 
         // Kernel execution
-        HHALExitCode kernel_write(int kernel_id, std::string image_path);
+        HHALExitCode kernel_write(int kernel_id, const std::map<Unit, std::string> &kernel_images);
         HHALExitCode kernel_start(int kernel_id, const Arguments &arguments);
 
         HHALExitCode write_to_memory(int buffer_id, const void *source, size_t size);
