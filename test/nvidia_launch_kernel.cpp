@@ -1,14 +1,12 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <assert.h>
 
 #include "hhal.h"
 
-#include "kernel_arguments.h"
-#include "cuda_argument_parser.h"
-
-#include "test/mango_arguments.h"
-#include "test/event_utils.h"
+#include "mango_arguments.h"
+#include "event_utils.h"
 
 #define KERNEL_PATH "saxpy"
 
@@ -18,7 +16,6 @@
 #define BUFFER_O_ID 2
 
 using namespace hhal;
-using namespace cuda_manager;
 
 typedef struct registered_kernel_t {
     mango_kernel k;
@@ -59,6 +56,7 @@ int main(void) {
     HHAL hhal;
 
     std::ifstream kernel_fd(KERNEL_PATH, std::ifstream::in | std::ifstream::ate);
+    assert(kernel_fd.good() && "Kernel file exists");
     size_t kernel_size = (size_t) kernel_fd.tellg() + 1;
 
     mango_kernel kernel = { KERNEL_ID, kernel_size };
@@ -71,7 +69,7 @@ int main(void) {
     size_t n = 100;
     size_t buffer_size = n * sizeof(float);
     float a = 2.5f;
-    float x[n], y[n], o[n];
+    float *x = new float[n], *y = new float[n], *o = new float[n];
 
     for (size_t i = 0; i < n; ++i) {
         x[i] = static_cast<float>(i);
@@ -118,4 +116,10 @@ int main(void) {
     hhal.release_memory(BUFFER_X_ID);
     hhal.release_memory(BUFFER_Y_ID);
     hhal.release_memory(BUFFER_O_ID);
+
+    delete[] x;
+    delete[] y;
+    delete[] o;
+
+    return 0;
 }

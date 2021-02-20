@@ -2,17 +2,18 @@
 #include <map>
 #include <stdio.h>
 #include <fstream>
+#include <assert.h>
 
 #include "hhal.h"
 
 #include "arguments.h"
 
-#include "test/mango_arguments.h"
-#include "test/event_utils.h"
+#include "mango_arguments.h"
+#include "event_utils.h"
 
 using namespace hhal;
 
-#define KERNEL_PATH "test/kernel/matrix_multiplication_dev"
+#define KERNEL_PATH "kernel/matrix_multiplication_dev"
 #define KID 1
 #define B1 1
 #define B2 2
@@ -175,7 +176,7 @@ void init_matrix(int *matrix, int rows, int cols)
 {
   for (int r=0;r<rows;r++) {
     for (int c=0;c<cols;c++) {
-      matrix[r*cols+c] = random() % 100;
+        matrix[r*cols+c] = random() % 100;
     }
   }
 }
@@ -217,19 +218,20 @@ int main(void) {
     HHAL hhal;
 
     std::ifstream kernel_fd(KERNEL_PATH, std::ifstream::in | std::ifstream::ate);
+    assert(kernel_fd.good() && "Kernel file exists");
     size_t kernel_size = (size_t) kernel_fd.tellg() + 1;
 
     int rows = 5;
     int columns = 5;
 
-    size_t buffer_dim = rows*columns;
-    size_t buffer_size = buffer_dim*sizeof(int); 
+    size_t buffer_dim = rows * columns;
+    size_t buffer_size = buffer_dim * sizeof(int); 
 
     /* matrix allocation */
-    int A[buffer_dim];
-    int B[buffer_dim];
-    int C[buffer_dim];
-    int D[buffer_dim];
+    int *A = new int[buffer_dim], 
+        *B = new int[buffer_dim], 
+        *C = new int[buffer_dim], 
+        *D = new int[buffer_dim];
 
     /* input matrices initialization */
     init_matrix(A, rows, columns);
@@ -342,6 +344,11 @@ int main(void) {
     } else {
         printf("Matrix multiplication correctly performed\n");
     }
+
+    delete[] A;
+    delete[] B;
+    delete[] C;
+    delete[] D;
 
     return out;
 }

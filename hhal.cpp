@@ -54,6 +54,7 @@ HHALExitCode HHAL::assign_kernel(Unit unit, hhal_kernel *info) {
         default:
             return HHALExitCode::ERROR;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::assign_buffer(Unit unit, hhal_buffer *info) {
@@ -71,6 +72,7 @@ HHALExitCode HHAL::assign_buffer(Unit unit, hhal_buffer *info) {
         default:
             return HHALExitCode::ERROR;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::assign_event(Unit unit, hhal_event *info) {
@@ -88,6 +90,7 @@ HHALExitCode HHAL::assign_event(Unit unit, hhal_event *info) {
         default:
             return HHALExitCode::ERROR;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::kernel_write(int kernel_id, const std::map<Unit, std::string> &kernel_images) {
@@ -120,6 +123,7 @@ HHALExitCode HHAL::kernel_write(int kernel_id, const std::map<Unit, std::string>
         default:
             break;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::kernel_start(int kernel_id, const Arguments &arguments) {
@@ -134,6 +138,7 @@ HHALExitCode HHAL::kernel_start(int kernel_id, const Arguments &arguments) {
         default:
             break;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::allocate_memory(int buffer_id) {
@@ -147,6 +152,7 @@ HHALExitCode HHAL::allocate_memory(int buffer_id) {
         default:
             break;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::release_memory(int buffer_id) {
@@ -160,6 +166,7 @@ HHALExitCode HHAL::release_memory(int buffer_id) {
         default:
             break;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::allocate_kernel(int kernel_id) {
@@ -170,6 +177,7 @@ HHALExitCode HHAL::allocate_kernel(int kernel_id) {
         default:
             break;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::release_kernel(int kernel_id) {
@@ -180,6 +188,7 @@ HHALExitCode HHAL::release_kernel(int kernel_id) {
         default:
             break;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::write_to_memory(int buffer_id, const void *source, size_t size) {
@@ -196,6 +205,7 @@ HHALExitCode HHAL::write_to_memory(int buffer_id, const void *source, size_t siz
         default:
             break;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::read_from_memory(int buffer_id, void *dest, size_t size) {
@@ -212,6 +222,7 @@ HHALExitCode HHAL::read_from_memory(int buffer_id, void *dest, size_t size) {
         default:
             break;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::write_sync_register(int event_id, uint8_t data) {
@@ -228,6 +239,7 @@ HHALExitCode HHAL::write_sync_register(int event_id, uint8_t data) {
         default:
             break;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::read_sync_register(int event_id, uint8_t *data) {
@@ -244,6 +256,7 @@ HHALExitCode HHAL::read_sync_register(int event_id, uint8_t *data) {
         default:
             break;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::allocate_event(int event_id) {
@@ -254,6 +267,7 @@ HHALExitCode HHAL::allocate_event(int event_id) {
         default:
             break;
     }
+    return HHALExitCode::ERROR;
 }
 
 HHALExitCode HHAL::release_event(int event_id) {
@@ -264,6 +278,7 @@ HHALExitCode HHAL::release_event(int event_id) {
         default:
             break;
     }
+    return HHALExitCode::ERROR;
 }
 
 }
