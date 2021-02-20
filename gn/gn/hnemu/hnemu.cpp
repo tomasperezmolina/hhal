@@ -1,4 +1,12 @@
+#include <regex>
+#include <fstream>
+#include <iostream>
+
 #include "hnemu.h"
+#include "rapidxml/rapidxml.hpp"
+#include "rapidxml/rapidxml_print.hpp"
+#include "hn_include/hn_errcode.h"
+//#include <sstream>//4macos
 
 using namespace rapidxml;
 

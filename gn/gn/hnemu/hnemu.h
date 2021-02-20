@@ -1,17 +1,10 @@
 #ifndef HNEMU_H_
 #define HNEMU_H_
 
-// #include "rm/rm.h"
+#include <vector>
+
 #include "logger.h"
 #include "hn_include/hn_resource_manager.h"
-#include "hn_include/hn_errcode.h"
-#include "rapidxml/rapidxml.hpp"
-#include "rapidxml/rapidxml_print.hpp"
-#include "regex"
-#include "vector"
-#include <fstream>
-#include <iostream>
-//#include <sstream>//4macos
 
 #define MANGO_ROOT "/opt/mango"
 #define MANGO_CONFIG_XML  "/usr/local/share/config.xml"

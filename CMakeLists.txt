@@ -25,7 +25,6 @@ set(NVIDIA_SOURCES
 
 set(SOURCES 
     hhal.cpp
-    event_utils.cpp
     gn/manager.cpp 
     gn/mm.cpp
     gn/gn/hnemu/hnemu.cpp
@@ -42,15 +41,21 @@ set(HEADERS
     hhal.h 
     arguments.h 
     types.h
-    )
+)
 
 add_library(hhal SHARED ${SOURCES} ${HEADERS})
 
 if(ENABLE_NVIDIA)
-    add_executable(nvidia_launch_kernel test/nvidia_launch_kernel.cpp)
+    add_executable(nvidia_launch_kernel 
+        test/event_utils.cpp 
+        test/nvidia_launch_kernel.cpp
+    )
 endif(ENABLE_NVIDIA)
 
-add_executable(gn_launch_kernel test/gn_launch_kernel.cpp)
+add_executable(gn_launch_kernel 
+    test/event_utils.cpp 
+    test/gn_launch_kernel.cpp
+)
 
 target_link_libraries(hhal PRIVATE pthread)
 

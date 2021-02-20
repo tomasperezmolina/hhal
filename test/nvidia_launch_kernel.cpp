@@ -3,12 +3,12 @@
 #include <vector>
 
 #include "hhal.h"
-#include "event_utils.h"
 
 #include "kernel_arguments.h"
 #include "cuda_argument_parser.h"
 
 #include "test/mango_arguments.h"
+#include "test/event_utils.h"
 
 #define KERNEL_PATH "saxpy"
 

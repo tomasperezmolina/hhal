@@ -1,12 +1,14 @@
 #include <vector>
 #include <map>
 #include <stdio.h>
+#include <fstream>
 
 #include "hhal.h"
-#include "event_utils.h"
+
 #include "arguments.h"
 
 #include "test/mango_arguments.h"
+#include "test/event_utils.h"
 
 using namespace hhal;
 
@@ -50,7 +52,7 @@ void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<regis
 
     auto unit_type = UnitType::GN;
     types.push_back(unit_type);
-    printf("[DummyRM] resource_allocation: kernel %d type %d\n", kernel.k.id, unit_type);
+    printf("[DummyRM] resource_allocation: kernel %d type %d\n", kernel.k.id, static_cast<int>(unit_type));
 
     auto status = hhal.gn_manager.find_units_set(default_cluster_id, types, tiles_dst);
     if (status == GNManagerExitCode::ERROR){
@@ -104,7 +106,7 @@ void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<regis
             hhal.gn_manager.release_units_set(default_cluster_id, tiles_dst);
             return;
         }
-        printf("[DummyRM] resource_allocation: event=%d, phy_addr=0x%x\n", et.id, phy_addr);
+        printf("[DummyRM] resource_allocation: event=%d, phy_addr=0x%lx\n", et.id, phy_addr);
         info.physical_addr = phy_addr;
         // hack for deallocation
         event_addresses[info.id] = info.physical_addr;
@@ -124,7 +126,7 @@ void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<regis
 
 
         hhal.gn_manager.find_memory(default_cluster_id, kernel_info.unit_id, info.size, &memory, &phy_addr);
-        printf("[DummyRM] resource_allocation: buffer=%d, memory=%d, phy_addr=0x%x\n", info.id, memory, phy_addr);
+        printf("[DummyRM] resource_allocation: buffer=%d, memory=%d, phy_addr=0x%lx\n", info.id, memory, phy_addr);
         info.mem_tile = memory;
         info.physical_addr = phy_addr;
         hhal.assign_buffer(hhal::Unit::GN, (hhal_buffer *) &info);

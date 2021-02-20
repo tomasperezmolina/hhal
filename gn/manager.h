@@ -8,7 +8,7 @@
 
 #include "arguments.h"
 
-#include "gn/gn/hnemu/hnemu.h"
+#include "gn/gn/hnemu/logger.h"
 #include "gn/gn/mango_types.h"
 #include "gn/types.h"
 

@@ -1,6 +1,8 @@
-#include "logger.h"
 #include <cstdio>
 #include <cstdarg>
+
+#include "logger.h"
+
 #define LOGGER_LEVEL 7
 
 namespace mango {
