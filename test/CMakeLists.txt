@@ -29,7 +29,6 @@ add_executable(gn_launch_kernel
     gn_launch_kernel.cpp
 )
 
-
 target_include_directories(nvidia_launch_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(gn_launch_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -39,10 +38,8 @@ if(HAS_PARENT)
     target_link_libraries(nvidia_launch_kernel PRIVATE hhal)
     configure_file(saxpy saxpy COPYONLY)
 else(HAS_PARENT)
-    target_link_libraries(nvidia_launch_kernel PRIVATE cuda_manager)
     target_link_libraries(gn_launch_kernel PRIVATE hhal::hhal)
 
-    target_link_libraries(nvidia_launch_kernel PRIVATE cuda_manager)
     target_link_libraries(nvidia_launch_kernel PRIVATE hhal::hhal)
     configure_file(saxpy saxpy COPYONLY)
 endif(HAS_PARENT)

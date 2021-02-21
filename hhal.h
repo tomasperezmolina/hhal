@@ -6,14 +6,12 @@
 #include "arguments.h"
 #include "types.h"
 
-#include "gn/types.h"
+// This moves to cpp when we figure out what to do with GNManager specific API
 #include "gn/manager.h"
 
+#include "gn/types.h"
 #include "hn/types.h"
-#include "hn/manager.h"
-
 #include "nvidia/types.h"
-#include "nvidia/manager.h"
 
 namespace hhal {
 
@@ -25,6 +23,7 @@ enum class HHALExitCode {
 class HHAL {
     public:
         HHAL();
+        ~HHAL();
 
         // Kernel execution
         HHALExitCode kernel_write(int kernel_id, const std::map<Unit, std::string> &kernel_images);
@@ -52,15 +51,18 @@ class HHAL {
         HHALExitCode release_event(int event_id);
         // -----------------------
         
+        // This should be moved into Managers when we figure out how to expose its specific API (only necessary for RM)
         GNManager gn_manager;
 
     private:
+        class Managers;
+
+        // Pointer to forward declared class to avoid including manager headers
+        Managers *managers;
+
         std::map<int, Unit> kernel_to_unit;
         std::map<int, Unit> buffer_to_unit;
         std::map<int, Unit> event_to_unit;
-
-        HNManager hn_manager;
-        NvidiaManager nvidia_manager;
 };
 
 }
