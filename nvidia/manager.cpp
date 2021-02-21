@@ -212,7 +212,7 @@ namespace hhal {
         return NvidiaManagerExitCode::OK;
     }
 
-    NvidiaManagerExitCode NvidiaManager::write_sync_register(int event_id, uint8_t data) {
+    NvidiaManagerExitCode NvidiaManager::write_sync_register(int event_id, uint32_t data) {
         auto ec = registry.write_event(event_id, data);
         if (ec != EventRegistryExitCode::OK) {
             return NvidiaManagerExitCode::ERROR;
@@ -220,7 +220,7 @@ namespace hhal {
         return NvidiaManagerExitCode::OK;
     }
 
-    NvidiaManagerExitCode NvidiaManager::read_sync_register(int event_id, uint8_t *data) {
+    NvidiaManagerExitCode NvidiaManager::read_sync_register(int event_id, uint32_t *data) {
         auto ec = registry.read_event(event_id, data);
         if (ec != EventRegistryExitCode::OK) {
             return NvidiaManagerExitCode::ERROR;

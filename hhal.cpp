@@ -246,7 +246,7 @@ HHALExitCode HHAL::read_from_memory(int buffer_id, void *dest, size_t size) {
     return HHALExitCode::ERROR;
 }
 
-HHALExitCode HHAL::write_sync_register(int event_id, uint8_t data) {
+HHALExitCode HHAL::write_sync_register(int event_id, uint32_t data) {
     switch (event_to_unit[event_id]) {
         case Unit::GN:
             MAP_GN_EXIT_CODE(gn_manager.write_sync_register(event_id, data));
@@ -263,7 +263,7 @@ HHALExitCode HHAL::write_sync_register(int event_id, uint8_t data) {
     return HHALExitCode::ERROR;
 }
 
-HHALExitCode HHAL::read_sync_register(int event_id, uint8_t *data) {
+HHALExitCode HHAL::read_sync_register(int event_id, uint32_t *data) {
     switch (event_to_unit[event_id]) {
         case Unit::GN:
             MAP_GN_EXIT_CODE(gn_manager.read_sync_register(event_id, data));

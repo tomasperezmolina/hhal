@@ -32,8 +32,8 @@ class HHAL {
         HHALExitCode write_to_memory(int buffer_id, const void *source, size_t size);
         HHALExitCode read_from_memory(int buffer_id, void *dest, size_t size);
 
-        HHALExitCode write_sync_register(int event_id, uint8_t data);
-        HHALExitCode read_sync_register(int event_id, uint8_t *data);
+        HHALExitCode write_sync_register(int event_id, uint32_t data);
+        HHALExitCode read_sync_register(int event_id, uint32_t *data);
         // -----------------------
 
         // Resource management

@@ -37,8 +37,8 @@ class NvidiaManager {
         NvidiaManagerExitCode release_kernel(int kernel_id);
         NvidiaManagerExitCode write_to_memory(int buffer_id, const void *source, size_t size);
         NvidiaManagerExitCode read_from_memory(int buffer_id, void *dest, size_t size);
-        NvidiaManagerExitCode write_sync_register(int event_id, uint8_t data);
-        NvidiaManagerExitCode read_sync_register(int event_id, uint8_t *data);
+        NvidiaManagerExitCode write_sync_register(int event_id, uint32_t data);
+        NvidiaManagerExitCode read_sync_register(int event_id, uint32_t *data);
 
         NvidiaManagerExitCode allocate_event(int event_id);
         NvidiaManagerExitCode release_event(int event_id);

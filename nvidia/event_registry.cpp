@@ -22,7 +22,7 @@ namespace hhal {
         return EventRegistryExitCode::OK;
     }
 
-    EventRegistryExitCode EventRegistry::read_event(int event_id, uint8_t *data) {
+    EventRegistryExitCode EventRegistry::read_event(int event_id, uint32_t *data) {
         std::unique_lock<std::mutex> lck(registers_mtx);
         auto it = registers.find(event_id);
         if (it == registers.end()) {
@@ -34,7 +34,7 @@ namespace hhal {
         return EventRegistryExitCode::OK;
     }
 
-    EventRegistryExitCode EventRegistry::write_event(int event_id, uint8_t data) {
+    EventRegistryExitCode EventRegistry::write_event(int event_id, uint32_t data) {
         std::unique_lock<std::mutex> lck(registers_mtx);
         auto it = registers.find(event_id);
         if (it == registers.end()) {

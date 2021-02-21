@@ -53,8 +53,8 @@ class GNManager {
 
         GNManagerExitCode write_to_memory(int buffer_id, const void *source, size_t size);
         GNManagerExitCode read_from_memory(int buffer_id, void *dest, size_t size);
-        GNManagerExitCode write_sync_register(int event_id, uint8_t data);
-        GNManagerExitCode read_sync_register(int event_id, uint8_t *data);
+        GNManagerExitCode write_sync_register(int event_id, uint32_t data);
+        GNManagerExitCode read_sync_register(int event_id, uint32_t *data);
 
         GNManagerExitCode find_memory(mango_cluster_id_t cluster, mango_unit_id_t unit, mango_size_t size, mango_mem_id_t *memory, mango_addr_t *phy_addr);
         GNManagerExitCode find_units_set(mango_cluster_id_t cluster, std::vector<mango_unit_type_t> &types, std::vector<mango_unit_id_t> &tiles_dst);

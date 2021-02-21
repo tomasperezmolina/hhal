@@ -29,8 +29,8 @@ class HNManager {
 
         HNManagerExitCode write_to_memory(int buffer_id, const void *source, size_t size);
         HNManagerExitCode read_from_memory(int buffer_id, void *dest, size_t size);
-        HNManagerExitCode write_sync_register(int event_id, uint8_t data);
-        HNManagerExitCode read_sync_register(int event_id, uint8_t *data);
+        HNManagerExitCode write_sync_register(int event_id, uint32_t data);
+        HNManagerExitCode read_sync_register(int event_id, uint32_t *data);
 
     private:
         std::map<int, hn_kernel> kernel_info;

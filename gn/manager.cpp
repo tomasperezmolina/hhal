@@ -228,7 +228,7 @@ GNManagerExitCode GNManager::read_from_memory(int buffer_id, void *dest, size_t 
     return GNManagerExitCode::OK;
 }
 
-GNManagerExitCode GNManager::write_sync_register(int event_id, uint8_t data) {
+GNManagerExitCode GNManager::write_sync_register(int event_id, uint32_t data) {
     assert(initialized == true);
     gn_event &info = event_info[event_id];
     int reg_address = info.physical_addr;
@@ -249,7 +249,7 @@ GNManagerExitCode GNManager::write_sync_register(int event_id, uint8_t data) {
     return GNManagerExitCode::OK;
 }
 
-GNManagerExitCode GNManager::read_sync_register(int event_id, uint8_t *data) {
+GNManagerExitCode GNManager::read_sync_register(int event_id, uint32_t *data) {
     assert(initialized == true);
     gn_event &info = event_info[event_id];
     int reg_address = info.physical_addr;
@@ -258,7 +258,7 @@ GNManagerExitCode GNManager::read_sync_register(int event_id, uint8_t *data) {
 
     sem_wait(sem_id);
 
-    uint8_t result = mem[reg_address];
+    uint32_t result = mem[reg_address];
     mem[reg_address] = 0;
 
     sem_post(sem_id);
@@ -470,7 +470,7 @@ GNManagerExitCode GNManager::prepare_events_registers() {
 	for(auto &et_pair : event_info) {
         // It follows a strange pattern:
         // - We read the value (this should change to zero the register)
-        uint8_t value;
+        uint32_t value;
         ec = read_sync_register(et_pair.first, &value);
         if (ec != GNManagerExitCode::OK) return ec;
         // - We re-read the value and now must be zero
@@ -484,7 +484,7 @@ GNManagerExitCode GNManager::prepare_events_registers() {
 
         // Read the event BEFORE writing it to allow the initialization
         // in case of write-accumulare register
-        uint8_t value;
+        uint32_t value;
         ec = read_sync_register(et_id, &value); 
         if (ec != GNManagerExitCode::OK) return ec;
         assert( 0 == value );

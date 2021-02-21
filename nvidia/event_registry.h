@@ -17,12 +17,12 @@ class EventRegistry {
         EventRegistryExitCode add_event(int event_id);
         EventRegistryExitCode remove_event(int event_id);
 
-        EventRegistryExitCode read_event(int event_id, uint8_t *data);
-        EventRegistryExitCode write_event(int event_id, uint8_t data);
+        EventRegistryExitCode read_event(int event_id, uint32_t *data);
+        EventRegistryExitCode write_event(int event_id, uint32_t data);
 
     private:
         std::mutex registers_mtx;
-        std::map<int, uint8_t> registers;
+        std::map<int, uint32_t> registers;
 
 };
 }
