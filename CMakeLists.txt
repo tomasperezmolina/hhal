@@ -46,7 +46,7 @@ target_include_directories(hhal PUBLIC
 
 
 find_package(cuda_manager CONFIG REQUIRED HINTS /opt/mango/lib/cmake)
-target_link_libraries(hhal PUBLIC cuda_manager)
+target_link_libraries(hhal PRIVATE cuda_manager)
 
 install(TARGETS hhal EXPORT hhalConfig LIBRARY DESTINATION ${LIB_DIR})
 
