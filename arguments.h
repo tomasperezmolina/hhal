@@ -42,6 +42,11 @@ typedef struct arg_t {
 
 class Arguments {
     public:
+        Arguments() {};
+        Arguments(std::vector<arg> args) {
+            this->args = args;
+        }
+
         inline void add_event(const event_arg &event) { 
             arg a;
             a.type = ArgumentType::EVENT;
