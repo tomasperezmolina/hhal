@@ -2,14 +2,14 @@
 
 namespace hhal { namespace events {
 
-void write(HHAL &hhal, int event_id, uint8_t value) {
+void write(HHAL &hhal, int event_id, uint32_t value) {
     if (hhal.write_sync_register(event_id, value) != HHALExitCode::OK) {
         printf("Writing to sync register failed.\n");
     }
 }
 
 uint32_t read(HHAL &hhal, int event_id) {
-    uint8_t value;
+    uint32_t value;
     if (hhal.read_sync_register(event_id, &value) != HHALExitCode::OK) {
         printf("Read synch register failed!\n");
     }

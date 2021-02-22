@@ -39,7 +39,7 @@ GNManagerExitCode GNManager::initialize() {
 
     uint32_t num_clusters;
     HNemu::instance()->get_num_clusters(&num_clusters);
-    printf("Num clusters: %d\n", num_clusters);
+    printf("GNManager: Num clusters: %d\n", num_clusters);
 
     init_semaphore();
     if (sem_id == NULL || sem_id == SEM_FAILED) {
@@ -99,11 +99,11 @@ GNManagerExitCode GNManager::initialize() {
     int status = HNemu::instance()->allocate_memory(default_cluster_id, memory, phy_addr, size);
     
     if (status!=HN_SUCCEEDED){
-        log_hhal.Error("[GNLibHHAL] memory allocation for sync registers failed: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
+        log_hhal.Error("GNManager: memory allocation for sync registers failed: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
                     default_cluster_id, memory, phy_addr, size);
         return GNManagerExitCode::ERROR;
     } else {
-        log_hhal.Debug("[GNLibHHAL] memory for sync registers allocated: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
+        log_hhal.Debug("GNManager: memory for sync registers allocated: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
                     default_cluster_id, memory, phy_addr, size);
     }
 
@@ -122,17 +122,20 @@ GNManagerExitCode GNManager::finalize() {
 }
 
 GNManagerExitCode GNManager::assign_kernel(gn_kernel *info) {
+    printf("GNManager: Assigning kernel %d\n", info->id);
     kernel_info[info->id] = *info;
     tlbs[info->id] = TLB();
     return GNManagerExitCode::OK;
 }
 
 GNManagerExitCode GNManager::assign_buffer(gn_buffer *info) {
+    printf("GNManager: Assigning buffer %d\n", info->id);
     buffer_info[info->id] = *info;
     return GNManagerExitCode::OK;
 }
 
 GNManagerExitCode GNManager::assign_event(gn_event *info) {
+    printf("GNManager: Assigning event %d\n", info->id);
     event_info[info->id] = *info;
     return GNManagerExitCode::OK;
 }
@@ -143,7 +146,7 @@ GNManagerExitCode GNManager::kernel_write(int kernel_id, std::string image_path)
     gn_kernel &info = kernel_info[kernel_id];
     info.image_path = image_path;
 
-    log_hhal.Debug("[GNLibHHAL] kernel_write: cluster=%d,  image_path=%s, memory=%d, address=0x%x",
+    log_hhal.Debug("GNManager: kernel_write: cluster=%d,  image_path=%s, memory=%d, address=0x%x",
             info.cluster_id, image_path.c_str(), info.mem_tile, info.physical_addr);
     return GNManagerExitCode::OK;
 }
@@ -169,7 +172,7 @@ GNManagerExitCode GNManager::kernel_start(int kernel_id, const Arguments &argume
     if (ec != GNManagerExitCode::OK) {
         return GNManagerExitCode::ERROR;
     }
-    printf("Kernel argument string:\n%s\n", str_args.c_str());
+    printf("GNManager: Kernel argument string:\n%s\n", str_args.c_str());
     ec = kernel_start_string_args(kernel_id, str_args);
     if (ec != GNManagerExitCode::OK) {
         return GNManagerExitCode::ERROR;
@@ -198,7 +201,7 @@ GNManagerExitCode GNManager::kernel_start_string_args(int kernel_id, std::string
         printf("***\n!!!\nEXECL ERROR\n!!!\n***\n");
         exit(0);
     }
-    log_hhal.Debug("[GNLibHHAL] kernel_start: cluster=%d,  unit=%d, address=0x%x, argument_string=%s",
+    log_hhal.Debug("GNManager: kernel_start: cluster=%d,  unit=%d, address=0x%x, argument_string=%s",
             info.cluster_id, info.unit_id, info.physical_addr, arguments.c_str());
     return GNManagerExitCode::OK;
 }
@@ -210,7 +213,7 @@ GNManagerExitCode GNManager::write_to_memory(int buffer_id, const void *source, 
     gn_buffer &info = buffer_info[buffer_id];
 
     memcpy(mem + (info.physical_addr/sizeof(mango_addr_t)), static_cast<char*>(const_cast<void*>(source)), size);
-    log_hhal.Debug("[GNLibHHAL] write_to_memory: cluster=%d,  memory=%d, dest_address=0x%x, size=%d",
+    log_hhal.Debug("GNManager: write_to_memory: cluster=%d,  memory=%d, dest_address=0x%x, size=%d",
                    info.cluster_id, info.mem_tile, info.physical_addr, size);
     return GNManagerExitCode::OK;
 }
@@ -223,7 +226,7 @@ GNManagerExitCode GNManager::read_from_memory(int buffer_id, void *dest, size_t 
 
     memcpy(static_cast<char*>(dest), mem + (info.physical_addr/sizeof(mango_addr_t)), size);
 
-    log_hhal.Debug("[GNLibHHAL] read_from_memory: cluster=%d,  memory=%d, source_address=0x%x, size=%d",
+    log_hhal.Debug("GNManager: read_from_memory: cluster=%d,  memory=%d, source_address=0x%x, size=%d",
                    info.cluster_id, info.mem_tile, info.physical_addr, size);
     return GNManagerExitCode::OK;
 }
@@ -244,7 +247,7 @@ GNManagerExitCode GNManager::write_sync_register(int event_id, uint32_t data) {
     }
 
     sem_post(sem_id);
-    log_hhal.Debug("[GNLibHHAL] write_sync_register: cluster=%d,  reg_address=0x%x, data=%d",
+    log_hhal.Debug("GNManager: write_sync_register: cluster=%d,  reg_address=0x%x, data=%d",
                    info.cluster_id, reg_address, data);
     return GNManagerExitCode::OK;
 }
@@ -263,7 +266,7 @@ GNManagerExitCode GNManager::read_sync_register(int event_id, uint32_t *data) {
 
     sem_post(sem_id);
 
-    log_hhal.Debug("[GNLibHHAL] read_sync_register: cluster=%d, reg_address=0x%x, data=%d",
+    log_hhal.Debug("GNManager: read_sync_register: cluster=%d, reg_address=0x%x, data=%d",
                    info.cluster_id, reg_address, result);
 
     *data = result;
@@ -274,11 +277,11 @@ GNManagerExitCode GNManager::allocate_memory(int buffer_id){
     gn_buffer &info = buffer_info[buffer_id];
     int status = HNemu::instance()->allocate_memory(info.cluster_id, info.mem_tile, info.physical_addr, info.size);
     if (status!=HN_SUCCEEDED){
-        log_hhal.Error("[GNLibHHAL] memory allocation failed: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
+        log_hhal.Error("GNManager: memory allocation failed: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
                        info.cluster_id, info.mem_tile, info.physical_addr, info.size);
         return GNManagerExitCode::ERROR;
     } else {
-        log_hhal.Debug("[GNLibHHAL] memory allocated: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
+        log_hhal.Debug("GNManager: memory allocated: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
                        info.cluster_id, info.mem_tile, info.physical_addr, info.size);
         return GNManagerExitCode::OK;
     }
@@ -289,11 +292,11 @@ GNManagerExitCode GNManager::release_memory(int buffer_id){
     gn_buffer &info = buffer_info[buffer_id];
     int status = HNemu::instance()->release_memory(info.cluster_id, info.mem_tile, info.physical_addr, info.size);
     if (status!=HN_SUCCEEDED){
-        log_hhal.Error("[GNLibHHAL] memory free failed: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
+        log_hhal.Error("GNManager: memory free failed: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
                        info.cluster_id, info.mem_tile, info.physical_addr, info.size);
         return GNManagerExitCode::ERROR;
     } else {
-        log_hhal.Debug("[GNLibHHAL] memory released: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
+        log_hhal.Debug("GNManager: memory released: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
                        info.cluster_id, info.mem_tile, info.physical_addr, info.size);
         return GNManagerExitCode::OK;
     }
@@ -351,7 +354,7 @@ mango_size_t GNManager::get_memory_size(mango_cluster_id_t cluster, mango_mem_id
     int err = HNemu::instance()->get_memory_size (cluster, memory, &mem_size);
 
     if (err != 0) {
-//        log_hhal.Error("[GNLibHHAL] Cannot get memory size: cluster=%d, memory=%d", cluster, memory);
+//        log_hhal.Error("GNManager: Cannot get memory size: cluster=%d, memory=%d", cluster, memory);
     }
 
     return mem_size;
@@ -373,12 +376,12 @@ GNManagerExitCode GNManager::find_memory(mango_cluster_id_t cluster, mango_unit_
     uint32_t phy_addr_l = 0; //HNemu
     int status = HNemu::instance()->find_memory(cluster, unit, size, memory, &phy_addr_l);
     if (status!=HN_SUCCEEDED){
-        log_hhal.Error("[GNLibHHAL] memory not found: cluster=%d, unit=%d, size=%d",
+        log_hhal.Error("GNManager: memory not found: cluster=%d, unit=%d, size=%d",
                        cluster, unit, size);
         return GNManagerExitCode::ERROR;
     } else {
         *phy_addr = phy_addr_l;
-        log_hhal.Debug("[GNLibHHAL] free memory found: cluster=%d, unit=%d, size=%d, "
+        log_hhal.Debug("GNManager: free memory found: cluster=%d, unit=%d, size=%d, "
                        "memory-%d, phy_addr=0x%x",
                        cluster, unit, size, *memory, *phy_addr);
         return GNManagerExitCode::OK;
@@ -405,7 +408,7 @@ GNManagerExitCode GNManager::find_units_set(mango_cluster_id_t cluster, std::vec
     uint32_t* types_hn = new uint32_t[num_tiles];
     for (unsigned int i = 0; i< num_tiles; i++){
         types_hn[i] = get_hn_tile_family(types[i]);
-        log_hhal.Debug("[GNLibHHAL] find_units_set: type %d converted to %d ",
+        log_hhal.Debug("GNManager: find_units_set: type %d converted to %d ",
                        types[i], types_hn[i] );
     }
     uint32_t *tiles = nullptr;
@@ -463,7 +466,7 @@ GNManagerExitCode GNManager::do_memory_management() {
 }
 
 GNManagerExitCode GNManager::prepare_events_registers() {
-    printf("Preparing event registers\n");
+    printf("GNManager: Preparing event registers\n");
     // This function will initialize the event values to zero
     GNManagerExitCode ec;
 
@@ -511,7 +514,7 @@ GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args
     gn_kernel &info = kernel_info[kernel_id];
 
     if (info.image_path == "") {
-        printf("No kernel path\n");
+        printf("GNManager: No kernel path\n");
         return GNManagerExitCode::ERROR;
     }
 
@@ -545,17 +548,17 @@ GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args
                         ss << " " << *(int64_t*)arg.scalar.address;
                         break;
                     default:
-                        printf("Unknown scalar int size\n");
+                        printf("GNManager: Unknown scalar int size\n");
                         return GNManagerExitCode::ERROR;
                     }
                 }
                 else {
-                    printf("Float scalars not supported\n");
+                    printf("GNManager: Float scalars not supported\n");
                     return GNManagerExitCode::ERROR;
                 }
                 break;
             default:
-                printf("Unknown argument\n");
+                printf("GNManager: Unknown argument\n");
                 return GNManagerExitCode::ERROR;
         }
 	}

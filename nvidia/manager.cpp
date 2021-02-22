@@ -9,16 +9,19 @@
 namespace hhal {
 
     NvidiaManagerExitCode NvidiaManager::assign_kernel(nvidia_kernel *info) {
+        printf("NvidiaManager: Assigning kernel %d\n", info->id);
         kernel_info[info->id] = *info;
         return NvidiaManagerExitCode::OK;
     }
 
     NvidiaManagerExitCode NvidiaManager::assign_buffer(nvidia_buffer *info) {
+        printf("NvidiaManager: Assigning buffer %d\n", info->id);
         buffer_info[info->id] = *info;
         return NvidiaManagerExitCode::OK;
     }
 
     NvidiaManagerExitCode NvidiaManager::assign_event(nvidia_event *info) {
+        printf("NvidiaManager: Assigning event %d\n", info->id);
         event_info[info->id] = *info;
         return NvidiaManagerExitCode::OK;
     }
@@ -78,20 +81,20 @@ namespace hhal {
                     arg_array_size += sizeof(cuda_manager::BufferArg);
                     break;
                 case ArgumentType::EVENT:
-                    printf("Events not supported yet\n");
-                    return NvidiaManagerExitCode::ERROR; 
+                    printf("NvidiaManager: Event arguments not supported yet\n");
+                    // return NvidiaManagerExitCode::ERROR; TODO: Should actually fail here
                     break;
                 case ArgumentType::SCALAR:
                     if (arg.scalar.type == ScalarType::FLOAT && arg.scalar.size == sizeof(float)) {
                         arg_array_size += sizeof(cuda_manager::ValueArg);
                     }
                     else {
-                        printf("Only floats are supported at the moment\n");
+                        printf("NvidiaManager: Only floats are supported at the moment\n");
                         return NvidiaManagerExitCode::ERROR; 
                     }
                     break;
                 default:
-                    printf("Unknown argument\n");
+                    printf("NvidiaManager: Unknown argument\n");
                     return NvidiaManagerExitCode::ERROR; 
             }
         }
@@ -118,8 +121,8 @@ namespace hhal {
                     break;
                 }
                 default:
-                    printf("This should not happen\n");
-                    return NvidiaManagerExitCode::ERROR;
+                    printf("NvidiaManager: This should not happen\n");
+                    // return NvidiaManagerExitCode::ERROR; Should also fail here
             }
         }
 
@@ -134,7 +137,7 @@ namespace hhal {
         CudaApiExitCode err = cuda_api.launch_kernel(kernel_id, kernel_info[kernel_id].function_name.c_str(), arg_array, arg_count);
 
         if (err != OK) {
-            printf("[Error] Error launching kernel\n");
+            printf("[Error] NvidiaManager: Error launching kernel\n");
         }
 
         write_sync_register(termination_event.id, 1);

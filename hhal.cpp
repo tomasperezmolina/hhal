@@ -50,6 +50,7 @@ HHAL::HHAL() {
         printf("[Error] Could not initialize GNManager\n");
     }
     managers = new HHAL::Managers;
+    printf("HHAL: Initialized\n");
 }
 
 HHAL::~HHAL() {
@@ -58,6 +59,7 @@ HHAL::~HHAL() {
         printf("[Error] Could not finalize GNManager properly\n");
     }
     delete managers;
+    printf("HHAL: Destroyed\n");
 }
 
 HHALExitCode HHAL::assign_kernel(Unit unit, hhal_kernel *info) {
