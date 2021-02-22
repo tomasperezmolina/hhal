@@ -17,8 +17,8 @@ typedef struct nvidia_buffer_t {
     int gpu_id;
     int mem_id;
     size_t size;
-    std::vector<int> kernels_in;
-    std::vector<int> kernels_out;
+    std::vector<int> kernels_in;    // Id of kernels which write into the buffer
+    std::vector<int> kernels_out;   // Id of kernels which read from the buffer
 } nvidia_buffer;
 
 typedef struct nvidia_event_t {

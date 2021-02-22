@@ -106,8 +106,10 @@ namespace hhal {
             switch (arg.type) {
                 case ArgumentType::BUFFER: {
                     auto &b_info = buffer_info[arg.buffer.id];
-                    auto &in_kernels = b_info.kernels_in;
-                    bool is_in = std::find(in_kernels.begin(), in_kernels.end(), kernel_id) != in_kernels.end();
+                    // If the buffer has the kernel as an output (the kernel will READ from the buffer)
+                    // then the buffer is an input to that kernel.
+                    auto &kernels_out = b_info.kernels_out;
+                    bool is_in = std::find(kernels_out.begin(), kernels_out.end(), kernel_id) != kernels_out.end();
                     auto *arg_x = (cuda_manager::BufferArg *) current_arg;
                     *arg_x = {cuda_manager::BUFFER, b_info.id, is_in};
                     current_arg += sizeof(cuda_manager::BufferArg);

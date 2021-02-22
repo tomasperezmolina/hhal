@@ -77,9 +77,9 @@ int main(void) {
     }
 
     std::vector<mango_buffer> buffers = {
-        {BUFFER_X_ID, buffer_size, {KERNEL_ID}, {}},
-        {BUFFER_Y_ID, buffer_size, {KERNEL_ID}, {}},
-        {BUFFER_O_ID, buffer_size, {}, {KERNEL_ID}},
+        {BUFFER_X_ID, buffer_size, {}, {KERNEL_ID}},
+        {BUFFER_Y_ID, buffer_size, {}, {KERNEL_ID}},
+        {BUFFER_O_ID, buffer_size, {KERNEL_ID}, {}},
     };
 
     resource_management(hhal, kernel, buffers, events);
