@@ -73,12 +73,14 @@ namespace hhal {
 
     NvidiaManagerExitCode NvidiaManager::kernel_start(int kernel_id, const Arguments &arguments) {
         auto &args = arguments.get_args();
-        int arg_count = args.size();
+        //int arg_count = args.size(); //Since event arguments are not supported yet, we only count buffers & scalars
+        int arg_count = 0;
         size_t arg_array_size = 0;
         for(auto &arg: args) {
             switch (arg.type) {
                 case ArgumentType::BUFFER:
                     arg_array_size += sizeof(cuda_manager::BufferArg);
+                    ++arg_count;
                     break;
                 case ArgumentType::EVENT:
                     printf("NvidiaManager: Event arguments not supported yet\n");
@@ -92,6 +94,7 @@ namespace hhal {
                         printf("NvidiaManager: Only floats are supported at the moment\n");
                         return NvidiaManagerExitCode::ERROR; 
                     }
+                    ++arg_count;
                     break;
                 default:
                     printf("NvidiaManager: Unknown argument\n");
