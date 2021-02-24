@@ -107,7 +107,7 @@ void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<regis
             hhal.gn_manager.release_units_set(default_cluster_id, tiles_dst);
             return;
         }
-        printf("[DummyRM] resource_allocation: event=%d, phy_addr=0x%lx\n", et.id, phy_addr);
+        printf("[DummyRM] resource_allocation: event=%d, phy_addr=0x%x\n", et.id, phy_addr);
         info.physical_addr = phy_addr;
         // hack for deallocation
         event_addresses[info.id] = info.physical_addr;
@@ -127,7 +127,7 @@ void resource_allocation(HHAL &hhal, registered_kernel kernel, std::vector<regis
 
 
         hhal.gn_manager.find_memory(default_cluster_id, kernel_info.unit_id, info.size, &memory, &phy_addr);
-        printf("[DummyRM] resource_allocation: buffer=%d, memory=%d, phy_addr=0x%lx\n", info.id, memory, phy_addr);
+        printf("[DummyRM] resource_allocation: buffer=%d, memory=%d, phy_addr=0x%x\n", info.id, memory, phy_addr);
         info.mem_tile = memory;
         info.physical_addr = phy_addr;
         hhal.assign_buffer(hhal::Unit::GN, (hhal_buffer *) &info);
@@ -312,12 +312,14 @@ int main(void) {
 
     /* reading results */
     // mango_wait(e);
+    printf("Waiting for buffer event\n");
     events::wait(hhal, buffer_event.id, 1);
     // mango_read(C, b3, DIRECT, 0);
     hhal.read_from_memory(B3, C, buffer_size);
 
     /* wait for kernel completion */
     // mango_wait(ev);
+    printf("Waiting for kernel termination event\n");
     events::wait(hhal, kernel_termination_event.id, 1);
 
     /* shut down the mango infrastructure */

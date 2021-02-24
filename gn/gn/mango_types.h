@@ -11,11 +11,15 @@ namespace mango {
 
 typedef uint32_t mango_size_t;
 
-#if __x86_64__
-	typedef uint64_t mango_addr_t;
-#else
-	typedef uint32_t mango_addr_t;
-#endif
+
+// #if __x86_64__
+// 	typedef uint64_t mango_addr_t;
+// #else
+// 	typedef uint32_t mango_addr_t;
+// #endif
+
+// TODO check this
+typedef uint32_t mango_addr_t;
 
 typedef uint32_t mango_id_t;
 typedef mango_id_t mango_mem_id_t;

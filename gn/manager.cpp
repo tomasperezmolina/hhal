@@ -20,6 +20,13 @@
 #define MANGO_REG_UNUSED 0
 #define MANGO_REG_INUSE 1
 
+
+// Size used in gn hhal
+// #define ADDR_SIZE sizeof(mango_addr_t) 
+
+// Size used in libgn
+#define ADDR_SIZE 4
+
 #define NUM_VNS HN_MAX_VNS
 
 #define GN_RETURN_DIR  "/bin/gn_return";
@@ -90,7 +97,7 @@ GNManagerExitCode GNManager::initialize() {
     // Reserve space for sync registers
     // registers for all clusters are reserved on cluster 0 close to tile 0
     mango_cluster_id_t default_cluster_id = 0;
-    mango_size_t size = num_clusters * MANGO_REG_SIZE * sizeof(mango_addr_t);
+    mango_size_t size = num_clusters * MANGO_REG_SIZE * ADDR_SIZE;
     mango_mem_id_t memory = 0;
     mango_addr_t phy_addr = 0;
     uint32_t phy_addr_l = 0;
@@ -212,7 +219,7 @@ GNManagerExitCode GNManager::write_to_memory(int buffer_id, const void *source, 
     assert(size > 0);
     gn_buffer &info = buffer_info[buffer_id];
 
-    memcpy(mem + (info.physical_addr/sizeof(mango_addr_t)), static_cast<char*>(const_cast<void*>(source)), size);
+    memcpy(mem + (info.physical_addr/ADDR_SIZE), static_cast<char*>(const_cast<void*>(source)), size);
     log_hhal.Debug("GNManager: write_to_memory: cluster=%d,  memory=%d, dest_address=0x%x, size=%d",
                    info.cluster_id, info.mem_tile, info.physical_addr, size);
     return GNManagerExitCode::OK;
@@ -224,7 +231,7 @@ GNManagerExitCode GNManager::read_from_memory(int buffer_id, void *dest, size_t 
     assert(size > 0);
     gn_buffer &info = buffer_info[buffer_id];
 
-    memcpy(static_cast<char*>(dest), mem + (info.physical_addr/sizeof(mango_addr_t)), size);
+    memcpy(static_cast<char*>(dest), mem + (info.physical_addr/ADDR_SIZE), size);
 
     log_hhal.Debug("GNManager: read_from_memory: cluster=%d,  memory=%d, source_address=0x%x, size=%d",
                    info.cluster_id, info.mem_tile, info.physical_addr, size);
@@ -236,7 +243,7 @@ GNManagerExitCode GNManager::write_sync_register(int event_id, uint32_t data) {
     gn_event &info = event_info[event_id];
     int reg_address = info.physical_addr;
     reg_address -= info.cluster_id * MANGO_REG_SIZE * 4;
-    reg_address /= sizeof(mango_addr_t);
+    reg_address /= ADDR_SIZE;
 
     sem_wait(sem_id);
 
@@ -247,8 +254,8 @@ GNManagerExitCode GNManager::write_sync_register(int event_id, uint32_t data) {
     }
 
     sem_post(sem_id);
-    log_hhal.Debug("GNManager: write_sync_register: cluster=%d,  reg_address=0x%x, data=%d",
-                   info.cluster_id, reg_address, data);
+    log_hhal.Debug("GNManager: write_sync_register: cluster=%d, phy_addr=%p, reg_address=0x%x, data=%d",
+                   info.cluster_id, info.physical_addr, reg_address, data);
     return GNManagerExitCode::OK;
 }
 
@@ -257,7 +264,7 @@ GNManagerExitCode GNManager::read_sync_register(int event_id, uint32_t *data) {
     gn_event &info = event_info[event_id];
     int reg_address = info.physical_addr;
     reg_address -= info.cluster_id * MANGO_REG_SIZE * 4;
-    reg_address /= sizeof(mango_addr_t);
+    reg_address /= ADDR_SIZE;
 
     sem_wait(sem_id);
 
@@ -266,8 +273,8 @@ GNManagerExitCode GNManager::read_sync_register(int event_id, uint32_t *data) {
 
     sem_post(sem_id);
 
-    log_hhal.Debug("GNManager: read_sync_register: cluster=%d, reg_address=0x%x, data=%d",
-                   info.cluster_id, reg_address, result);
+    log_hhal.Debug("GNManager: read_sync_register: cluster=%d, phy_addr=%p, reg_address=0x%x, data=%d",
+                   info.cluster_id, info.physical_addr, reg_address, result);
 
     *data = result;
     return GNManagerExitCode::OK;
@@ -343,7 +350,7 @@ GNManagerExitCode GNManager::get_synch_register_addr(mango_cluster_id_t cluster,
 
 void GNManager::release_synch_register_addr(mango_cluster_id_t cluster, mango_addr_t reg_address) {
     reg_address -= cluster * MANGO_REG_SIZE * 4;
-    reg_address /= sizeof(mango_addr_t);
+    reg_address /= ADDR_SIZE;
     event_register_off[cluster][reg_address] = MANGO_REG_UNUSED;
 }
 
@@ -351,7 +358,7 @@ mango_size_t GNManager::get_memory_size(mango_cluster_id_t cluster, mango_mem_id
     assert(initialized == true);
 
     mango_size_t mem_size;
-    int err = HNemu::instance()->get_memory_size (cluster, memory, &mem_size);
+    int err = HNemu::instance()->get_memory_size(cluster, memory, &mem_size);
 
     if (err != 0) {
 //        log_hhal.Error("GNManager: Cannot get memory size: cluster=%d, memory=%d", cluster, memory);
@@ -362,7 +369,7 @@ mango_size_t GNManager::get_memory_size(mango_cluster_id_t cluster, mango_mem_id
 
 mango_addr_t GNManager::get_first_virtual_address(mango_unit_type_t unit_type, hhal_tlb_entry_type_t entry_type) const {
     if(entry_type == hhal_tlb_entry_type_t::NORMAL_DATA)
-        return num_clusters * MANGO_REG_SIZE * sizeof(mango_addr_t);
+        return num_clusters * MANGO_REG_SIZE * ADDR_SIZE;
     if(entry_type == hhal_tlb_entry_type_t::EXECUTABLE_CODE)
         return 0x0;
     if(entry_type == hhal_tlb_entry_type_t::SYNCHRONIZATION_REGS)
@@ -486,7 +493,7 @@ GNManagerExitCode GNManager::prepare_events_registers() {
         auto et_id = bt_pair.second.event;
 
         // Read the event BEFORE writing it to allow the initialization
-        // in case of write-accumulare register
+        // in case of write-accumulate register
         uint32_t value;
         ec = read_sync_register(et_id, &value); 
         if (ec != GNManagerExitCode::OK) return ec;

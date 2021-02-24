@@ -16,7 +16,7 @@ void GNManager::MM::set_tlb_kb(GNManager &manager, mango_id_t unit, mango_id_t m
                                 size, phy_addr, mem_bank);
 
     if (ec != GNManagerExitCode::OK) {
-        printf("[Error] Setting TLB for cluster %d, unit %d, bank %d, addr 0x%lx, size %d, phy_addr 0x%lx FAILED\n", cluster_id, unit, mem_bank, starting_addr, size, phy_addr);
+        printf("[Error] Setting TLB for cluster %d, unit %d, bank %d, addr 0x%x, size %d, phy_addr 0x%x FAILED\n", cluster_id, unit, mem_bank, starting_addr, size, phy_addr);
     }
 }
 
@@ -59,8 +59,8 @@ mango_exit_code_t GNManager::MM::set_vaddr_kernels(GNManager &manager, std::vect
         set_tlb_kb(manager, tile_unit, mem_bank, virt_addr_kernel, tlb_area_size, phy_addr, 1, cluster_id);
         tlb.set_virt_addr(k, virt_addr_kernel);
 
-        printf("[Notice] Mapped kernel image. [tile=%d, mem_bank=%d, phy_addr=0x%lx, "
-                    "virt_addr_kernel=0x%lx, size=%d]\n", tile_unit, mem_bank, phy_addr,
+        printf("[Notice] Mapped kernel image. [tile=%d, mem_bank=%d, phy_addr=0x%x, "
+                    "virt_addr_kernel=0x%x, size=%d]\n", tile_unit, mem_bank, phy_addr,
                     virt_addr_kernel, tlb_area_size);
     }
     return ExitCode::SUCCESS;
@@ -123,7 +123,7 @@ mango_exit_code_t GNManager::MM::set_vaddr_events(GNManager &manager, std::vecto
         start_addr = manager.get_first_virtual_address(unit_arch, hhal_tlb_entry_type_t::SYNCHRONIZATION_REGS);
         end_addr   = start_addr + 0xFFFFFF;
 
-        printf("[Notice] Configured TLB for events of tile %d [0x%lx - 0x%lx]\n", tile_unit, start_addr, end_addr);
+        printf("[Notice] Configured TLB for events of tile %d [0x%x - 0x%x]\n", tile_unit, start_addr, end_addr);
 
         manager.set_tlb_entry(cluster_id, tile_unit,
                             SYNCHRONIZATION_REGS, start_addr,
@@ -147,7 +147,7 @@ void GNManager::MM::set_buff_tlb(GNManager &manager, gn_kernel &k, gn_buffer &b)
 
     auto next_virtual_address = virtual_address_pool.at(k.id);
 
-    printf("[Debug] Adding TLB entry for buffer %d address 0x%lx\n", b.id, next_virtual_address);
+    printf("[Debug] Adding TLB entry for buffer %d address 0x%x\n", b.id, next_virtual_address);
     tlb.set_virt_addr(b, next_virtual_address);
 
     mango_id_t   mem_bank  = b.mem_tile;
@@ -161,7 +161,7 @@ void GNManager::MM::set_buff_tlb(GNManager &manager, gn_kernel &k, gn_buffer &b)
 
     entries[tile_unit] = entry + 1;
 
-    printf("[Notice] Mapped buffer %d to kernel %d [virt_addr=0x%lx] [entry=%d]\n",
+    printf("[Notice] Mapped buffer %d to kernel %d [virt_addr=0x%x] [entry=%d]\n",
                 b.id, k.id, next_virtual_address, entry);
 
     // Update the base address for the next buffer to allocate in the TLB

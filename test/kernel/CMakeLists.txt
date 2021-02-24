@@ -12,7 +12,8 @@ add_custom_target (matrix_multiplication_main_gen
 )
 
 add_executable(matrix_multiplication_dev matrix_multiplication_dev.c ${Main_File})
-find_library(MANGODEV mango-dev-gn PATHS ${MANGO_ROOT}/lib)
+find_library(MANGODEV mango-dev-gn PATHS ${MANGO_ROOT}/usr/lib)
+message("MANGODEV: ${MANGODEV}")
 find_package(Threads)
 target_link_libraries(matrix_multiplication_dev ${MANGODEV} ${CMAKE_THREAD_LIBS_INIT})
 target_include_directories(matrix_multiplication_dev PUBLIC ${MANGO_ROOT}/usr/include/libmango)

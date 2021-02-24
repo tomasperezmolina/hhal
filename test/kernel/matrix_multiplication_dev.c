@@ -27,7 +27,7 @@ void kernel_function(int *A, int *B, int *C, int rows, int cols, mango_event_t e
 		}
 	}
 
-	printf("[Kernel] Waiting for event\n");
+	printf("[Kernel] Waiting for buffer event\n");
 	mango_wait(&e, 2);
 
 	printf("[Kernel] matrix C result:\n");
