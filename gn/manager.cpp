@@ -46,7 +46,7 @@ GNManagerExitCode GNManager::initialize() {
 
     uint32_t num_clusters;
     HNemu::instance()->get_num_clusters(&num_clusters);
-    printf("GNManager: Num clusters: %d\n", num_clusters);
+    log_hhal.Info("GNManager: Num clusters: %d", num_clusters);
 
     init_semaphore();
     if (sem_id == NULL || sem_id == SEM_FAILED) {
@@ -129,20 +129,21 @@ GNManagerExitCode GNManager::finalize() {
 }
 
 GNManagerExitCode GNManager::assign_kernel(gn_kernel *info) {
-    printf("GNManager: Assigning kernel %d\n", info->id);
+    log_hhal.Debug("GNManager: Assigning kernel %d", info->id);
     kernel_info[info->id] = *info;
     tlbs[info->id] = TLB();
     return GNManagerExitCode::OK;
 }
 
 GNManagerExitCode GNManager::assign_buffer(gn_buffer *info) {
-    printf("GNManager: Assigning buffer %d\n", info->id);
+    log_hhal.Debug("GNManager: Assigning buffer %d", info->id);
+    log_hhal.Debug("GNManager: cluster_id=%d, mem_tile=%d, phy_addr=0x%x, size=%zu", info->cluster_id, info->mem_tile, info->physical_addr, info->size);
     buffer_info[info->id] = *info;
     return GNManagerExitCode::OK;
 }
 
 GNManagerExitCode GNManager::assign_event(gn_event *info) {
-    printf("GNManager: Assigning event %d\n", info->id);
+    log_hhal.Debug("GNManager: Assigning event %d", info->id);
     event_info[info->id] = *info;
     return GNManagerExitCode::OK;
 }
@@ -179,7 +180,7 @@ GNManagerExitCode GNManager::kernel_start(int kernel_id, const Arguments &argume
     if (ec != GNManagerExitCode::OK) {
         return GNManagerExitCode::ERROR;
     }
-    printf("GNManager: Kernel argument string:\n%s\n", str_args.c_str());
+    log_hhal.Info("GNManager: Kernel argument string:\n%s", str_args.c_str());
     ec = kernel_start_string_args(kernel_id, str_args);
     if (ec != GNManagerExitCode::OK) {
         return GNManagerExitCode::ERROR;
@@ -219,9 +220,14 @@ GNManagerExitCode GNManager::write_to_memory(int buffer_id, const void *source, 
     assert(size > 0);
     gn_buffer &info = buffer_info[buffer_id];
 
-    memcpy(mem + (info.physical_addr/ADDR_SIZE), static_cast<char*>(const_cast<void*>(source)), size);
+    // Temp fix to deal with BBQUE linking to libgn
+    size_t first_addr = get_first_virtual_address(UnitType::GN, hhal_tlb_entry_type_t::NORMAL_DATA);
+    size_t offset = (first_addr + info.physical_addr) / ADDR_SIZE;
+
+    memcpy(mem + offset, static_cast<char*>(const_cast<void*>(source)), size);
     log_hhal.Debug("GNManager: write_to_memory: cluster=%d,  memory=%d, dest_address=0x%x, size=%d",
                    info.cluster_id, info.mem_tile, info.physical_addr, size);
+    log_hhal.Debug("GNManager: write_to_memory: real addr=0x%x", offset);
     return GNManagerExitCode::OK;
 }
 
@@ -231,10 +237,14 @@ GNManagerExitCode GNManager::read_from_memory(int buffer_id, void *dest, size_t 
     assert(size > 0);
     gn_buffer &info = buffer_info[buffer_id];
 
-    memcpy(static_cast<char*>(dest), mem + (info.physical_addr/ADDR_SIZE), size);
+    // Temp fix to deal with BBQUE linking to libgn
+    size_t first_addr = get_first_virtual_address(UnitType::GN, hhal_tlb_entry_type_t::NORMAL_DATA);
+    size_t offset = (first_addr + info.physical_addr) / ADDR_SIZE;
 
+    memcpy(static_cast<char*>(dest), mem + offset, size);
     log_hhal.Debug("GNManager: read_from_memory: cluster=%d,  memory=%d, source_address=0x%x, size=%d",
                    info.cluster_id, info.mem_tile, info.physical_addr, size);
+    log_hhal.Debug("GNManager: write_to_memory: real addr=0x%x", offset);
     return GNManagerExitCode::OK;
 }
 
@@ -282,7 +292,11 @@ GNManagerExitCode GNManager::read_sync_register(int event_id, uint32_t *data) {
 
 GNManagerExitCode GNManager::allocate_memory(int buffer_id){
     gn_buffer &info = buffer_info[buffer_id];
-    int status = HNemu::instance()->allocate_memory(info.cluster_id, info.mem_tile, info.physical_addr, info.size);
+
+    // Temp fix to deal with BBQUE linking to libgn
+    size_t first_addr = get_first_virtual_address(UnitType::GN, hhal_tlb_entry_type_t::NORMAL_DATA);
+
+    int status = HNemu::instance()->allocate_memory(info.cluster_id, info.mem_tile, first_addr + info.physical_addr, info.size);
     if (status!=HN_SUCCEEDED){
         log_hhal.Error("GNManager: memory allocation failed: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
                        info.cluster_id, info.mem_tile, info.physical_addr, info.size);
@@ -387,9 +401,13 @@ GNManagerExitCode GNManager::find_memory(mango_cluster_id_t cluster, mango_unit_
                        cluster, unit, size);
         return GNManagerExitCode::ERROR;
     } else {
+        // Temp fix to deal with BBQUE linking to libgn
+        phy_addr_l -= get_first_virtual_address(UnitType::GN, hhal_tlb_entry_type_t::NORMAL_DATA);
+
+
         *phy_addr = phy_addr_l;
         log_hhal.Debug("GNManager: free memory found: cluster=%d, unit=%d, size=%d, "
-                       "memory-%d, phy_addr=0x%x",
+                       "memory=%d, phy_addr=0x%x",
                        cluster, unit, size, *memory, *phy_addr);
         return GNManagerExitCode::OK;
     }
@@ -473,7 +491,7 @@ GNManagerExitCode GNManager::do_memory_management() {
 }
 
 GNManagerExitCode GNManager::prepare_events_registers() {
-    printf("GNManager: Preparing event registers\n");
+    log_hhal.Info("GNManager: Preparing event registers");
     // This function will initialize the event values to zero
     GNManagerExitCode ec;
 
@@ -521,7 +539,7 @@ GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args
     gn_kernel &info = kernel_info[kernel_id];
 
     if (info.image_path == "") {
-        printf("GNManager: No kernel path\n");
+        log_hhal.Error("GNManager: No kernel path");
         return GNManagerExitCode::ERROR;
     }
 
@@ -555,17 +573,17 @@ GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args
                         ss << " " << *(int64_t*)arg.scalar.address;
                         break;
                     default:
-                        printf("GNManager: Unknown scalar int size\n");
+                        log_hhal.Error("GNManager: Unknown scalar int size");
                         return GNManagerExitCode::ERROR;
                     }
                 }
                 else {
-                    printf("GNManager: Float scalars not supported\n");
+                    log_hhal.Error("GNManager: Float scalars not supported");
                     return GNManagerExitCode::ERROR;
                 }
                 break;
             default:
-                printf("GNManager: Unknown argument\n");
+                log_hhal.Error("GNManager: Unknown argument");
                 return GNManagerExitCode::ERROR;
         }
 	}

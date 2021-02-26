@@ -21,7 +21,7 @@ void GNManager::MM::set_tlb_kb(GNManager &manager, mango_id_t unit, mango_id_t m
 }
 
 GNManager::MM::MM() noexcept {
-    printf("[info] Local Memory Manager (virtual addresses) initializing...");
+    printf("[info] Local Memory Manager (virtual addresses) initializing...\n");
 }
 
 GNManager::MM::~MM() noexcept {
@@ -53,6 +53,7 @@ mango_exit_code_t GNManager::MM::set_vaddr_kernels(GNManager &manager, std::vect
         }
 
         virtual_address_pool[k.id] = manager.get_first_virtual_address(unit_arch, hhal_tlb_entry_type_t::NORMAL_DATA);
+        printf("MM: First virtual address for buffers=0x%x\n", virtual_address_pool[k.id]);
         virt_addr_kernel           = manager.get_first_virtual_address(unit_arch, hhal_tlb_entry_type_t::EXECUTABLE_CODE);
 
         // We have only one kernel per unit, so the virtual address is fixed
