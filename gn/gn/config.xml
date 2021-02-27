@@ -4,8 +4,8 @@
 		<tile id="0" family="255" model="255" mem_size="2048" read_mem_bw="2560" write_mem_bw="2560" north_port_bw="0" west_port_bw="0" east_port_bw="320" south_port_bw="320" local_port_bw="320"/>
 		<tile id="1" family="255" model="255" mem_size="0" read_mem_bw="0" write_mem_bw="0" north_port_bw="0" west_port_bw="320" east_port_bw="320" south_port_bw="320" local_port_bw="320"/>
 		<tile id="2" family="255" model="255" mem_size="0" read_mem_bw="0" write_mem_bw="0" north_port_bw="0" west_port_bw="320" east_port_bw="320" south_port_bw="320" local_port_bw="320"/>
-		<tile id="3" family="255" model="255" mem_size="2048" read_mem_bw="2560" write_mem_bw="2560" north_port_bw="0" west_port_bw="320" east_port_bw="0" south_port_bw="320" local_port_bw="320"/>
-		<tile id="4" family="255" model="255" mem_size="0" read_mem_bw="0" write_mem_bw="0" north_port_bw="320" west_port_bw="0" east_port_bw="320" south_port_bw="0" local_port_bw="320"/>
+		<tile id="3" family="255" model="255" mem_size="0" read_mem_bw="2560" write_mem_bw="2560" north_port_bw="0" west_port_bw="320" east_port_bw="0" south_port_bw="320" local_port_bw="320"/>
+		<tile id="4" family="255" model="255" mem_size="2048" read_mem_bw="0" write_mem_bw="0" north_port_bw="320" west_port_bw="0" east_port_bw="320" south_port_bw="0" local_port_bw="320"/>
 		<tile id="5" family="255" model="255" mem_size="0" read_mem_bw="0" write_mem_bw="0" north_port_bw="320" west_port_bw="320" east_port_bw="320" south_port_bw="0" local_port_bw="320"/>
 		<tile id="6" family="255" model="255" mem_size="0" read_mem_bw="0" write_mem_bw="0" north_port_bw="320" west_port_bw="320" east_port_bw="320" south_port_bw="0" local_port_bw="320"/>
 		<tile id="7" family="255" model="255" mem_size="0" read_mem_bw="0" write_mem_bw="0" north_port_bw="320" west_port_bw="320" east_port_bw="0" south_port_bw="0" local_port_bw="320"/>

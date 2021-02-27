@@ -25,6 +25,9 @@ using namespace hhal;
 #define BY_ID 4
 #define BO2_ID 5
 
+
+// Note: it may be necessary to copy ./gn/gn/config.xml to MANGO_ROOT/usr/local/share/config.xml
+
 void init_matrix(int *matrix, int rows, int cols)
 {
   for (int r=0;r<rows;r++) {
