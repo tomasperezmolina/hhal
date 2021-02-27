@@ -27,18 +27,28 @@ add_executable(nvidia_launch_kernel
 add_executable(gn_launch_kernel 
     event_utils.cpp 
     gn_launch_kernel.cpp
+    gn_dummy_rm.cpp
+)
+
+add_executable(gn_serial_saxpy 
+    event_utils.cpp 
+    gn_serial_saxpy.cpp
+    gn_dummy_rm.cpp
 )
 
 target_include_directories(nvidia_launch_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(gn_launch_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(gn_serial_saxpy PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(HAS_PARENT)
     target_link_libraries(gn_launch_kernel PRIVATE hhal)
+    target_link_libraries(gn_serial_saxpy PRIVATE hhal)
 
     target_link_libraries(nvidia_launch_kernel PRIVATE hhal)
     configure_file(saxpy saxpy COPYONLY)
 else(HAS_PARENT)
     target_link_libraries(gn_launch_kernel PRIVATE hhal::hhal)
+    target_link_libraries(gn_serial_saxpy PRIVATE hhal::hhal)
 
     target_link_libraries(nvidia_launch_kernel PRIVATE hhal::hhal)
     configure_file(saxpy saxpy COPYONLY)

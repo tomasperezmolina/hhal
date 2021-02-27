@@ -37,7 +37,7 @@ namespace mango {
     }
 
     void HNemu::fill_default_config() {
-        log.Info("[GNLibHHAL::HNemu] default configuration");
+        log.Info("[HNemu] default configuration");
         uint32_t cluster_id = 0;
         this->num_clusters = 1;
         configuration.reserve(this->num_clusters);
@@ -120,7 +120,7 @@ namespace mango {
 
 
     void HNemu::fill_config() {
-        log.Info("[GNLibHHAL::HNemu] Configuration");
+        log.Info("[HNemu] Configuration");
         uint32_t cluster_id = 0;
         xml_document<> doc;
         std::string conf_file(MANGO_ROOT);  // MANGO_ROOT compile-time defined
@@ -130,7 +130,7 @@ namespace mango {
             fill_default_config();
             return;
         }
-        log.Info("[GNLibHHAL::HNemu] using configuration file %s", conf_file.c_str());
+        log.Info("[HNemu] using configuration file %s", conf_file.c_str());
         uint32_t last_addr = 0;
         std::stringstream buffer;
         buffer << file.rdbuf();
@@ -213,7 +213,7 @@ namespace mango {
         if (cluster < this->num_clusters || tile < configuration[cluster].num_tiles) {
             return HN_SUCCEEDED;
         } else{
-            log.Error("[GNLibHHAL::HNemu] cluster %d, tile %d does not exist in the current configuration", cluster, tile);
+            log.Error("[HNemu] cluster %d, tile %d does not exist in the current configuration", cluster, tile);
             return HN_TILE_DOES_NOT_EXIST;
         }
     }
@@ -222,14 +222,14 @@ namespace mango {
         if (cluster < this->num_clusters) {
             return HN_SUCCEEDED;
         } else{
-            log.Error("[GNLibHHAL::HNemu] cluster %d does not exist in the current configuration", cluster);
+            log.Error("[HNemu] cluster %d does not exist in the current configuration", cluster);
             return HN_CLUSTER_DOES_NOT_EXIST;
         }
     }
 
     uint32_t HNemu::get_num_clusters(uint32_t *clusters){
         *clusters = this->num_clusters;
-        log.Debug("[GNLibHHAL::HNemu] number of clusters %d", this->num_clusters);
+        log.Debug("[HNemu] number of clusters %d", this->num_clusters);
         return HN_SUCCEEDED;;
     }
 
@@ -238,13 +238,13 @@ namespace mango {
         if (cluster >= this->num_clusters || configuration[cluster].num_tiles == 0
             || configuration[cluster].num_cols == 0 || configuration[cluster].num_rows == 0
             || configuration[cluster].num_tiles != configuration[cluster].num_cols * configuration[cluster].num_rows) {
-            log.Error("[GNLibHHAL::HNemu] cluster %d configuration is broken", cluster);
+            log.Error("[HNemu] cluster %d configuration is broken", cluster);
             return HN_TILE_DOES_NOT_EXIST;
         }
         *num_tiles = configuration[cluster].num_tiles;
         *num_tiles_x = configuration[cluster].num_cols;
         *num_tiles_y = configuration[cluster].num_rows;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, number of tiles %d, number of columns %d, number of rows %d",
+        log.Debug("[HNemu] cluster %d, number of tiles %d, number of columns %d, number of rows %d",
                  cluster, *num_tiles, *num_tiles_x, *num_tiles_y);
         return HN_SUCCEEDED;
     }
@@ -272,7 +272,7 @@ namespace mango {
             return status;
         }
         *size = configuration[cluster].tile_info[tile].memory_size;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, memory size %llu",cluster, tile, *size);
+        log.Debug("[HNemu] cluster %d, tile %d, memory size %llu",cluster, tile, *size);
         return HN_SUCCEEDED;
     }
 
@@ -286,7 +286,7 @@ namespace mango {
             mem_size += configuration[cluster].tile_info[i].memory_size;
         }
         *size = mem_size;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, memory size %llu", cluster, mem_size);
+        log.Debug("[HNemu] cluster %d, memory size %llu", cluster, mem_size);
         return HN_SUCCEEDED;
     }
 
@@ -300,7 +300,7 @@ namespace mango {
         *size = configuration[cluster].tile_info[tile].memory_size;
         *free = configuration[cluster].tile_info[tile].free_memory;
         *starting_addr = configuration[cluster].tile_info[tile].first_memory_slot->start_address;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, memory size %d, free memory %d, starting address 0x%x",
+        log.Debug("[HNemu] cluster %d, tile %d, memory size %d, free memory %d, starting address 0x%x",
                 cluster, tile, *size, *free, *starting_addr);
         return HN_SUCCEEDED;
     }
@@ -312,7 +312,7 @@ namespace mango {
             return status;
         }
         if (configuration[cluster].tile_info[tile].memory_size == 0) {
-            log.Error("[GNLibHHAL::HNemu] cluster %d, tile %d does not have memory attached", cluster, tile);
+            log.Error("[HNemu] get_free_memory: cluster %d, tile %d does not have memory attached", cluster, tile);
             return HN_MEMORY_NOT_PRESENT_IN_TILE;
         }
         //First Fit
@@ -322,12 +322,12 @@ namespace mango {
         }
         if (mem == nullptr || mem->size < size) {
             *starting_addr = 0;
-            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, error occured while free memory slot of size %d",
+            log.Debug("[HNemu] cluster %d, tile %d, error occured while free memory slot of size %d",
                      cluster, tile, size);
             return HN_NOT_ENOUGH_MEMORY_AVAILABLE;
         } else {
             *starting_addr = mem->start_address;
-            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, get free memory slot of size %d starting address 0x%x",
+            log.Debug("[HNemu] cluster %d, tile %d, get free memory slot of size %d starting address 0x%x",
                      cluster, tile, size, *starting_addr);
             return HN_SUCCEEDED;
         }
@@ -341,7 +341,7 @@ namespace mango {
             return status;
         }
         *avail = configuration[cluster].tile_info[tile].assigned;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, status: %s assigned",
+        log.Debug("[HNemu] cluster %d, tile %d, status: %s assigned",
                  cluster, tile, (*avail == 0) ? "not": "");
         return HN_SUCCEEDED;
     }
@@ -352,7 +352,7 @@ namespace mango {
             return status;
         }
         configuration[cluster].tile_info[tile].assigned = 1;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, is assigned successfully",
+        log.Debug("[HNemu] cluster %d, tile %d, is assigned successfully",
                  cluster, tile);
         return HN_SUCCEEDED;
     }
@@ -363,7 +363,7 @@ namespace mango {
             return status;
         }
         configuration[cluster].tile_info[tile].assigned = 0;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, is reassigned successfully",
+        log.Debug("[HNemu] cluster %d, tile %d, is reassigned successfully",
                  cluster, tile);
         return HN_SUCCEEDED;
     }
@@ -375,7 +375,7 @@ namespace mango {
             return status;
         }
         *bw = configuration[cluster].tile_info[tile].avail_read_memory_bw;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, available read memory bandwidth %d",
+        log.Debug("[HNemu] cluster %d, tile %d, available read memory bandwidth %d",
                  cluster, tile, *bw);
         return HN_SUCCEEDED;
     }
@@ -387,7 +387,7 @@ namespace mango {
             return status;
         }
         *bw = configuration[cluster].tile_info[tile].avail_write_memory_bw;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, available write memory bandwidth %d",
+        log.Debug("[HNemu] cluster %d, tile %d, available write memory bandwidth %d",
                  cluster, tile, *bw);
         return HN_SUCCEEDED;
     }
@@ -416,13 +416,13 @@ namespace mango {
                 *bw = configuration[cluster].tile_info[tile].avail_local_port_bw;
                 break;
         }
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, port %d, available router bandwidth %d",
+        log.Debug("[HNemu] cluster %d, tile %d, port %d, available router bandwidth %d",
                  cluster, tile, port, *bw);
         return HN_SUCCEEDED;
     }
 
     uint32_t HNemu::get_available_network_bw(uint32_t cluster, uint32_t tile_src, uint32_t tile_dst, unsigned long long *bw){
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, source tile %d, destination tile %d",
+        log.Debug("[HNemu] cluster %d, source tile %d, destination tile %d",
                   cluster, tile_src, tile_dst);
         auto status_src = isTile (cluster, tile_src);
         auto status_dst = isTile (cluster, tile_dst);
@@ -464,7 +464,7 @@ namespace mango {
             else if (port == HN_SOUTH_PORT) tile_cur += num_tiles_x;
         } while (tile_cur != tile_dst);
         *bw = bw_avail;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, source tile %d, destination tile %d, available network bandwidth %d",
+        log.Debug("[HNemu] cluster %d, source tile %d, destination tile %d, available network bandwidth %d",
                  cluster, tile_src, tile_dst, *bw);
         return HN_SUCCEEDED;
     }
@@ -476,11 +476,11 @@ namespace mango {
             return status;
         }
         if (configuration[cluster].tile_info[tile].avail_read_memory_bw < bw) {
-            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d has not enough bandwidth available", cluster, tile);
+            log.Debug("[HNemu] cluster %d, tile %d has not enough bandwidth available", cluster, tile);
             return HN_NOT_ENOUGH_BANDWIDTH_AVAILABLE;
         }
         configuration[cluster].tile_info[tile].avail_read_memory_bw -= bw;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, read memory bandwidth reserved %d",
+        log.Debug("[HNemu] cluster %d, tile %d, read memory bandwidth reserved %d",
                  cluster, tile, bw);
         return HN_SUCCEEDED;
     }
@@ -491,11 +491,11 @@ namespace mango {
             return status;
         }
         if (configuration[cluster].tile_info[tile].avail_write_memory_bw < bw)  {
-            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d has not enough bandwidth available", cluster, tile);
+            log.Debug("[HNemu] cluster %d, tile %d has not enough bandwidth available", cluster, tile);
             return HN_NOT_ENOUGH_BANDWIDTH_AVAILABLE;
         }
         configuration[cluster].tile_info[tile].avail_write_memory_bw -= bw;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, write memory bandwidth reserved %d",
+        log.Debug("[HNemu] cluster %d, tile %d, write memory bandwidth reserved %d",
                  cluster, tile, bw);
         return HN_SUCCEEDED;
     }
@@ -508,7 +508,7 @@ namespace mango {
         switch (port) {
             case HN_NORTH_PORT :
                 if (configuration[cluster].tile_info[tile].avail_north_port_bw < bw)  {
-                    log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, port %d has not enough bandwidth available",
+                    log.Debug("[HNemu] cluster %d, tile %d, port %d has not enough bandwidth available",
                             cluster, tile, port);
                     return HN_NOT_ENOUGH_BANDWIDTH_AVAILABLE;
                 }
@@ -516,7 +516,7 @@ namespace mango {
                 break;
             case HN_EAST_PORT :
                 if (configuration[cluster].tile_info[tile].avail_east_port_bw < bw)  {
-                    log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, port %d has not enough bandwidth available",
+                    log.Debug("[HNemu] cluster %d, tile %d, port %d has not enough bandwidth available",
                              cluster, tile, port);
                     return HN_NOT_ENOUGH_BANDWIDTH_AVAILABLE;
                 }
@@ -524,7 +524,7 @@ namespace mango {
                 break;
             case HN_WEST_PORT :
                 if (configuration[cluster].tile_info[tile].avail_west_port_bw < bw)  {
-                    log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, port %d has not enough bandwidth available",
+                    log.Debug("[HNemu] cluster %d, tile %d, port %d has not enough bandwidth available",
                              cluster, tile, port);
                     return HN_NOT_ENOUGH_BANDWIDTH_AVAILABLE;
                 }
@@ -532,7 +532,7 @@ namespace mango {
                 break;
             case HN_SOUTH_PORT :
                 if (configuration[cluster].tile_info[tile].avail_south_port_bw < bw)  {
-                    log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, port %d has not enough bandwidth available",
+                    log.Debug("[HNemu] cluster %d, tile %d, port %d has not enough bandwidth available",
                              cluster, tile, port);
                     return HN_NOT_ENOUGH_BANDWIDTH_AVAILABLE;
                 }
@@ -540,14 +540,14 @@ namespace mango {
                 break;
             case HN_LOCAL_PORT:
                 if (configuration[cluster].tile_info[tile].avail_local_port_bw < bw)  {
-                    log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, port %d has not enough bandwidth available",
+                    log.Debug("[HNemu] cluster %d, tile %d, port %d has not enough bandwidth available",
                              cluster, tile, port);
                     return HN_NOT_ENOUGH_BANDWIDTH_AVAILABLE;
                 }
                 configuration[cluster].tile_info[tile].avail_local_port_bw -= bw;
                 break;
         }
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, port %d, router bandwidth reserved %d",
+        log.Debug("[HNemu] cluster %d, tile %d, port %d, router bandwidth reserved %d",
                  cluster, tile, port, bw);
         return HN_SUCCEEDED;
     }
@@ -559,7 +559,7 @@ namespace mango {
         if (err!=HN_SUCCEEDED)
             return err;
         if (bw_avail < bw){
-            log.Debug("[GNLibHHAL::HNemu] cluster %d, source tile %d, destination tile %d, not enough network bandwidth available",
+            log.Debug("[HNemu] cluster %d, source tile %d, destination tile %d, not enough network bandwidth available",
                      cluster, tile_src, tile_dst);
             return HN_NOT_ENOUGH_BANDWIDTH_AVAILABLE;
         }
@@ -589,7 +589,7 @@ namespace mango {
             else if (port == HN_SOUTH_PORT) tile_cur += num_tiles_x;
         } while (tile_cur != tile_dst);
 
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, source tile %d, destination tile %d, network bandwidth reserved %d",
+        log.Debug("[HNemu] cluster %d, source tile %d, destination tile %d, network bandwidth reserved %d",
                  cluster, tile_src, tile_dst, bw);
         return HN_SUCCEEDED;
     }
@@ -600,7 +600,7 @@ namespace mango {
             return status;
         }
         configuration[cluster].tile_info[tile].avail_read_memory_bw += bw;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, read memory bandwidth released %d",
+        log.Debug("[HNemu] cluster %d, tile %d, read memory bandwidth released %d",
                  cluster, tile, bw);
         if (configuration[cluster].tile_info[tile].avail_read_memory_bw > configuration[cluster].tile_info[tile].read_memory_bw) {
             return HN_WRONG_BANDWIDTH_SETTING;
@@ -614,7 +614,7 @@ namespace mango {
             return status;
         }
         configuration[cluster].tile_info[tile].avail_write_memory_bw += bw;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, write memory bandwidth released %d",
+        log.Debug("[HNemu] cluster %d, tile %d, write memory bandwidth released %d",
                  cluster, tile, bw);
         if (configuration[cluster].tile_info[tile].avail_write_memory_bw > configuration[cluster].tile_info[tile].write_memory_bw) {
             return HN_WRONG_BANDWIDTH_SETTING;
@@ -631,7 +631,7 @@ namespace mango {
             case HN_NORTH_PORT :
                 configuration[cluster].tile_info[tile].avail_north_port_bw += bw;
                 if (configuration[cluster].tile_info[tile].avail_north_port_bw > configuration[cluster].tile_info[tile].north_port_bw) {
-                    log.Error("[GNLibHHAL::HNemu] cluster %d, tile %d, port %d wrong bandwidth settings",
+                    log.Error("[HNemu] cluster %d, tile %d, port %d wrong bandwidth settings",
                              cluster, tile, port);
                     return HN_WRONG_BANDWIDTH_SETTING;
                 }
@@ -639,7 +639,7 @@ namespace mango {
             case HN_EAST_PORT :
                 configuration[cluster].tile_info[tile].avail_east_port_bw += bw;
                 if (configuration[cluster].tile_info[tile].avail_east_port_bw > configuration[cluster].tile_info[tile].east_port_bw) {
-                    log.Error("[GNLibHHAL::HNemu] cluster %d, tile %d, port %d wrong bandwidth settings",
+                    log.Error("[HNemu] cluster %d, tile %d, port %d wrong bandwidth settings",
                              cluster, tile, port);
                     return HN_WRONG_BANDWIDTH_SETTING;
                 }
@@ -647,7 +647,7 @@ namespace mango {
             case HN_WEST_PORT :
                 configuration[cluster].tile_info[tile].avail_west_port_bw += bw;
                 if (configuration[cluster].tile_info[tile].avail_west_port_bw > configuration[cluster].tile_info[tile].west_port_bw) {
-                    log.Error("[GNLibHHAL::HNemu] cluster %d, tile %d, port %d wrong bandwidth settings",
+                    log.Error("[HNemu] cluster %d, tile %d, port %d wrong bandwidth settings",
                              cluster, tile, port);
                     return HN_WRONG_BANDWIDTH_SETTING;
                 }
@@ -655,7 +655,7 @@ namespace mango {
             case HN_SOUTH_PORT :
                 configuration[cluster].tile_info[tile].avail_south_port_bw += bw;
                 if (configuration[cluster].tile_info[tile].avail_south_port_bw > configuration[cluster].tile_info[tile].south_port_bw) {
-                    log.Error("[GNLibHHAL::HNemu] cluster %d, tile %d, port %d wrong bandwidth settings",
+                    log.Error("[HNemu] cluster %d, tile %d, port %d wrong bandwidth settings",
                              cluster, tile, port);
                     return HN_WRONG_BANDWIDTH_SETTING;
                 }
@@ -663,13 +663,13 @@ namespace mango {
             case HN_LOCAL_PORT :
                 configuration[cluster].tile_info[tile].avail_local_port_bw += bw;
                 if (configuration[cluster].tile_info[tile].avail_local_port_bw > configuration[cluster].tile_info[tile].local_port_bw) {
-                    log.Error("[GNLibHHAL::HNemu] cluster %d, tile %d, port %d wrong bandwidth settings",
+                    log.Error("[HNemu] cluster %d, tile %d, port %d wrong bandwidth settings",
                              cluster, tile, port);
                     return HN_WRONG_BANDWIDTH_SETTING;
                 }
                 break;
         }
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, port %d, router bandwidth released %llu",
+        log.Debug("[HNemu] cluster %d, tile %d, port %d, router bandwidth released %llu",
                  cluster, tile, port, bw);
         return HN_SUCCEEDED;
     }
@@ -707,7 +707,7 @@ namespace mango {
             else if (port == HN_SOUTH_PORT) tile_cur += num_tiles_x;
         } while (tile_cur != tile_dst);
 
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, source tile %d, destination tile %d, network bandwidth released %llu",
+        log.Debug("[HNemu] cluster %d, source tile %d, destination tile %d, network bandwidth released %llu",
                  cluster, tile_src, tile_dst, bw);
         return HN_SUCCEEDED;
     }
@@ -719,7 +719,7 @@ namespace mango {
             return status;
         }
         *bw = configuration[cluster].avail_read_cluster_bw;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, available read cluster bandwidth %llu",
+        log.Debug("[HNemu] cluster %d, available read cluster bandwidth %llu",
                  cluster, *bw);
         return HN_SUCCEEDED;
 
@@ -731,7 +731,7 @@ namespace mango {
             return status;
         }
         *bw = configuration[cluster].avail_write_cluster_bw;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, available write cluster bandwidth %llu",
+        log.Debug("[HNemu] cluster %d, available write cluster bandwidth %llu",
                  cluster, *bw);
         return HN_SUCCEEDED;
     }
@@ -743,11 +743,11 @@ namespace mango {
             return status;
         }
         if (configuration[cluster].avail_read_cluster_bw < bw)  {
-            log.Debug("[GNLibHHAL::HNemu] cluster %d has not enough read bandwidth available", cluster);
+            log.Debug("[HNemu] cluster %d has not enough read bandwidth available", cluster);
             return HN_NOT_ENOUGH_BANDWIDTH_AVAILABLE;
         }
         configuration[cluster].avail_read_cluster_bw -= bw;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, read cluster bandwidth reserved %llu",
+        log.Debug("[HNemu] cluster %d, read cluster bandwidth reserved %llu",
                  cluster, bw);
         return HN_SUCCEEDED;
     }
@@ -758,11 +758,11 @@ namespace mango {
             return status;
         }
         if (configuration[cluster].avail_write_cluster_bw < bw)  {
-            log.Debug("[GNLibHHAL::HNemu] cluster %d has not enough write bandwidth available", cluster);
+            log.Debug("[HNemu] cluster %d has not enough write bandwidth available", cluster);
             return HN_NOT_ENOUGH_BANDWIDTH_AVAILABLE;
         }
         configuration[cluster].avail_write_cluster_bw -= bw;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, write cluster bandwidth reserved %llu",
+        log.Debug("[HNemu] cluster %d, write cluster bandwidth reserved %llu",
                  cluster, bw);
         return HN_SUCCEEDED;
     }
@@ -774,10 +774,10 @@ namespace mango {
             return status;
         }
         configuration[cluster].avail_read_cluster_bw += bw;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, read cluster bandwidth released %llu",
+        log.Debug("[HNemu] cluster %d, read cluster bandwidth released %llu",
                  cluster, bw);
         if (configuration[cluster].avail_write_cluster_bw > configuration[cluster].write_cluster_bw) {
-            log.Error("[GNLibHHAL::HNemu] cluster %d wrong read bandwidth settings",
+            log.Error("[HNemu] cluster %d wrong read bandwidth settings",
                      cluster);
             return HN_WRONG_BANDWIDTH_SETTING;
         }
@@ -790,10 +790,10 @@ namespace mango {
             return status;
         }
         configuration[cluster].avail_write_cluster_bw += bw;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, write cluster bandwidth released %llu",
+        log.Debug("[HNemu] cluster %d, write cluster bandwidth released %llu",
                  cluster, bw);
         if (configuration[cluster].avail_write_cluster_bw > configuration[cluster].write_cluster_bw) {
-            log.Error("[GNLibHHAL::HNemu] cluster %d wrong write bandwidth settings",
+            log.Error("[HNemu] cluster %d wrong write bandwidth settings",
                      cluster);
             return HN_WRONG_BANDWIDTH_SETTING;
         }
@@ -803,6 +803,7 @@ namespace mango {
 
     uint32_t HNemu::checkMemory(uint32_t cluster, uint32_t tile, uint32_t size, uint32_t *tile_mem,
                                            uint32_t *starting_addr) {
+        log.Debug("[HNEmu]: checkMemory");
         auto err = get_free_memory(cluster, tile, size, starting_addr);
         if (err == HN_SUCCEEDED) {
             *tile_mem = tile;
@@ -821,6 +822,7 @@ namespace mango {
 
     uint32_t HNemu::find_memory(uint32_t cluster, uint32_t tile, uint32_t size, uint32_t *tile_mem,
                                            uint32_t *starting_addr) {
+        log.Debug("[HNEmu]: find_memory");
         uint32_t tile_cur = tile;
         auto err = get_free_memory(cluster, tile, size, starting_addr);
 
@@ -847,7 +849,7 @@ namespace mango {
                         get_available_network_bw(cluster, tile, tile_cur, &bw);
                         if (bw > 0 &&
                             checkMemory(cluster, tile_cur, size, tile_mem, starting_addr)) {
-                            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
+                            log.Debug("[HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
                                       cluster, *tile_mem, size, *starting_addr);
                             return HN_SUCCEEDED;
                         }
@@ -858,7 +860,7 @@ namespace mango {
                         get_available_network_bw(cluster, tile, tile_cur, &bw);
                         if (bw > 0 &&
                             checkMemory(cluster, tile_cur, size, tile_mem, starting_addr)) {
-                            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
+                            log.Debug("[HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
                                       cluster, *tile_mem, size, *starting_addr);
                             return HN_SUCCEEDED;
                         }
@@ -870,7 +872,7 @@ namespace mango {
                         get_available_network_bw(cluster, tile, tile_cur, &bw);
                         if (bw > 0 &&
                             checkMemory(cluster, tile_cur, size, tile_mem, starting_addr)) {
-                            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
+                            log.Debug("[HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
                                       cluster, *tile_mem, size, *starting_addr);
                             return HN_SUCCEEDED;
                         }
@@ -882,7 +884,7 @@ namespace mango {
                         get_available_network_bw(cluster, tile, tile_cur, &bw);
                         if (bw > 0 &&
                             checkMemory(cluster, tile_cur, size, tile_mem, starting_addr)) {
-                            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
+                            log.Debug("[HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
                                       cluster, *tile_mem, size, *starting_addr);
                             return HN_SUCCEEDED;
                         }
@@ -893,7 +895,7 @@ namespace mango {
                         get_available_network_bw(cluster, tile, tile_cur, &bw);
                         if (bw > 0 &&
                             checkMemory(cluster, tile_cur, size, tile_mem, starting_addr)) {
-                            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
+                            log.Debug("[HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
                                       cluster, *tile_mem, size, *starting_addr);
                             return HN_SUCCEEDED;
                         }
@@ -905,7 +907,7 @@ namespace mango {
                         get_available_network_bw(cluster, tile, tile_cur, &bw);
                         if (bw > 0 &&
                             checkMemory(cluster, tile_cur, size, tile_mem, starting_addr)) {
-                            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
+                            log.Debug("[HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
                                       cluster, *tile_mem, size, *starting_addr);
                             return HN_SUCCEEDED;
                         }
@@ -916,7 +918,7 @@ namespace mango {
                         get_available_network_bw(cluster, tile, tile_cur, &bw);
                         if (bw > 0 &&
                             checkMemory(cluster, tile_cur, size, tile_mem, starting_addr)) {
-                            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
+                            log.Debug("[HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
                                       cluster, *tile_mem, size, *starting_addr);
                             return HN_SUCCEEDED;
                         }
@@ -927,7 +929,7 @@ namespace mango {
                         get_available_network_bw(cluster, tile, tile_cur, &bw);
                         if (bw > 0 &&
                             checkMemory(cluster, tile_cur, size, tile_mem, starting_addr)) {
-                            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
+                            log.Debug("[HNemu] cluster %d, tile %d, free memory slot size %d, starting address 0x%x",
                                       cluster, *tile_mem, size, *starting_addr);
                             return HN_SUCCEEDED;
                         }
@@ -937,7 +939,7 @@ namespace mango {
         }
         *starting_addr = 0;
         *tile_mem = 0;
-        log.Debug("[GNLibHHAL::HNemu] cluster %d not enough memory available", cluster);
+        log.Debug("[HNemu] cluster %d not enough memory available", cluster);
         return HN_NOT_ENOUGH_MEMORY_AVAILABLE;
     }
 
@@ -947,7 +949,7 @@ namespace mango {
             return status;
         }
         if (configuration[cluster].tile_info[tile].memory_size == 0) {
-            log.Error("[GNLibHHAL::HNemu] cluster %d, tile %d does not have memory attached", cluster, tile);
+            log.Error("[HNemu] allocate_memory: cluster %d, tile %d does not have memory attached", cluster, tile);
             return HN_MEMORY_NOT_PRESENT_IN_TILE;
         }
         auto mem = configuration[cluster].tile_info[tile].first_memory_slot;
@@ -957,13 +959,13 @@ namespace mango {
             prev = mem;
             mem = (hn_rscmgt_memory_slot_t *) mem->next_memory_slot;
             if (mem == nullptr) {
-                log.Error("[GNLibHHAL::HNemu] cluster %d, tile %d  memory slot size %d, starting address 0x%x does not exist",
+                log.Error("[HNemu] cluster %d, tile %d  memory slot size %d, starting address 0x%x does not exist",
                 cluster, tile, size, addr);
                 return HN_FIND_MEMORY_ERROR;
             }
         }
         if (mem->size < size) {
-            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d not enough memory available", cluster, tile);
+            log.Debug("[HNemu] cluster %d, tile %d not enough memory available", cluster, tile);
             return HN_NOT_ENOUGH_MEMORY_AVAILABLE;
         }
         configuration[cluster].tile_info[tile].free_memory -= size;
@@ -975,7 +977,7 @@ namespace mango {
             mem->start_address += size;
             mem->size -= size;
         }
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x allocated successfully",
+        log.Debug("[HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x allocated successfully",
             cluster, tile, size, addr);
         return HN_SUCCEEDED;
 
@@ -988,7 +990,7 @@ namespace mango {
             return status;
         }
         if (configuration[cluster].tile_info[tile].memory_size == 0) {
-            log.Error("[GNLibHHAL::HNemu] cluster %d, tile %d does not have memory attached", cluster, tile);
+            log.Error("[HNemu] release_memory: cluster %d, tile %d does not have memory attached", cluster, tile);
             return HN_MEMORY_NOT_PRESENT_IN_TILE;
         }
         auto mem = configuration[cluster].tile_info[tile].first_memory_slot;
@@ -999,13 +1001,13 @@ namespace mango {
                 if ((prev->end_address + 1) == addr && (addr + size) != mem->start_address) {
                     prev->size += size;
                     prev->end_address += size;
-                    log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
+                    log.Debug("[HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
                         cluster, tile, size, addr);
                     return HN_SUCCEEDED;
                 } else if ((prev->end_address + 1) != addr && (addr + size) == mem->start_address) {
                     mem->size += size;
                     mem->start_address = addr;
-                    log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
+                    log.Debug("[HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
                         cluster, tile, size, addr);
                     return HN_SUCCEEDED;
                 } else if ((prev->end_address + 1) == addr && (addr + size) == mem->start_address) {
@@ -1013,7 +1015,7 @@ namespace mango {
                     prev->end_address = mem->end_address;
                     prev->next_memory_slot = mem->next_memory_slot;
                     free(mem);
-                    log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
+                    log.Debug("[HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
                         cluster, tile, size, addr);
                     return HN_SUCCEEDED;
                 } else if ((prev->end_address + 1) != addr && (addr + size) != mem->start_address) {
@@ -1023,7 +1025,7 @@ namespace mango {
                     slot->end_address = addr + size - 1;
                     slot->next_memory_slot = mem;
                     prev->next_memory_slot = slot;
-                    log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
+                    log.Debug("[HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
                         cluster, tile, size, addr);
                     return HN_SUCCEEDED;
                 }
@@ -1035,13 +1037,13 @@ namespace mango {
         if ((addr + size) == configuration[cluster].tile_info[tile].first_memory_slot->start_address) {
             configuration[cluster].tile_info[tile].first_memory_slot->size += size;
             configuration[cluster].tile_info[tile].first_memory_slot->start_address = addr;
-            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
+            log.Debug("[HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
                 cluster, tile, size, addr);
             return HN_SUCCEEDED;
         } else if ((prev->end_address + 1) == addr) {
             prev->size += size;
             prev->end_address += size;
-            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
+            log.Debug("[HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
                 cluster, tile, size, addr);
             return HN_SUCCEEDED;
         } else {
@@ -1057,7 +1059,7 @@ namespace mango {
                 configuration[cluster].tile_info[tile].first_memory_slot = slot;
                 slot->next_memory_slot = mem;
             }
-            log.Debug("[GNLibHHAL::HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
+            log.Debug("[HNemu] cluster %d, tile %d, memory slot size %d, starting address 0x%x released successfully",
                 cluster, tile, size, addr);
             return HN_SUCCEEDED;
         }
@@ -1078,7 +1080,7 @@ namespace mango {
         *dst = ((tile_cur_x > tile_dst_x) ? (tile_cur_x - tile_dst_x) :
                 (tile_dst_x - tile_cur_x)) + ((tile_cur_y > tile_dst_y) ?
                                               (tile_cur_y - tile_dst_y) : (tile_dst_y - tile_cur_y));
-        log.Debug("[GNLibHHAL::HNemu] cluster %d, source tile %d, destination tile %d, distance (hops) %d",
+        log.Debug("[HNemu] cluster %d, source tile %d, destination tile %d, distance (hops) %d",
                  cluster, tile_src, tile_dst, *dst);
         return HN_SUCCEEDED;
     }
@@ -1245,7 +1247,7 @@ namespace mango {
                 free(tiles2);
                 tiles2= nullptr;
             }
-            log.Debug("[GNLibHHAL::HNemu] find_units_set cluster %d, number of requested tiles %d, set found",
+            log.Debug("[HNemu] find_units_set cluster %d, number of requested tiles %d, set found",
                      cluster, num_tiles);
             return HN_SUCCEEDED;
         } else {
@@ -1253,7 +1255,7 @@ namespace mango {
             tiles1= nullptr;
             free(tiles2);
             tiles2= nullptr;
-            log.Debug("[GNLibHHAL::HNemu] find_units_set cluster %d, number of requested tiles %d, set not found",
+            log.Debug("[HNemu] find_units_set cluster %d, number of requested tiles %d, set not found",
                      cluster, num_tiles);
             return HN_PARTITION_NOT_FOUND;
         }
@@ -1299,12 +1301,12 @@ namespace mango {
         *num = num_cur;
         if (num_cur > 0) {
             *tiles_dst = tiles_dst_cur;
-            log.Debug("[GNLibHHAL::HNemu] find_units_sets cluster %d, number of requested tiles %d, number of available sets %d",
+            log.Debug("[HNemu] find_units_sets cluster %d, number of requested tiles %d, number of available sets %d",
                      cluster, num_tiles, num_cur);
             return HN_SUCCEEDED;
         } else {
             free(tiles_dst_cur);
-            log.Debug("[GNLibHHAL::HNemu] find_units_sets cluster %d, number of requested tiles %d, sets not found",
+            log.Debug("[HNemu] find_units_sets cluster %d, number of requested tiles %d, sets not found",
                      cluster, num_tiles);
             return HN_PARTITION_NOT_FOUND;
         }
@@ -1326,7 +1328,7 @@ namespace mango {
         for (uint32_t i = 0; i<num_tiles; i++){
             err = is_tile_assigned(cluster, tiles[i], &status);
             if (err!=HN_SUCCEEDED) {
-                log.Debug("[GNLibHHAL::HNemu] reserve_units_set cluster %d, number of requested tiles %d, error occured while checking tiles, release %d already reserved tiles",
+                log.Debug("[HNemu] reserve_units_set cluster %d, number of requested tiles %d, error occured while checking tiles, release %d already reserved tiles",
                          cluster, num_tiles, i);
                 for (uint32_t j = 0; j<i; j++){
                         set_tile_avail(cluster, tiles[j]);
@@ -1339,7 +1341,7 @@ namespace mango {
                 set_tile_assigned(cluster, tiles[i]);
                 update_bounds(tiles[i] % num_tiles_x, tiles[i] / num_tiles_x, &start_x, &start_y, &end_x, &end_y);
             } else {
-                log.Debug("[GNLibHHAL::HNemu] reserve_units_set cluster %d, number of requested tiles %d, tile %d is currently assigned, release %d already reserved tiles",
+                log.Debug("[HNemu] reserve_units_set cluster %d, number of requested tiles %d, tile %d is currently assigned, release %d already reserved tiles",
                          cluster, num_tiles, tiles[i], i);
                 for (uint32_t j = 0; j<i; j++){
                     set_tile_avail(cluster, tiles[j]);
@@ -1361,7 +1363,7 @@ namespace mango {
                 }
             }
         }
-        log.Debug("[GNLibHHAL::HNemu] reserve_units_set cluster %d, number of requested tiles %d, reserve %d tiles in isolated area (start: [%d,%d], end: [%d,%d])",
+        log.Debug("[HNemu] reserve_units_set cluster %d, number of requested tiles %d, reserve %d tiles in isolated area (start: [%d,%d], end: [%d,%d])",
                  cluster, num_tiles, num_tiles_final, start_x, start_y, end_x, end_y);
 //      isolate area using bw
         if (start_y > 0){
@@ -1431,7 +1433,7 @@ namespace mango {
                 }
             }
         }
-        log.Debug("[GNLibHHAL::HNemu] release_units_set cluster %d, number of requested tiles %d, release %d tiles in isolated area (start: [%d,%d], end: [%d,%d])",
+        log.Debug("[HNemu] release_units_set cluster %d, number of requested tiles %d, release %d tiles in isolated area (start: [%d,%d], end: [%d,%d])",
                  cluster, num_tiles, num_tiles_final, start_x, start_y, end_x, end_y);
 //      release bw of bounds of isolated area
         if (start_y > 0){

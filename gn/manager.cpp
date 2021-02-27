@@ -25,7 +25,7 @@
 // #define ADDR_SIZE sizeof(mango_addr_t) 
 
 // Size used in libgn
-#define ADDR_SIZE 4
+#define ADDR_SIZE 4L
 
 #define NUM_VNS HN_MAX_VNS
 
@@ -101,9 +101,15 @@ GNManagerExitCode GNManager::initialize() {
     mango_mem_id_t memory = 0;
     mango_addr_t phy_addr = 0;
     uint32_t phy_addr_l = 0;
-    HNemu::instance()->find_memory(default_cluster_id, 0, size, &memory, &phy_addr_l);
+    int status;
+    status = HNemu::instance()->find_memory(default_cluster_id, 0, size, &memory, &phy_addr_l);
+    if (status!=HN_SUCCEEDED){
+        log_hhal.Error("GNManager: cannot find memory for sync registers: cluster=%d, size=%d",
+                    default_cluster_id, size);
+        return GNManagerExitCode::ERROR;
+    }
     phy_addr=phy_addr_l;
-    int status = HNemu::instance()->allocate_memory(default_cluster_id, memory, phy_addr, size);
+    status = HNemu::instance()->allocate_memory(default_cluster_id, memory, phy_addr, size);
     
     if (status!=HN_SUCCEEDED){
         log_hhal.Error("GNManager: memory allocation for sync registers failed: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
@@ -222,6 +228,7 @@ GNManagerExitCode GNManager::write_to_memory(int buffer_id, const void *source, 
 
     // Temp fix to deal with BBQUE linking to libgn
     size_t first_addr = get_first_virtual_address(UnitType::GN, hhal_tlb_entry_type_t::NORMAL_DATA);
+    log_hhal.Debug("GNManager: write_to_memory: first_buffer_addr=0x%x", first_addr);
     size_t offset = (first_addr + info.physical_addr) / ADDR_SIZE;
 
     memcpy(mem + offset, static_cast<char*>(const_cast<void*>(source)), size);
@@ -264,7 +271,7 @@ GNManagerExitCode GNManager::write_sync_register(int event_id, uint32_t data) {
     }
 
     sem_post(sem_id);
-    log_hhal.Debug("GNManager: write_sync_register: cluster=%d, phy_addr=%p, reg_address=0x%x, data=%d",
+    log_hhal.Trace("GNManager: write_sync_register: cluster=%d, phy_addr=%p, reg_address=0x%x, data=%d",
                    info.cluster_id, info.physical_addr, reg_address, data);
     return GNManagerExitCode::OK;
 }
@@ -283,7 +290,7 @@ GNManagerExitCode GNManager::read_sync_register(int event_id, uint32_t *data) {
 
     sem_post(sem_id);
 
-    log_hhal.Debug("GNManager: read_sync_register: cluster=%d, phy_addr=%p, reg_address=0x%x, data=%d",
+    log_hhal.Trace("GNManager: read_sync_register: cluster=%d, phy_addr=%p, reg_address=0x%x, data=%d",
                    info.cluster_id, info.physical_addr, reg_address, result);
 
     *data = result;
@@ -394,6 +401,7 @@ mango_addr_t GNManager::get_first_virtual_address(mango_unit_type_t unit_type, h
 
 GNManagerExitCode GNManager::find_memory(mango_cluster_id_t cluster, mango_unit_id_t unit,
                              mango_size_t size, mango_mem_id_t *memory, mango_addr_t *phy_addr){
+    log_hhal.Debug("GNManager: find_memory: cluster=%d, unit=%d, size=%zu", cluster, unit, size);
     uint32_t phy_addr_l = 0; //HNemu
     int status = HNemu::instance()->find_memory(cluster, unit, size, memory, &phy_addr_l);
     if (status!=HN_SUCCEEDED){
@@ -548,13 +556,15 @@ GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args
 
     auto &tlb = tlbs[info.id];
 
+    size_t first_addr = get_first_virtual_address(UnitType::GN, hhal_tlb_entry_type_t::NORMAL_DATA);
+
 	for (const auto &arg : args.get_args()) {
         switch (arg.type) {
             case ArgumentType::BUFFER:
-                ss << " 0x" << std::hex << tlb.get_virt_addr_buffer(arg.buffer.id);
+                ss << " 0x" << std::hex << buffer_info[arg.buffer.id].physical_addr + first_addr; //tlb.get_virt_addr_buffer(arg.buffer.id);
                 break;
             case ArgumentType::EVENT:
-                ss << " 0x" << std::hex << tlb.get_virt_addr_event(arg.event.id);
+                ss << " 0x" << std::hex << event_info[arg.event.id].physical_addr; //.get_virt_addr_event(arg.event.id);
                 break;
             case ArgumentType::SCALAR:
                 if (arg.scalar.type == ScalarType::INT) {

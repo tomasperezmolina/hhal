@@ -15,7 +15,6 @@
 
 #pragma mango_kernel
 void kernel_function(int *A, int *B, int *C, int rows, int cols, mango_event_t e) {
-
 	printf("[Kernel] Rows: %d Cols: %d\n", rows, cols);
 	for (int r=0;r<rows;r++) {
 		for (int c=0;c<cols;c++) {

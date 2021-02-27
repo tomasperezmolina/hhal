@@ -8,6 +8,8 @@ namespace mango {
         public:
             virtual ~ConsoleLogger() {};
 
+            virtual void Trace(const char *fmt, ...);
+            
             virtual void Debug(const char *fmt, ...);
 
             virtual void Info(const char *fmt, ...);

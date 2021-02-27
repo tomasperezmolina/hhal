@@ -32,7 +32,7 @@ void wait(HHAL &hhal, int event_id, uint32_t state) {
         value = lock(hhal, event_id);
 
         if (value != state) {
-            printf("Expected %d, instead it's %d\n", state, value);
+            // printf("Expected %d, instead it's %d\n", state, value);
             //Rewrite the value so it is not lost
             write(hhal, event_id, value);
         }

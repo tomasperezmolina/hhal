@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <cinttypes>
 
 namespace hhal {
 
@@ -11,7 +12,7 @@ typedef struct gn_kernel_t {
     int tlb;
     // virtual address moved to TLB like the rest, in the future it probably comes back here though
     // int virtual_addr; 
-    int physical_addr;
+    uint32_t physical_addr;
     int cluster_id;
     int mem_tile;
     size_t size;
@@ -23,7 +24,7 @@ typedef struct gn_kernel_t {
 
 typedef struct gn_buffer_t {
     int id;
-    int physical_addr;
+    uint32_t physical_addr;
     int cluster_id;
     int mem_tile;
     size_t size;
@@ -34,7 +35,7 @@ typedef struct gn_buffer_t {
 
 typedef struct gn_event_t {
     int id;
-    int physical_addr;
+    uint32_t physical_addr;
     int cluster_id;
     std::vector<int> kernels_in;
     std::vector<int> kernels_out;

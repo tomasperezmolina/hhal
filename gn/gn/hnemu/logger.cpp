@@ -7,7 +7,16 @@
 
 namespace mango {
 
-
+void ConsoleLogger::Trace(const char *fmt, ...) {
+#if LOGGER_LEVEL > 8
+    va_list argptr;
+    va_start(argptr, fmt);
+    fprintf(stderr, "[D] ");
+    vfprintf(stderr, fmt, argptr);
+    fprintf(stderr, "\n");
+    va_end(argptr);
+#endif
+}
 
 void ConsoleLogger::Debug(const char *fmt, ...) {
 #if LOGGER_LEVEL > 7
