@@ -52,6 +52,12 @@ registered_kernel register_kernel(mango_kernel kernel) {
     };
 }
 
+void saxpy(float a, float *x, float *y, float *o, float n) {
+    for (size_t i = 0; i < n; ++i) {
+        o[i] = a * x[i] + y[i];
+    }
+}
+
 int main(void) {
     HHAL hhal;
 
@@ -112,6 +118,22 @@ int main(void) {
         std::cout << a << " * " << x[i] << " + " << y[i] << " = " << o[i] << '\n';
     }
 
+    float *expected = new float[n];
+    saxpy(a, x, y, expected, n);
+
+    bool correct = true;
+    for (size_t i = 0; i < n; ++i) {
+        if (o[i] != expected[i]) {
+            printf("Sample host: Incorrect value at %d: got %.2f vs %.2f\n", i, o[i], expected[i]);
+            std::cout << "Sample host: Stopping...\n" << std::endl;
+            correct = false;
+            break;
+        }
+    }
+    if(correct) {
+        std::cout << "Sample host: SAXPY correctly performed" << std::endl;
+    }
+
     hhal.release_kernel(KERNEL_ID);
     hhal.release_memory(BUFFER_X_ID);
     hhal.release_memory(BUFFER_Y_ID);
@@ -120,6 +142,7 @@ int main(void) {
     delete[] x;
     delete[] y;
     delete[] o;
+    delete[] expected;
 
     return 0;
 }
