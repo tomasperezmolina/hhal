@@ -122,7 +122,7 @@ int main(void) {
     saxpy(a, x, y, expected, n);
 
     bool correct = true;
-    for (size_t i = 0; i < n; ++i) {
+    for (int i = 0; i < n; ++i) {
         if (o[i] != expected[i]) {
             printf("Sample host: Incorrect value at %d: got %.2f vs %.2f\n", i, o[i], expected[i]);
             std::cout << "Sample host: Stopping...\n" << std::endl;
