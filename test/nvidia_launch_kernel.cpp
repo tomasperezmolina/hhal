@@ -8,7 +8,7 @@
 #include "mango_arguments.h"
 #include "event_utils.h"
 
-#define KERNEL_PATH "saxpy"
+#define KERNEL_PATH "cuda_kernels/saxpy"
 
 #define KERNEL_ID 1
 #define BUFFER_X_ID 0
@@ -27,8 +27,8 @@ int event_id_gen = 0;
 // This should be handled in the RM side, it lives here for now as there are not two libraries at the moment.
 // In the future there would be a library for RM which handles this,
 // and a library for kernel execution which handles whats in the main function.
-void resource_management(HHAL &hhal, const mango_kernel &kernel, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events) {
-    nvidia_kernel k1 = { kernel.id, 0, kernel.id, kernel.image_size, "", event_id_gen++ };
+void resource_management(HHAL &hhal, const registered_kernel &kernel, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events) {
+    nvidia_kernel k1 = { kernel.k.id, 0, kernel.k.id, kernel.k.image_size, "", kernel.kernel_termination_event };
     hhal.assign_kernel(hhal::Unit::NVIDIA, (hhal_kernel *) &k1);
     hhal.allocate_kernel(KERNEL_ID);
 
@@ -88,7 +88,7 @@ int main(void) {
         {BUFFER_O_ID, buffer_size, {KERNEL_ID}, {}},
     };
 
-    resource_management(hhal, kernel, buffers, events);
+    resource_management(hhal, r_kernel, buffers, events);
 
     const std::map<hhal::Unit, std::string> kernel_images = {{hhal::Unit::NVIDIA, KERNEL_PATH}};
 

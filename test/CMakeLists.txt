@@ -36,22 +36,30 @@ add_executable(gn_serial_saxpy
     gn_dummy_rm.cpp
 )
 
+add_executable(nvidia_multiple_kernels 
+    event_utils.cpp 
+    nvidia_multiple_kernels.cpp
+)
+
+
 target_include_directories(nvidia_launch_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(gn_launch_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(gn_serial_saxpy PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(nvidia_multiple_kernels PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(HAS_PARENT)
     target_link_libraries(gn_launch_kernel PRIVATE hhal)
     target_link_libraries(gn_serial_saxpy PRIVATE hhal)
 
     target_link_libraries(nvidia_launch_kernel PRIVATE hhal)
-    configure_file(saxpy saxpy COPYONLY)
+    target_link_libraries(nvidia_multiple_kernels PRIVATE hhal)
 else(HAS_PARENT)
     target_link_libraries(gn_launch_kernel PRIVATE hhal::hhal)
     target_link_libraries(gn_serial_saxpy PRIVATE hhal::hhal)
 
     target_link_libraries(nvidia_launch_kernel PRIVATE hhal::hhal)
-    configure_file(saxpy saxpy COPYONLY)
+    target_link_libraries(nvidia_multiple_kernels PRIVATE hhal::hhal)
 endif(HAS_PARENT)
 
 add_subdirectory(kernel)
+add_subdirectory(cuda_kernels)
