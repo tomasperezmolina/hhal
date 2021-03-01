@@ -1,3 +1,6 @@
 add_subdirectory(matrix_multiplication)
 add_subdirectory(saxpy1)
 add_subdirectory(saxpy2)
+add_subdirectory(gif_copy_kernel)
+add_subdirectory(gif_scale_kernel)
+add_subdirectory(gif_smooth_kernel)

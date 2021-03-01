@@ -132,7 +132,6 @@ void resource_allocation(HHAL &hhal, std::vector<registered_kernel> kernels, std
         hhal.allocate_memory(info.id);
 	}
 
-    hhal.gn_manager.do_memory_management();
     hhal.gn_manager.prepare_events_registers();
 }
 
@@ -170,6 +169,10 @@ void resource_deallocation(HHAL &hhal, std::vector<mango_kernel> kernels, std::v
         printf("[DummyRM] resource_deallocation: memory buffer %d released\n", bt.id);
     }
 
+}
+
+int get_new_event_id() {
+    return event_id_gen++;
 }
 
 registered_kernel register_kernel(mango_kernel kernel) {

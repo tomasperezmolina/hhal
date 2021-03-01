@@ -22,5 +22,6 @@ void resource_allocation(hhal::HHAL &hhal, std::vector<registered_kernel> kernel
 void resource_deallocation(hhal::HHAL &hhal, std::vector<mango_kernel> kernels, std::vector<mango_buffer> buffers, std::vector<mango_event> events);
 registered_kernel register_kernel(mango_kernel kernel);
 registered_buffer register_buffer(mango_buffer buffer);
+int get_new_event_id();
 
 #endif
