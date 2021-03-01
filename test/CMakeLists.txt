@@ -17,6 +17,7 @@ find_package(cuda_manager CONFIG REQUIRED HINTS /opt/mango/lib/cmake)
 add_executable(nvidia_launch_kernel 
     event_utils.cpp 
     nvidia_launch_kernel.cpp
+    nvidia_dummy_rm.cpp
 )
 
 add_executable(gn_launch_kernel 
@@ -34,6 +35,7 @@ add_executable(gn_serial_saxpy
 add_executable(nvidia_multiple_kernels 
     event_utils.cpp 
     nvidia_multiple_kernels.cpp
+    nvidia_dummy_rm.cpp
 )
 
 add_executable(gn_gif_animation

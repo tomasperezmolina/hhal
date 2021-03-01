@@ -7,6 +7,7 @@
 
 #include "mango_arguments.h"
 #include "event_utils.h"
+#include "nvidia_dummy_rm.h"
 
 #define KERNEL_PATH "cuda_kernels/saxpy"
 
@@ -16,41 +17,6 @@
 #define BUFFER_O_ID 2
 
 using namespace hhal;
-
-typedef struct registered_kernel_t {
-    mango_kernel k;
-    int kernel_termination_event;
-} registered_kernel;
-
-int event_id_gen = 0;
-
-// This should be handled in the RM side, it lives here for now as there are not two libraries at the moment.
-// In the future there would be a library for RM which handles this,
-// and a library for kernel execution which handles whats in the main function.
-void resource_management(HHAL &hhal, const registered_kernel &kernel, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events) {
-    nvidia_kernel k1 = { kernel.k.id, 0, kernel.k.id, kernel.k.image_size, "", kernel.kernel_termination_event };
-    hhal.assign_kernel(hhal::Unit::NVIDIA, (hhal_kernel *) &k1);
-    hhal.allocate_kernel(KERNEL_ID);
-
-    for (auto &buf: buffers) {
-        nvidia_buffer buffer = { buf.id, 0, buf.id, buf.size, buf.kernels_in, buf.kernels_out };
-        hhal.assign_buffer(hhal::Unit::NVIDIA, (hhal_buffer *) &buffer);
-        hhal.allocate_memory(buffer.id);
-    }
-
-    for (auto &ev: events) {
-        nvidia_event event = { ev.id };
-        hhal.assign_event(hhal::Unit::NVIDIA, (hhal_event *) &event);
-        hhal.allocate_event(event.id);
-    }
-}
-
-registered_kernel register_kernel(mango_kernel kernel) {
-    return {
-        kernel,
-        event_id_gen++,
-    };
-}
 
 void saxpy(float a, float *x, float *y, float *o, float n) {
     for (size_t i = 0; i < n; ++i) {
@@ -66,7 +32,7 @@ int main(void) {
     size_t kernel_size = (size_t) kernel_fd.tellg() + 1;
 
     mango_kernel kernel = { KERNEL_ID, kernel_size };
-    registered_kernel r_kernel = register_kernel(kernel);
+    nvidia_rm::registered_kernel r_kernel = nvidia_rm::register_kernel(kernel);
 
     mango_event kernel_termination_event = {r_kernel.kernel_termination_event};
     std::vector<mango_event> events = {kernel_termination_event};
@@ -88,7 +54,7 @@ int main(void) {
         {BUFFER_O_ID, buffer_size, {KERNEL_ID}, {}},
     };
 
-    resource_management(hhal, r_kernel, buffers, events);
+    nvidia_rm::resource_allocation(hhal, {r_kernel}, buffers, events);
 
     const std::map<hhal::Unit, std::string> kernel_images = {{hhal::Unit::NVIDIA, KERNEL_PATH}};
 
@@ -134,10 +100,7 @@ int main(void) {
         std::cout << "Sample host: SAXPY correctly performed" << std::endl;
     }
 
-    hhal.release_kernel(KERNEL_ID);
-    hhal.release_memory(BUFFER_X_ID);
-    hhal.release_memory(BUFFER_Y_ID);
-    hhal.release_memory(BUFFER_O_ID);
+    nvidia_rm::resource_deallocation(hhal, {r_kernel}, buffers, events);
 
     delete[] x;
     delete[] y;

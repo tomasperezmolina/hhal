@@ -70,16 +70,16 @@ int main(void) {
     init_matrix(B, rows, columns);
 
     mango_kernel kernel = { KID, kernel_size };
-    registered_kernel r_kernel = register_kernel(kernel);
+    gn_rm::registered_kernel r_kernel = gn_rm::register_kernel(kernel);
 
     std::vector<mango_buffer> buffers = {
         {B1, buffer_size, {}, {KID}},
         {B2, buffer_size, {}, {KID}},
         {B3, buffer_size, {KID}, {}},
     };
-    std::vector<registered_buffer> r_buffers;
+    std::vector<gn_rm::registered_buffer> r_buffers;
     for(auto &b: buffers) {
-        r_buffers.push_back(register_buffer(b));
+        r_buffers.push_back(gn_rm::register_buffer(b));
     }
 
     mango_event buffer_event = {r_buffers[2].event}; // buffer 3 event
@@ -131,7 +131,7 @@ int main(void) {
     events::wait(hhal, kernel_termination_event.id, 1);
 
     /* shut down the mango infrastructure */
-    resource_deallocation(hhal, {kernel}, buffers, events);
+    gn_rm::resource_deallocation(hhal, {kernel}, buffers, events);
 
     /* check results */
     kernel_function(A, B, D, rows, columns);

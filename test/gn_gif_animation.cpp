@@ -140,11 +140,11 @@ int main(void) {
     size_t kernel_smooth_size = (size_t) kernel_smooth_fd.tellg() + 1;
 
     mango_kernel kernel_scale = { KSCALE, kernel_scale_size };
-    registered_kernel r_kernel_scale = register_kernel(kernel_scale);
+    gn_rm::registered_kernel r_kernel_scale = gn_rm::register_kernel(kernel_scale);
     mango_kernel kernel_copy = { KCOPY, kernel_copy_size };
-    registered_kernel r_kernel_copy = register_kernel(kernel_copy);
+    gn_rm::registered_kernel r_kernel_copy = gn_rm::register_kernel(kernel_copy);
     mango_kernel kernel_smooth = { KSMOOTH, kernel_smooth_size };
-    registered_kernel r_kernel_smooth = register_kernel(kernel_smooth);
+    gn_rm::registered_kernel r_kernel_smooth = gn_rm::register_kernel(kernel_smooth);
 
     std::vector<mango_buffer> buffers = {
         {B1, SX*SY*3*sizeof(Byte),      {},                 {KSCALE}},
@@ -152,16 +152,16 @@ int main(void) {
         {B3, SX*2*SY*2*3*sizeof(Byte),  {KCOPY, KSMOOTH},   {}},
     };
 
-    std::vector<registered_buffer> r_buffers;
+    std::vector<gn_rm::registered_buffer> r_buffers;
     for(auto &b: buffers) {
-        r_buffers.push_back(register_buffer(b));
+        r_buffers.push_back(gn_rm::register_buffer(b));
     }
 
     mango_event kernel_scale_termination_event = {r_kernel_scale.kernel_termination_event};
     mango_event kernel_copy_termination_event = {r_kernel_copy.kernel_termination_event};
     mango_event kernel_smooth_termination_event = {r_kernel_smooth.kernel_termination_event};
 
-    mango_event sync_ev = {get_new_event_id(), {r_kernel_copy.k.id, r_kernel_smooth.k.id}, {r_kernel_scale.k.id, r_kernel_copy.k.id}};
+    mango_event sync_ev = {gn_rm::get_new_event_id(), {r_kernel_copy.k.id, r_kernel_smooth.k.id}, {r_kernel_scale.k.id, r_kernel_copy.k.id}};
     std::vector<mango_event> events;
     events.push_back(sync_ev);
     events.push_back({r_kernel_scale.kernel_termination_event, {r_kernel_scale.k.id}, {r_kernel_scale.k.id}});
@@ -181,7 +181,7 @@ int main(void) {
     }
 
     /* resource allocation */
-    resource_allocation(hhal, {r_kernel_scale, r_kernel_smooth, r_kernel_copy}, r_buffers, events);
+    gn_rm::resource_allocation(hhal, {r_kernel_scale, r_kernel_smooth, r_kernel_copy}, r_buffers, events);
 
     const std::map<hhal::Unit, std::string> kernel_scale_images =   {{hhal::Unit::GN, KERNEL_SCALE_PATH}};
     const std::map<hhal::Unit, std::string> kernel_copy_images =    {{hhal::Unit::GN, KERNEL_COPY_PATH}};
@@ -252,7 +252,7 @@ int main(void) {
 
     saver.Save("0123_kernel.gif");
     
-    resource_deallocation(hhal, {kernel_scale, kernel_smooth, kernel_copy}, buffers, events);
+    gn_rm::resource_deallocation(hhal, {kernel_scale, kernel_smooth, kernel_copy}, buffers, events);
 
     return 0;
 }

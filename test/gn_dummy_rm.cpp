@@ -16,7 +16,14 @@ std::map<int, mango::mango_addr_t> event_addresses;
 
 using namespace hhal;
 
-void resource_allocation(HHAL &hhal, std::vector<registered_kernel> kernels, std::vector<registered_buffer> buffers, std::vector<mango_event> events) {
+namespace gn_rm {
+
+void resource_allocation(
+    HHAL &hhal, 
+    const std::vector<registered_kernel> &kernels, 
+    const std::vector<registered_buffer> &buffers, 
+    const std::vector<mango_event> &events
+) {
 	printf("[DummyRM] resource_allocation\n");
 
 	static int u_pid = 0;
@@ -135,7 +142,12 @@ void resource_allocation(HHAL &hhal, std::vector<registered_kernel> kernels, std
     hhal.gn_manager.prepare_events_registers();
 }
 
-void resource_deallocation(HHAL &hhal, std::vector<mango_kernel> kernels, std::vector<mango_buffer> buffers, std::vector<mango_event> events) {
+void resource_deallocation(
+    HHAL &hhal, 
+    const std::vector<mango_kernel> &kernels, 
+    const std::vector<mango_buffer> &buffers, 
+    const std::vector<mango_event> &events
+) {
 	printf("[DummyRM] resource_deallocation\n");
     mango_cluster_id_t default_cluster_id = 0;
     mango_size_t num_tiles = kernels.size();
@@ -191,3 +203,5 @@ registered_buffer register_buffer(mango_buffer buffer) {
         event_id_gen++,
     };
 };
+
+}

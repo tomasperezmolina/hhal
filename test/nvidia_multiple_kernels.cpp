@@ -7,6 +7,7 @@
 
 #include "mango_arguments.h"
 #include "event_utils.h"
+#include "nvidia_dummy_rm.h"
 
 #define KERNEL_1_PATH "cuda_kernels/saxpy_1"
 #define KERNEL_2_PATH "cuda_kernels/saxpy_2"
@@ -20,43 +21,6 @@
 #define BUFFER_O2_ID 4
 
 using namespace hhal;
-
-typedef struct registered_kernel_t {
-    mango_kernel k;
-    int kernel_termination_event;
-} registered_kernel;
-
-int event_id_gen = 0;
-
-// This should be handled in the RM side, it lives here for now as there are not two libraries at the moment.
-// In the future there would be a library for RM which handles this,
-// and a library for kernel execution which handles whats in the main function.
-void resource_management(HHAL &hhal, const std::vector<registered_kernel> &kernels, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events) {
-    for (auto &kernel: kernels) {
-        nvidia_kernel k = { kernel.k.id, 0, kernel.k.id, kernel.k.image_size, "", kernel.kernel_termination_event };
-        hhal.assign_kernel(hhal::Unit::NVIDIA, (hhal_kernel *) &k);
-        hhal.allocate_kernel(kernel.k.id);
-    }
-
-    for (auto &buf: buffers) {
-        nvidia_buffer buffer = { buf.id, 0, buf.id, buf.size, buf.kernels_in, buf.kernels_out };
-        hhal.assign_buffer(hhal::Unit::NVIDIA, (hhal_buffer *) &buffer);
-        hhal.allocate_memory(buffer.id);
-    }
-
-    for (auto &ev: events) {
-        nvidia_event event = { ev.id };
-        hhal.assign_event(hhal::Unit::NVIDIA, (hhal_event *) &event);
-        hhal.allocate_event(event.id);
-    }
-}
-
-registered_kernel register_kernel(mango_kernel kernel) {
-    return {
-        kernel,
-        event_id_gen++,
-    };
-}
 
 void saxpy_1(float a, float *x, float *o, size_t n) {
     for (size_t i = 0; i < n; ++i) {
@@ -101,11 +65,11 @@ int main(void) {
 
 
     mango_kernel kernel_1 = { KERNEL_1_ID, kernel_1_size };
-    registered_kernel r_kernel_1 = register_kernel(kernel_1);
+    nvidia_rm::registered_kernel r_kernel_1 = nvidia_rm::register_kernel(kernel_1);
     mango_kernel kernel_2 = { KERNEL_2_ID, kernel_2_size };
-    registered_kernel r_kernel_2 = register_kernel(kernel_2);
+    nvidia_rm::registered_kernel r_kernel_2 = nvidia_rm::register_kernel(kernel_2);
 
-    std::vector<registered_kernel> kernels = {r_kernel_1, r_kernel_2};
+    std::vector<nvidia_rm::registered_kernel> kernels = {r_kernel_1, r_kernel_2};
 
     mango_event kernel_1_termination_event = {r_kernel_1.kernel_termination_event, {kernel_1.id}, {kernel_1.id}};
     mango_event kernel_2_termination_event = {r_kernel_2.kernel_termination_event, {kernel_2.id}, {kernel_2.id}};
@@ -119,7 +83,7 @@ int main(void) {
         {BUFFER_O2_ID, buffer_size, {KERNEL_2_ID}, {}},
     };
 
-    resource_management(hhal, kernels, buffers, events);
+    nvidia_rm::resource_allocation(hhal, kernels, buffers, events);
 
     const std::map<hhal::Unit, std::string> kernel_1_images = {{hhal::Unit::NVIDIA, KERNEL_1_PATH}};
     const std::map<hhal::Unit, std::string> kernel_2_images = {{hhal::Unit::NVIDIA, KERNEL_2_PATH}};
@@ -227,14 +191,7 @@ int main(void) {
         exit(1);
     }
 
-
-
-    hhal.release_kernel(KERNEL_1_ID);
-    hhal.release_kernel(KERNEL_2_ID);
-    hhal.release_memory(BUFFER_X1_ID);
-    hhal.release_memory(BUFFER_Y2_ID);
-    hhal.release_memory(BUFFER_O1_ID);
-    hhal.release_memory(BUFFER_O2_ID);
+    nvidia_rm::resource_deallocation(hhal, kernels, buffers, events);
 
     delete[] x;
     delete[] y;

@@ -78,9 +78,9 @@ int main(void) {
     }
 
     mango_kernel kernel_1 = { KID_1, kernel_1_size };
-    registered_kernel r_kernel_1 = register_kernel(kernel_1);
+    gn_rm::registered_kernel r_kernel_1 = gn_rm::register_kernel(kernel_1);
     mango_kernel kernel_2 = { KID_2, kernel_2_size };
-    registered_kernel r_kernel_2 = register_kernel(kernel_2);
+    gn_rm::registered_kernel r_kernel_2 = gn_rm::register_kernel(kernel_2);
 
     std::vector<mango_buffer> buffers = {
         {BX_1_ID, buffer_size, {}, {KID_1}},
@@ -90,9 +90,9 @@ int main(void) {
         {BO2_ID, buffer_size, {KID_2}, {}},
     };
 
-    std::vector<registered_buffer> r_buffers;
+    std::vector<gn_rm::registered_buffer> r_buffers;
     for(auto &b: buffers) {
-        r_buffers.push_back(register_buffer(b));
+        r_buffers.push_back(gn_rm::register_buffer(b));
     }
 
     mango_event kernel_1_termination_event = {r_kernel_1.kernel_termination_event};
@@ -199,7 +199,7 @@ int main(void) {
         printf("Sample host: second stage of SAXPY correctly performed\n");
     }
 
-    resource_deallocation(hhal, {kernel_1, kernel_2}, buffers, events);
+    gn_rm::resource_deallocation(hhal, {kernel_1, kernel_2}, buffers, events);
 
     float *expected_3 = new float[n];
 
