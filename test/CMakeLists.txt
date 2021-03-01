@@ -61,5 +61,5 @@ else(HAS_PARENT)
     target_link_libraries(nvidia_multiple_kernels PRIVATE hhal::hhal)
 endif(HAS_PARENT)
 
-add_subdirectory(kernel)
+add_subdirectory(gn_kernels)
 add_subdirectory(cuda_kernels)

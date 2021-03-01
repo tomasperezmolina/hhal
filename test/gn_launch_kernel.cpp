@@ -15,7 +15,7 @@
 
 using namespace hhal;
 
-#define KERNEL_PATH "kernel/matrix_multiplication/matrix_multiplication_dev"
+#define KERNEL_PATH "gn_kernels/matrix_multiplication/matrix_multiplication_dev"
 #define KID 1
 #define B1 1
 #define B2 2

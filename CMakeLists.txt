@@ -61,4 +61,3 @@ install(
 add_subdirectory(gn)
 add_subdirectory(hn)
 add_subdirectory(nvidia)
-add_subdirectory(test)

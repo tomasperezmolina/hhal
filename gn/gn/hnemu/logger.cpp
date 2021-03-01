@@ -3,7 +3,7 @@
 
 #include "logger.h"
 
-#define LOGGER_LEVEL 7
+#define LOGGER_LEVEL 8
 
 namespace mango {
 
