@@ -9,7 +9,7 @@
 namespace hhal {
 
     NvidiaManagerExitCode NvidiaManager::assign_kernel(nvidia_kernel *info) {
-        printf("NvidiaManager: Assigning kernel %d\n", info->id);
+        printf("NvidiaManager: Assigning kernel %d, mem_id=%d\n", info->id, info->mem_id);
         kernel_info[info->id] = *info;
         return NvidiaManagerExitCode::OK;
     }
@@ -181,8 +181,8 @@ namespace hhal {
         return NvidiaManagerExitCode::OK;
     }
     
-    NvidiaManagerExitCode NvidiaManager::release_kernel(int buffer_id) {
-        nvidia_buffer &info = buffer_info[buffer_id];
+    NvidiaManagerExitCode NvidiaManager::release_kernel(int kernel_id) {
+        nvidia_kernel &info = kernel_info[kernel_id];
 
         CudaApiExitCode err = cuda_api.deallocate_kernel(info.mem_id);
 
