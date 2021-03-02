@@ -128,15 +128,15 @@ int main(void) {
     AnimatedGifSaver saver(SX*2,SY*2);
 
     std::ifstream kernel_scale_fd(KERNEL_SCALE_PATH, std::ifstream::in | std::ifstream::ate);
-    assert(kernel_scale_fd.good() && "Scale kernel file exists");
+    assert(kernel_scale_fd.good() && "Scale kernel file does not exist");
     size_t kernel_scale_size = (size_t) kernel_scale_fd.tellg() + 1;
     
     std::ifstream kernel_copy_fd(KERNEL_COPY_PATH, std::ifstream::in | std::ifstream::ate);
-    assert(kernel_copy_fd.good() && "Copy kernel file exists");
+    assert(kernel_copy_fd.good() && "Copy kernel does not exist");
     size_t kernel_copy_size = (size_t) kernel_copy_fd.tellg() + 1;
 
     std::ifstream kernel_smooth_fd(KERNEL_SMOOTH_PATH, std::ifstream::in | std::ifstream::ate);
-    assert(kernel_smooth_fd.good() && "Smooth kernel file exists");
+    assert(kernel_smooth_fd.good() && "Smooth kernel does not exist");
     size_t kernel_smooth_size = (size_t) kernel_smooth_fd.tellg() + 1;
 
     mango_kernel kernel_scale = { KSCALE, kernel_scale_size };

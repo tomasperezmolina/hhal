@@ -9,8 +9,8 @@
 
 #include "mango_arguments.h"
 #include "gn_dummy_rm.h"
+#include "rm_common.h"
 
-int event_id_gen = 0;
 std::map<int, int> kernel_id_to_unit_id;
 std::map<int, mango::mango_addr_t> event_addresses;
 
@@ -184,23 +184,23 @@ void resource_deallocation(
 }
 
 int get_new_event_id() {
-    return event_id_gen++;
+    return rm_common::get_new_event_id();
 }
 
 registered_kernel register_kernel(mango_kernel kernel) {
     return {
         kernel,
-        event_id_gen++,
+        rm_common::get_new_event_id(),
         // 3 "Kernel tasks events" are added for some reason, 
         // there is a TODO in libmango because it is not clear what this is doing or if its needed.
-        {event_id_gen++, event_id_gen++, event_id_gen++},
+        {rm_common::get_new_event_id(), rm_common::get_new_event_id(), rm_common::get_new_event_id()},
     };
 }
 
 registered_buffer register_buffer(mango_buffer buffer) {
     return {
         buffer,
-        event_id_gen++,
+        rm_common::get_new_event_id(),
     };
 };
 

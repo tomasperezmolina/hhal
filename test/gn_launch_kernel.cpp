@@ -50,7 +50,7 @@ int main(void) {
     HHAL hhal;
 
     std::ifstream kernel_fd(KERNEL_PATH, std::ifstream::in | std::ifstream::ate);
-    assert(kernel_fd.good() && "Kernel file exists");
+    assert(kernel_fd.good() && "Kernel file does not exist");
     size_t kernel_size = (size_t) kernel_fd.tellg() + 1;
 
     int rows = 5;

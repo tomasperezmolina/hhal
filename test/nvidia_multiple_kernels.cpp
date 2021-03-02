@@ -44,11 +44,11 @@ int main(void) {
     HHAL hhal;
 
     std::ifstream kernel_1_fd(KERNEL_1_PATH, std::ifstream::in | std::ifstream::ate);
-    assert(kernel_1_fd.good() && "Kernel file exists");
+    assert(kernel_1_fd.good() && "Kernel file does not exist");
     size_t kernel_1_size = (size_t) kernel_1_fd.tellg() + 1;
 
     std::ifstream kernel_2_fd(KERNEL_2_PATH, std::ifstream::in | std::ifstream::ate);
-    assert(kernel_2_fd.good() && "Kernel file exists");
+    assert(kernel_2_fd.good() && "Kernel file does not exist");
     size_t kernel_2_size = (size_t) kernel_2_fd.tellg() + 1;
 
 

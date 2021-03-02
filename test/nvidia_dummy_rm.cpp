@@ -9,10 +9,9 @@
 
 #include "mango_arguments.h"
 #include "nvidia_dummy_rm.h"
+#include "rm_common.h"
 
 using namespace hhal;
-
-int event_id_gen = 0;
 
 namespace nvidia_rm {
 
@@ -21,8 +20,14 @@ namespace nvidia_rm {
 // and a library for kernel execution which handles whats in the main function.
 void resource_allocation(HHAL &hhal, const std::vector<registered_kernel> &kernels, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events) {
     for (auto &kernel: kernels) {
-        printf("Allocating kernel %d\n", kernel.k.id);
-        nvidia_kernel k = { kernel.k.id, 0, kernel.k.id, kernel.k.image_size, "", kernel.kernel_termination_event };
+        printf("[Nvidia_Dummy] Allocating kernel %d\n", kernel.k.id);
+        nvidia_kernel k;
+        k.id = kernel.k.id;
+        k.gpu_id = 0;
+        k.mem_id = kernel.k.id;
+        k.size = kernel.k.image_size;
+        k.termination_event = kernel.kernel_termination_event;
+        k.function_name = "";
         hhal.assign_kernel(hhal::Unit::NVIDIA, (hhal_kernel *) &k);
         hhal.allocate_kernel(kernel.k.id);
     }
@@ -42,6 +47,7 @@ void resource_allocation(HHAL &hhal, const std::vector<registered_kernel> &kerne
 
 void resource_deallocation(hhal::HHAL &hhal, const std::vector<registered_kernel> &kernels, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events) {
     for (auto &k : kernels) {
+        printf("[Nvidia_Dummy] Releasing %d\n", k.k.id);
         hhal.release_kernel(k.k.id);
     }
     
@@ -57,7 +63,7 @@ void resource_deallocation(hhal::HHAL &hhal, const std::vector<registered_kernel
 registered_kernel register_kernel(mango_kernel kernel) {
     return {
         kernel,
-        event_id_gen++,
+        rm_common::get_new_event_id(),
     };
 }
 

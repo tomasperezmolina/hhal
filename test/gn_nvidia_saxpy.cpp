@@ -11,12 +11,13 @@
 #include "mango_arguments.h"
 #include "event_utils.h"
 #include "gn_dummy_rm.h"
+#include "nvidia_dummy_rm.h"
 
 
 using namespace hhal;
 
 #define KERNEL_1_PATH "gn_kernels/saxpy1/saxpy1"
-#define KERNEL_2_PATH "gn_kernels/saxpy2/saxpy2"
+#define KERNEL_2_PATH "cuda_kernels/saxpy_2"
 #define KID_1 1
 #define KID_2 2
 #define BX_1_ID 1
@@ -25,8 +26,6 @@ using namespace hhal;
 #define BY_ID 4
 #define BO2_ID 5
 
-
-// Note: it may be necessary to copy ./gn/gn/config.xml to MANGO_ROOT/usr/local/share/config.xml
 
 void init_matrix(int *matrix, int rows, int cols)
 {
@@ -80,45 +79,48 @@ int main(void) {
     mango_kernel kernel_1 = { KID_1, kernel_1_size };
     gn_rm::registered_kernel r_kernel_1 = gn_rm::register_kernel(kernel_1);
     mango_kernel kernel_2 = { KID_2, kernel_2_size };
-    gn_rm::registered_kernel r_kernel_2 = gn_rm::register_kernel(kernel_2);
+    nvidia_rm::registered_kernel r_kernel_2 = nvidia_rm::register_kernel(kernel_2);
 
-    std::vector<mango_buffer> buffers = {
+    std::vector<mango_buffer> gn_buffers = {
         {BX_1_ID, buffer_size, {}, {KID_1}},
         {BO1_ID, buffer_size, {KID_1}, {}},
+    };
+
+    std::vector<mango_buffer> nvidia_buffers = {
         {BX_2_ID, buffer_size, {}, {KID_2}},
         {BY_ID, buffer_size, {}, {KID_2}},
         {BO2_ID, buffer_size, {KID_2}, {}},
     };
 
-    std::vector<gn_rm::registered_buffer> r_buffers;
-    for(auto &b: buffers) {
-        r_buffers.push_back(gn_rm::register_buffer(b));
+    std::vector<gn_rm::registered_buffer> r_gn_buffers;
+    for(auto &b: gn_buffers) {
+        r_gn_buffers.push_back(gn_rm::register_buffer(b));
     }
 
     mango_event kernel_1_termination_event = {r_kernel_1.kernel_termination_event};
     mango_event kernel_2_termination_event = {r_kernel_2.kernel_termination_event};
 
-    std::vector<mango_event> events;
-    events.push_back({r_kernel_1.kernel_termination_event, {r_kernel_1.k.id}, {r_kernel_1.k.id}});
-    events.push_back({r_kernel_2.kernel_termination_event, {r_kernel_2.k.id}, {r_kernel_2.k.id}});
+    std::vector<mango_event> gn_events;
+    gn_events.push_back({r_kernel_1.kernel_termination_event, {r_kernel_1.k.id}, {r_kernel_1.k.id}});
     for(int e_id: r_kernel_1.task_events) {
-        events.push_back({e_id, {r_kernel_1.k.id}, {r_kernel_1.k.id}});
+        gn_events.push_back({e_id, {r_kernel_1.k.id}, {r_kernel_1.k.id}});
     }
-    for(int e_id: r_kernel_2.task_events) {
-        events.push_back({e_id, {r_kernel_1.k.id}, {r_kernel_1.k.id}});
+    for(auto &b: r_gn_buffers) {
+        gn_events.push_back({b.event, b.b.kernels_in, b.b.kernels_out});
     }
-    for(auto &b: r_buffers) {
-        events.push_back({b.event, b.b.kernels_in, b.b.kernels_out});
-    }
+
+    std::vector<mango_event> nvidia_events = {kernel_2_termination_event};;
 
     /* resource allocation */
-    resource_allocation(hhal, {r_kernel_1, r_kernel_2}, r_buffers, events);
+    gn_rm::resource_allocation(hhal, {r_kernel_1}, r_gn_buffers, gn_events);
+    nvidia_rm::resource_allocation(hhal, {r_kernel_2}, nvidia_buffers, nvidia_events);
 
     const std::map<hhal::Unit, std::string> kernel_1_images = {{hhal::Unit::GN, KERNEL_1_PATH}};
-    const std::map<hhal::Unit, std::string> kernel_2_images = {{hhal::Unit::GN, KERNEL_2_PATH}};
+    const std::map<hhal::Unit, std::string> kernel_2_images = {{hhal::Unit::NVIDIA, KERNEL_2_PATH}};
+    printf("resource allocation done\n");
+
     hhal.kernel_write(kernel_1.id, kernel_1_images);
     hhal.kernel_write(kernel_2.id, kernel_2_images);
-    printf("resource allocation done\n");
 
     /* Execution preparation */
 
@@ -128,11 +130,13 @@ int main(void) {
     args_k_1.add_buffer({BO1_ID});
     args_k_1.add_scalar({&n, sizeof(n), ScalarType::INT});
 
+    float n_float = (float) n;
+
     Arguments args_k_2;
     args_k_2.add_buffer({BX_2_ID});
     args_k_2.add_buffer({BY_ID});
     args_k_2.add_buffer({BO2_ID});
-    args_k_2.add_scalar({&n, sizeof(n), ScalarType::INT});
+    args_k_2.add_scalar({&n_float, sizeof(n_float), ScalarType::FLOAT});
 
     /* Data transfer host->device */
     hhal.write_to_memory(BX_1_ID, x, buffer_size);
@@ -199,7 +203,8 @@ int main(void) {
         printf("Sample host: second stage of SAXPY correctly performed\n");
     }
 
-    gn_rm::resource_deallocation(hhal, {kernel_1, kernel_2}, buffers, events);
+    gn_rm::resource_deallocation(hhal, {kernel_1}, gn_buffers, gn_events);
+    nvidia_rm::resource_deallocation(hhal, {r_kernel_2}, nvidia_buffers, nvidia_events);
 
     float *expected_3 = new float[n];
 
