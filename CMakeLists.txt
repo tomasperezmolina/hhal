@@ -19,14 +19,17 @@ set(NVIDIA_SOURCES
     nvidia/event_registry.cpp
 )
 
-set(SOURCES 
-    hhal.cpp
+set(GN_SOURCES
     gn/manager.cpp 
-    gn/gn/hnemu/hnemu.cpp
-    gn/gn/hnemu/logger.cpp
+    gn/hnemu/hnemu.cpp
+    gn/hnemu/logger.cpp
 )
 
-set(SOURCES ${SOURCES} ${NVIDIA_SOURCES})
+set(SOURCES 
+    hhal.cpp
+)
+
+set(SOURCES ${SOURCES} ${NVIDIA_SOURCES} ${GN_SOURCES})
 
 set(HEADERS 
     hhal.h 

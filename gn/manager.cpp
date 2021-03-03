@@ -9,8 +9,8 @@
 #include <sstream>
 
 #include "gn/manager.h"
-#include "gn/gn/hnemu/hnemu.h"
-#include "gn/gn/hnemu/hn_include/hn_errcode.h"
+#include "gn/hnemu/hnemu.h"
+#include "gn/hnemu/hn_include/hn_errcode.h"
 
 #define MANGO_ROOT "/opt/mango"
 
