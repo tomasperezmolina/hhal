@@ -10,7 +10,6 @@
 #include "gn/manager.h"
 
 #include "gn/types.h"
-#include "hn/types.h"
 #include "nvidia/types.h"
 
 namespace hhal {

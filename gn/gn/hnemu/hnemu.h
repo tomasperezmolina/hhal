@@ -17,7 +17,7 @@
 
 #define MBinBYTES(x) ((x)*1024UL*1024UL)
 
-namespace mango {
+namespace hhal {
 
     /*!
      * \brief This class delivers local resources manager.

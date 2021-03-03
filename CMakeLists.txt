@@ -22,10 +22,8 @@ set(NVIDIA_SOURCES
 set(SOURCES 
     hhal.cpp
     gn/manager.cpp 
-    gn/mm.cpp
     gn/gn/hnemu/hnemu.cpp
     gn/gn/hnemu/logger.cpp
-    hn/manager.cpp
 )
 
 set(SOURCES ${SOURCES} ${NVIDIA_SOURCES})
@@ -59,5 +57,4 @@ install(
 )
 
 add_subdirectory(gn)
-add_subdirectory(hn)
 add_subdirectory(nvidia)

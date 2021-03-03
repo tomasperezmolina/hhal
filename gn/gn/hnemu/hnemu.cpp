@@ -6,11 +6,10 @@
 #include "rapidxml/rapidxml.hpp"
 #include "rapidxml/rapidxml_print.hpp"
 #include "hn_include/hn_errcode.h"
-//#include <sstream>//4macos
 
 using namespace rapidxml;
 
-namespace mango {
+namespace hhal {
 
     HNemu *HNemu::instance() {
         static HNemu _instance;

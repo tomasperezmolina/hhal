@@ -11,10 +11,10 @@
 #include "gn_dummy_rm.h"
 #include "rm_common.h"
 
-std::map<int, int> kernel_id_to_unit_id;
-std::map<int, mango::mango_addr_t> event_addresses;
-
 using namespace hhal;
+
+std::map<int, int> kernel_id_to_unit_id;
+std::map<int, addr_t> event_addresses;
 
 namespace gn_rm {
 
@@ -31,20 +31,13 @@ void resource_allocation(
 	static int event_address  = 0xDECADE;
 	static int buffer_address = 0xBEEF;
 
-    mango_cluster_id_t default_cluster_id = 0;
-    mango_mem_id_t default_memory = 0;
-    mango_size_t num_tiles = kernels.size();
+    uint32_t default_cluster_id = 0;
+    uint32_t default_memory = 0;
+    uint32_t num_tiles = kernels.size();
 
-    std::vector<mango_unit_type_t> types;
-    std::vector<mango_unit_id_t> tiles_dst(num_tiles);
-
-    auto unit_type = UnitType::GN;
-    for(auto &k : kernels) {
-        types.push_back(unit_type);
-        printf("[DummyRM] resource_allocation: kernel %d type %d\n", k.k.id, static_cast<int>(unit_type));
-    }
+    std::vector<uint32_t> tiles_dst(num_tiles);
     
-    auto status = hhal.gn_manager.find_units_set(default_cluster_id, types, tiles_dst);
+    auto status = hhal.gn_manager.find_units_set(default_cluster_id, num_tiles, tiles_dst);
     if (status == GNManagerExitCode::ERROR){
         for (unsigned int i = 0; i< num_tiles; i++){
             tiles_dst[i]= u_pid++;
@@ -62,7 +55,7 @@ void resource_allocation(
         throw std::runtime_error("DummyRM resource allocation error!");
     }
 
-    mango_unit_id_t unit = 0;
+    uint32_t unit = 0;
     for (auto &k : kernels) {
         gn_kernel kernel_info;
         kernel_info.id = k.k.id;
@@ -91,7 +84,7 @@ void resource_allocation(
         info.kernels_in = et.kernels_in;
         info.kernels_out = et.kernels_out;
 
-        mango_addr_t phy_addr = event_address++;
+        addr_t phy_addr = event_address++;
         auto status = hhal.gn_manager.get_synch_register_addr(default_cluster_id, &phy_addr, 1);
         if (status != GNManagerExitCode::OK){
             printf("[DummyRM] resource_allocation: not enough registers\n");
@@ -113,10 +106,10 @@ void resource_allocation(
         info.event = bt.event;
         info.kernels_in = bt.b.kernels_in;
         info.kernels_out = bt.b.kernels_out;
-        mango_mem_id_t memory = default_memory;
-        mango_addr_t phy_addr = buffer_address++;
+        uint32_t memory = default_memory;
+        addr_t phy_addr = buffer_address++;
 
-        mango_unit_id_t default_unit;
+        uint32_t default_unit;
         if (bt.b.kernels_in.size() != 0) {
             default_unit = kernel_id_to_unit_id[bt.b.kernels_in.back()];
         } else if (bt.b.kernels_out.size() != 0) {
@@ -149,15 +142,12 @@ void resource_deallocation(
     const std::vector<mango_event> &events
 ) {
 	printf("[DummyRM] resource_deallocation\n");
-    mango_cluster_id_t default_cluster_id = 0;
-    mango_size_t num_tiles = kernels.size();
+    uint32_t default_cluster_id = 0;
+    uint32_t num_tiles = kernels.size();
 
-    std::vector<mango_unit_type_t> types;
-    std::vector<mango_unit_id_t> tiles_dst;
+    std::vector<uint32_t> tiles_dst;
 
-    auto unit_type = UnitType::GN;
     for (auto &k : kernels) {
-        types.push_back(unit_type);
         tiles_dst.push_back(kernel_id_to_unit_id[k.id]);
     }
 

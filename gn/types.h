@@ -9,9 +9,6 @@ namespace hhal {
 
 typedef struct gn_kernel_t {
     int id;
-    int tlb;
-    // virtual address moved to TLB like the rest, in the future it probably comes back here though
-    // int virtual_addr; 
     uint32_t physical_addr;
     int cluster_id;
     int mem_tile;

@@ -5,7 +5,7 @@
 
 #define LOGGER_LEVEL 8
 
-namespace mango {
+namespace hhal {
 
 void ConsoleLogger::Trace(const char *fmt, ...) {
 #if LOGGER_LEVEL > 8

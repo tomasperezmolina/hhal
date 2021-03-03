@@ -1,24 +1,12 @@
 #include "hhal.h"
-#include "hn/manager.h"
 #include "nvidia/manager.h"
 
 #define GN_MANAGER      managers->gn_manager
-#define HN_MANAGER      managers->hn_manager
 #define NVIDIA_MANAGER  managers->nvidia_manager
 
 #define MAP_GN_EXIT_CODE(x)                     \
         do {                                    \
             if (x != GNManagerExitCode::OK) {   \
-                return HHALExitCode::ERROR;     \
-            }                                   \
-            else {                              \
-                return HHALExitCode::OK;        \
-            }                                   \
-        } while(0);
-
-#define MAP_HN_EXIT_CODE(x)                     \
-        do {                                    \
-            if (x != HNManagerExitCode::OK) {   \
                 return HHALExitCode::ERROR;     \
             }                                   \
             else {                              \
@@ -40,7 +28,6 @@ namespace hhal {
 
 class HHAL::Managers {
     public:
-        HNManager hn_manager;
         NvidiaManager nvidia_manager;
 };
 
@@ -68,9 +55,6 @@ HHALExitCode HHAL::assign_kernel(Unit unit, hhal_kernel *info) {
         case Unit::GN:
             MAP_GN_EXIT_CODE(gn_manager.assign_kernel((gn_kernel *) info));
             break;
-        case Unit::HN:
-            MAP_HN_EXIT_CODE(HN_MANAGER.assign_kernel((hn_kernel *)info));
-            break;
         case Unit::NVIDIA:
             MAP_NVIDIA_EXIT_CODE(NVIDIA_MANAGER.assign_kernel((nvidia_kernel *)info));
             break;
@@ -86,9 +70,6 @@ HHALExitCode HHAL::assign_buffer(Unit unit, hhal_buffer *info) {
         case Unit::GN:
             MAP_GN_EXIT_CODE(gn_manager.assign_buffer((gn_buffer *) info));
             break;
-        case Unit::HN:
-            MAP_HN_EXIT_CODE(HN_MANAGER.assign_buffer((hn_buffer *) info));
-            break;
         case Unit::NVIDIA:
             MAP_NVIDIA_EXIT_CODE(NVIDIA_MANAGER.assign_buffer((nvidia_buffer *) info));
             break;
@@ -103,9 +84,6 @@ HHALExitCode HHAL::assign_event(Unit unit, hhal_event *info) {
     switch (unit) {
         case Unit::GN:
             MAP_GN_EXIT_CODE(gn_manager.assign_event((gn_event *) info));
-            break;
-        case Unit::HN:
-            MAP_HN_EXIT_CODE(HN_MANAGER.assign_event((hn_event *) info));
             break;
         case Unit::NVIDIA:
             MAP_NVIDIA_EXIT_CODE(NVIDIA_MANAGER.assign_event((nvidia_event *) info));
@@ -126,14 +104,6 @@ HHALExitCode HHAL::kernel_write(int kernel_id, const std::map<Unit, std::string>
                 return HHALExitCode::ERROR;
             }
             MAP_GN_EXIT_CODE(gn_manager.kernel_write(kernel_id, it->second));
-            break;
-        case Unit::HN:
-            it = kernel_images.find(Unit::HN);
-            if (it == kernel_images.end()) {
-                printf("No kernel image for HN\n");
-                return HHALExitCode::ERROR;
-            }
-            MAP_HN_EXIT_CODE(HN_MANAGER.kernel_write(kernel_id, it->second));
             break;
         case Unit::NVIDIA:
             it = kernel_images.find(Unit::NVIDIA);
@@ -219,9 +189,6 @@ HHALExitCode HHAL::write_to_memory(int buffer_id, const void *source, size_t siz
         case Unit::GN:
             MAP_GN_EXIT_CODE(gn_manager.write_to_memory(buffer_id, source, size));
             break;
-        case Unit::HN:
-            MAP_HN_EXIT_CODE(HN_MANAGER.write_to_memory(buffer_id, source, size));
-            break;
         case Unit::NVIDIA:
             MAP_NVIDIA_EXIT_CODE(NVIDIA_MANAGER.write_to_memory(buffer_id, source, size));
             break;
@@ -235,9 +202,6 @@ HHALExitCode HHAL::read_from_memory(int buffer_id, void *dest, size_t size) {
     switch (buffer_to_unit[buffer_id]) {
         case Unit::GN:
             MAP_GN_EXIT_CODE(gn_manager.read_from_memory(buffer_id, dest, size));
-            break;
-        case Unit::HN:
-            MAP_HN_EXIT_CODE(HN_MANAGER.read_from_memory(buffer_id, dest, size));
             break;
         case Unit::NVIDIA:
             MAP_NVIDIA_EXIT_CODE(NVIDIA_MANAGER.read_from_memory(buffer_id, dest, size));
@@ -253,9 +217,6 @@ HHALExitCode HHAL::write_sync_register(int event_id, uint32_t data) {
         case Unit::GN:
             MAP_GN_EXIT_CODE(gn_manager.write_sync_register(event_id, data));
             break;
-        case Unit::HN:
-            MAP_HN_EXIT_CODE(HN_MANAGER.write_sync_register(event_id, data));
-            break;
         case Unit::NVIDIA:
             MAP_NVIDIA_EXIT_CODE(NVIDIA_MANAGER.write_sync_register(event_id, data));
             break;
@@ -269,9 +230,6 @@ HHALExitCode HHAL::read_sync_register(int event_id, uint32_t *data) {
     switch (event_to_unit[event_id]) {
         case Unit::GN:
             MAP_GN_EXIT_CODE(gn_manager.read_sync_register(event_id, data));
-            break;
-        case Unit::HN:
-            MAP_HN_EXIT_CODE(HN_MANAGER.read_sync_register(event_id, data));
             break;
         case Unit::NVIDIA:
             MAP_NVIDIA_EXIT_CODE(NVIDIA_MANAGER.read_sync_register(event_id, data));

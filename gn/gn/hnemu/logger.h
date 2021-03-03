@@ -1,7 +1,7 @@
 #ifndef MOD_RM_GNEMU_H_
 #define MOD_RM_GNEMU_H_
 
-namespace mango {
+namespace hhal {
 
     class ConsoleLogger {
 

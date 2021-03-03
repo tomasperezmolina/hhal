@@ -5,7 +5,6 @@ namespace hhal {
 
 enum class Unit {
     GN,
-    HN,
     NVIDIA
 };
 
