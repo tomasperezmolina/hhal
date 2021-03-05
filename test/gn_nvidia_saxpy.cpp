@@ -26,16 +26,6 @@ using namespace hhal;
 #define BY_ID 4
 #define BO2_ID 5
 
-
-void init_matrix(int *matrix, int rows, int cols)
-{
-  for (int r=0;r<rows;r++) {
-    for (int c=0;c<cols;c++) {
-        matrix[r*cols+c] = random() % 100;
-    }
-  }
-}
-
 void saxpy_1(int a, float *x, float *o, size_t n) {
     for (size_t i = 0; i < n; ++i) {
         o[i] = a * x[i];
