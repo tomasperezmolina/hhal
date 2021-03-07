@@ -1,0 +1,3 @@
+[submodule "daemon/base/external/spdlog"]
+	path = daemon/base/external/spdlog
+	url = https://github.com/gabime/spdlog.git
