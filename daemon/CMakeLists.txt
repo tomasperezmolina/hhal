@@ -27,10 +27,12 @@ set(SERVER_SOURCES
   utils/logger.cpp
   hhal_server.cpp
   run_daemon.cpp
+  serialization.cpp
 )
 
 set(CLIENT_SOURCES
   base/client/socket_client.cpp
+  serialization.cpp
 )
 
 find_package(hhal CONFIG REQUIRED HINTS /opt/mango/lib/cmake)
