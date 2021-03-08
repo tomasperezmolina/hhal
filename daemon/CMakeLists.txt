@@ -33,12 +33,13 @@ set(SERVER_SOURCES
 set(CLIENT_SOURCES
   base/client/socket_client.cpp
   serialization.cpp
+  hhal_client.cpp
 )
 
 find_package(hhal CONFIG REQUIRED HINTS /opt/mango/lib/cmake)
 
 add_executable(hhal_daemon ${SERVER_SOURCES})
-add_library(hhal_client ${CLIENT_SOURCES})
+add_library(hhal_client SHARED ${CLIENT_SOURCES})
 
 target_link_libraries(hhal_daemon PRIVATE hhal::hhal spdlog::spdlog)
 target_link_libraries(hhal_client PUBLIC hhal::hhal)

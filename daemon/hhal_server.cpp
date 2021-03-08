@@ -19,7 +19,7 @@ Server::message_result_t HHALServer::handle_command(int id, Server::message_t ms
         return {Server::MessageListenerExitCode::INSUFFICIENT_DATA, 0, 0}; // Need to read more data to determine a command
     }
     command_base *base = (command_base *) msg.buf;
-    switch (base->cmd) {
+    switch (base->type) {
     case command_type::KERNEL_START:
         if (msg.size >= sizeof(kernel_start_command)) {
             return handle_kernel_start(id, (kernel_start_command *)msg.buf, server);
@@ -107,7 +107,7 @@ Server::DataListenerExitCode HHALServer::handle_data(int id, Server::packet_t pa
     logger.info("Received data, size: {}", packet.extra_data.size);
     // TODO: error handling everywhere
     command_base *base = (command_base *) packet.msg.buf;
-    switch (base->cmd) {
+    switch (base->type) {
     case command_type::KERNEL_START: {
         kernel_start_command *command = (kernel_start_command *) base;
         hhal::Arguments args = deserialize_arguments({packet.extra_data.buf, packet.extra_data.size});

@@ -1,7 +1,11 @@
+#ifndef HHAL_CLIENT_H
+#define HHAL_CLIENT_H
+
 #include <map>
 #include <cinttypes>
 
 #include "hhal.h"
+#include "hhal_response.h"
 
 namespace hhal_daemon {
 
@@ -46,6 +50,10 @@ class HHALClient {
     int socket_fd;
 
     void close_socket();
+
+    HHALClientExitCode receive_rest_of_response(const response_base &res, void *bigger_res, size_t size);
 };
 
 }
+
+#endif

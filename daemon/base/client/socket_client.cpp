@@ -25,7 +25,7 @@ int initialize(const char *socket_path) {
     return sock;
 }
 
-bool send_on_socket(int fd, void *buf, size_t size) {
+bool send_on_socket(int fd, const void *buf, size_t size) {
     size_t byte_offset = 0;
 
     while (byte_offset < size) {

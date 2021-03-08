@@ -16,7 +16,15 @@
         return HHALClientExitCode::SEVERE_ERROR;    \
     }
 
+
+
 namespace hhal_daemon {
+
+HHALClientExitCode HHALClient::receive_rest_of_response(const response_base &res, void *bigger_res, size_t size) {
+    memcpy(bigger_res, &res, sizeof(res));
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, ((char *) bigger_res) + sizeof(res), size - sizeof(res)))
+    return HHALClientExitCode::OK;
+}
 
 HHALClient::HHALClient(const std::string socket_path) {
     socket_fd = initialize(socket_path.c_str());
@@ -45,65 +53,415 @@ HHALClientExitCode HHALClient::kernel_write(int kernel_id, const std::map<hhal::
 
     kernel_write_command cmd;
     init_kernel_write_command(cmd, kernel_id, serialized.size);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
 
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &serialized, sizeof(serialized)))
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 
 HHALClientExitCode HHALClient::kernel_start(int kernel_id, const hhal::Arguments &arguments) {
     CHECK_OPEN_SOCKET
+
+    serialized_object serialized = serialize(arguments);
+
+    kernel_start_command cmd;
+    init_kernel_start_command(cmd, kernel_id, serialized.size);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &serialized, sizeof(serialized)))
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 
 HHALClientExitCode HHALClient::write_to_memory(int buffer_id, const void *source, size_t size) {
     CHECK_OPEN_SOCKET
+
+    write_memory_command cmd;
+    init_write_memory_command(cmd, buffer_id, size);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    TRY_OR_CLOSE(send_on_socket(socket_fd, source, size))
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 
 HHALClientExitCode HHALClient::read_from_memory(int buffer_id, void *dest, size_t size) {
     CHECK_OPEN_SOCKET
+
+    read_memory_command cmd;
+    init_read_memory_command(cmd, buffer_id, size);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, dest, size))
+
+    return HHALClientExitCode::OK;
 }
 
 HHALClientExitCode HHALClient::write_sync_register(int event_id, uint32_t data) {
     CHECK_OPEN_SOCKET
+
+    write_register_command cmd;
+    init_write_register_command(cmd, event_id, data);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 
 HHALClientExitCode HHALClient::read_sync_register(int event_id, uint32_t *data) {
     CHECK_OPEN_SOCKET
+
+    read_register_command cmd;
+    init_read_register_command(cmd, event_id);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    } else if (res.type == response_type::REGISTER_DATA) {
+        register_data_response rd_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &rd_res, sizeof(rd_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+    } else {
+        // Unknown response type
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 // -----------------------
 
 // Resource management
 HHALClientExitCode HHALClient::assign_kernel(hhal::Unit unit, hhal::hhal_kernel *info) {
     CHECK_OPEN_SOCKET
+
+    assign_kernel_command cmd;
+    init_assign_kernel_command(cmd, unit);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+    
+    size_t size;
+
+    switch (unit) {
+        case hhal::Unit::NVIDIA:
+            size = sizeof(hhal::nvidia_kernel);
+            break;
+        case hhal::Unit::GN:
+            size = sizeof(hhal::gn_kernel);
+            break;
+        default:
+            printf("Unknown unit type %d", static_cast<int>(unit));
+            return HHALClientExitCode::ERROR;
+    }
+
+    TRY_OR_CLOSE(send_on_socket(socket_fd, info, size))
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 
 HHALClientExitCode HHALClient::assign_buffer(hhal::Unit unit, hhal::hhal_buffer *info) {
     CHECK_OPEN_SOCKET
+
+    assign_buffer_command cmd;
+    init_assign_buffer_command(cmd, unit);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+    
+    size_t size;
+
+    switch (unit) {
+        case hhal::Unit::NVIDIA:
+            size = sizeof(hhal::nvidia_buffer);
+            break;
+        case hhal::Unit::GN:
+            size = sizeof(hhal::gn_buffer);
+            break;
+        default:
+            printf("Unknown unit type %d", static_cast<int>(unit));
+            return HHALClientExitCode::ERROR;
+    }
+
+    TRY_OR_CLOSE(send_on_socket(socket_fd, info, size))
+
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 
-HHALClientExitCode HHALClient::assign_event (hhal::Unit unit, hhal::hhal_event *info) {
+HHALClientExitCode HHALClient::assign_event(hhal::Unit unit, hhal::hhal_event *info) {
     CHECK_OPEN_SOCKET
+
+    assign_event_command cmd;
+    init_assign_event_command(cmd, unit);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+    
+    size_t size;
+
+    switch (unit) {
+        case hhal::Unit::NVIDIA:
+            size = sizeof(hhal::nvidia_event);
+            break;
+        case hhal::Unit::GN:
+            size = sizeof(hhal::gn_event);
+            break;
+        default:
+            printf("Unknown unit type %d", static_cast<int>(unit));
+            return HHALClientExitCode::ERROR;
+    }
+
+    TRY_OR_CLOSE(send_on_socket(socket_fd, info, size))
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 
 HHALClientExitCode HHALClient::allocate_memory(int buffer_id) {
     CHECK_OPEN_SOCKET
+
+    allocate_memory_command cmd;
+    init_allocate_memory_command(cmd, buffer_id);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 
 HHALClientExitCode HHALClient::release_memory(int buffer_id) {
     CHECK_OPEN_SOCKET
+
+    release_memory_command cmd;
+    init_release_memory_command(cmd, buffer_id);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 
 HHALClientExitCode HHALClient::allocate_kernel(int kernel_id) {
     CHECK_OPEN_SOCKET
+
+    allocate_kernel_command cmd;
+    init_allocate_kernel_command(cmd, kernel_id);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 
 HHALClientExitCode HHALClient::release_kernel(int kernel_id) {
     CHECK_OPEN_SOCKET
+
+    release_kernel_command cmd;
+    init_release_kernel_command(cmd, kernel_id);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 
 HHALClientExitCode HHALClient::allocate_event(int event_id) {
     CHECK_OPEN_SOCKET
+
+    allocate_event_command cmd;
+    init_allocate_event_command(cmd, event_id);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 
 HHALClientExitCode HHALClient::release_event(int event_id) {
     CHECK_OPEN_SOCKET
+
+    release_event_command cmd;
+    init_release_event_command(cmd, event_id);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
+        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
 }
 
 }
