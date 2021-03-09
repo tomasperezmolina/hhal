@@ -27,7 +27,6 @@ void resource_allocation(HHAL &hhal, const std::vector<registered_kernel> &kerne
         k.mem_id = kernel.k.id;
         k.size = kernel.k.image_size;
         k.termination_event = kernel.kernel_termination_event;
-        k.function_name = "";
         hhal.assign_kernel(hhal::Unit::NVIDIA, (hhal_kernel *) &k);
         hhal.allocate_kernel(kernel.k.id);
     }

@@ -66,6 +66,8 @@ class GNManager {
         std::map<int, gn_kernel> kernel_info;
         std::map<int, gn_event> event_info;
         std::map<int, gn_buffer> buffer_info;
+
+        std::map<int, std::string> kernel_images;
         
         std::map<uint32_t, hhal_tile_description_t> tiles;
 

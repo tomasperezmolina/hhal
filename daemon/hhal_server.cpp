@@ -203,7 +203,7 @@ Server::message_result_t HHALServer::handle_read_sync_register(int id, const rea
 
 // Resource management
 Server::message_result_t HHALServer::handle_assign_kernel(int id, const assign_kernel_command *cmd, Server &server) {
-    logger.info("Received: assign kernel command");
+    logger.info("Received: assign kernel command 2");
     size_t payload_size;
     bool error = false;
     switch (cmd->unit) {
@@ -219,9 +219,11 @@ Server::message_result_t HHALServer::handle_assign_kernel(int id, const assign_k
             break;
     }
     if (!error) {
+        logger.debug("Prepared to receive {} bytes of data", payload_size);
         server.send_on_socket(id, ack_message());
         return {Server::MessageListenerExitCode::OK, sizeof(assign_kernel_command), payload_size};
     } else {
+        logger.error("ERROR", payload_size);
         // TODO: error handling
         server.send_on_socket(id, ack_message());
         return {Server::MessageListenerExitCode::OK, sizeof(assign_kernel_command), 0};

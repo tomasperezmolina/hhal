@@ -85,6 +85,19 @@ public:
     logger->critical(msg);
   }
 
+  static std::string level_to_string(Logger::Level level) {
+    switch (level) {
+      case Level::TRACE: return "TRACE";
+      case Level::DEBUG: return "DEBUG";
+      case Level::INFO: return "INFO";
+      case Level::WARN: return "WARN";
+      case Level::ERROR: return "ERROR";
+      case Level::CRITICAL: return "CRITICAL";
+      case Level::OFF: return "OFF";
+    }
+    return "UNKNOWN";
+  } 
+
 private:
   static spdlog::level::level_enum level;
   std::unique_ptr<spdlog::logger> logger;

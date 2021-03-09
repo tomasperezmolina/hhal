@@ -14,9 +14,8 @@ typedef struct gn_kernel_t {
     int mem_tile;
     size_t size;
     int unit_id;
-    std::vector<int> task_events;
     int termination_event;
-    std::string image_path;
+    std::vector<int> task_events;
 } gn_kernel;
 
 typedef struct gn_buffer_t {
@@ -25,9 +24,9 @@ typedef struct gn_buffer_t {
     int cluster_id;
     int mem_tile;
     size_t size;
+    int event;
     std::vector<int> kernels_in;
     std::vector<int> kernels_out;
-    int event;
 } gn_buffer;
 
 typedef struct gn_event_t {

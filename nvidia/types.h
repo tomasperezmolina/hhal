@@ -8,7 +8,6 @@ typedef struct nvidia_kernel_t {
     int gpu_id;
     int mem_id;
     size_t size;
-    std::string function_name;
     int termination_event;
 } nvidia_kernel;
 

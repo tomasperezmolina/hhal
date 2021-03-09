@@ -156,7 +156,7 @@ GNManagerExitCode GNManager::kernel_write(int kernel_id, std::string image_path)
     assert(initialized == true);
     assert(image_path.size() > 0);
     gn_kernel &info = kernel_info[kernel_id];
-    info.image_path = image_path;
+    kernel_images[info.id] = image_path;
 
     log_hhal.Debug("GNManager: kernel_write: cluster=%d,  image_path=%s, memory=%d, address=0x%x",
             info.cluster_id, image_path.c_str(), info.mem_tile, info.physical_addr);
@@ -476,12 +476,12 @@ GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args
 
     gn_kernel &info = kernel_info[kernel_id];
 
-    if (info.image_path == "") {
+    if (kernel_images.find(info.id) == kernel_images.end()) {
         log_hhal.Error("GNManager: No kernel path");
         return GNManagerExitCode::ERROR;
     }
 
-    ss << info.image_path;
+    ss << kernel_images[info.id];
     ss << " 0x" << std::hex << mem_size;
 
 	for (const auto &arg : args.get_args()) {

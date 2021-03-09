@@ -6,6 +6,7 @@
 
 using namespace hhal_daemon;
 
+
 int main(int argc, char const *argv[]) { 
   daemon_config_t config;
   auto config_res = ConfigReader::read_config(CONFIG_FILE, config);
@@ -20,6 +21,8 @@ int main(int argc, char const *argv[]) {
     }
     return -1;
   }
+
+  logger.info("LOG LEVEL: {}", Logger::level_to_string(config.log_level));
 
   Logger::set_level(config.log_level);
 
