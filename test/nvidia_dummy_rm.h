@@ -8,14 +8,14 @@
 #include "mango_arguments.h"
 
 namespace nvidia_rm {
-    typedef struct registered_kernel_t {
-        mango_kernel k;
-        int kernel_termination_event;
-    } registered_kernel;
+struct registered_kernel {
+    mango_kernel k;
+    int kernel_termination_event;
+};
 
-    void resource_allocation(hhal::HHAL &hhal, const std::vector<registered_kernel> &kernels, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events);
-    void resource_deallocation(hhal::HHAL &hhal, const std::vector<registered_kernel> &kernels, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events);
-    registered_kernel register_kernel(mango_kernel kernel);
+void resource_allocation(hhal::HHAL &hhal, const std::vector<registered_kernel> &kernels, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events);
+void resource_deallocation(hhal::HHAL &hhal, const std::vector<registered_kernel> &kernels, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events);
+registered_kernel register_kernel(mango_kernel kernel);
 }
 
 #endif

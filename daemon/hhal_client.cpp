@@ -20,16 +20,15 @@
 
 namespace hhal_daemon {
 
-HHALClientExitCode HHALClient::receive_rest_of_response(const response_base &res, void *bigger_res, size_t size) {
+bool receive_rest_of_response(int socket_fd, const response_base &res, void *bigger_res, size_t size) {
     memcpy(bigger_res, &res, sizeof(res));
-    TRY_OR_CLOSE(receive_on_socket(socket_fd, ((char *) bigger_res) + sizeof(res), size - sizeof(res)))
-    return HHALClientExitCode::OK;
+    return receive_on_socket(socket_fd, ((char *) bigger_res) + sizeof(res), size - sizeof(res));
 }
 
 HHALClient::HHALClient(const std::string socket_path) {
     socket_fd = initialize(socket_path.c_str());
     if (socket_fd == NO_SOCKET) {
-        printf("CudaClient: Socket initialization failure\n");
+        printf("HHALClient: Socket initialization failure\n");
         exit(EXIT_FAILURE);
     }
 }
@@ -60,8 +59,7 @@ HHALClientExitCode HHALClient::kernel_write(int kernel_id, const std::map<hhal::
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -70,8 +68,7 @@ HHALClientExitCode HHALClient::kernel_write(int kernel_id, const std::map<hhal::
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -92,8 +89,7 @@ HHALClientExitCode HHALClient::kernel_start(int kernel_id, const hhal::Arguments
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -102,8 +98,7 @@ HHALClientExitCode HHALClient::kernel_start(int kernel_id, const hhal::Arguments
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -122,8 +117,7 @@ HHALClientExitCode HHALClient::write_to_memory(int buffer_id, const void *source
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -132,8 +126,7 @@ HHALClientExitCode HHALClient::write_to_memory(int buffer_id, const void *source
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -152,8 +145,7 @@ HHALClientExitCode HHALClient::read_from_memory(int buffer_id, void *dest, size_
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -174,8 +166,7 @@ HHALClientExitCode HHALClient::write_sync_register(int event_id, uint32_t data) 
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -194,13 +185,11 @@ HHALClientExitCode HHALClient::read_sync_register(int event_id, uint32_t *data) 
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     } else if (res.type == response_type::REGISTER_DATA) {
         register_data_response rd_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &rd_res, sizeof(rd_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &rd_res, sizeof(rd_res)));
     } else {
         // Unknown response type
         return HHALClientExitCode::ERROR;
@@ -223,8 +212,7 @@ HHALClientExitCode HHALClient::assign_kernel(hhal::Unit unit, hhal::hhal_kernel 
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
     
@@ -247,8 +235,7 @@ HHALClientExitCode HHALClient::assign_kernel(hhal::Unit unit, hhal::hhal_kernel 
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -267,8 +254,7 @@ HHALClientExitCode HHALClient::assign_buffer(hhal::Unit unit, hhal::hhal_buffer 
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
     
@@ -292,8 +278,7 @@ HHALClientExitCode HHALClient::assign_buffer(hhal::Unit unit, hhal::hhal_buffer 
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -312,8 +297,7 @@ HHALClientExitCode HHALClient::assign_event(hhal::Unit unit, hhal::hhal_event *i
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
     
@@ -336,8 +320,7 @@ HHALClientExitCode HHALClient::assign_event(hhal::Unit unit, hhal::hhal_event *i
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -356,8 +339,7 @@ HHALClientExitCode HHALClient::allocate_memory(int buffer_id) {
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -376,8 +358,7 @@ HHALClientExitCode HHALClient::release_memory(int buffer_id) {
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -396,8 +377,7 @@ HHALClientExitCode HHALClient::allocate_kernel(int kernel_id) {
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -416,8 +396,7 @@ HHALClientExitCode HHALClient::release_kernel(int kernel_id) {
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -436,8 +415,7 @@ HHALClientExitCode HHALClient::allocate_event(int event_id) {
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 
@@ -456,8 +434,7 @@ HHALClientExitCode HHALClient::release_event(int event_id) {
 
     if (res.type == response_type::ERROR) {
         error_response error_res;
-        HHALClientExitCode exit_code = receive_rest_of_response(res, &error_res, sizeof(error_res));
-        if (exit_code != HHALClientExitCode::OK) return exit_code;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
         return HHALClientExitCode::ERROR;
     }
 

@@ -3,13 +3,13 @@
 #include <cstdio>
 #include <exception>
 
-#include "hhal.h"
-
 #include "arguments.h"
 
 #include "mango_arguments.h"
 #include "gn_dummy_rm.h"
 #include "rm_common.h"
+
+#include "hhal_client.h"
 
 using namespace hhal;
 
@@ -18,8 +18,10 @@ std::map<int, addr_t> event_addresses;
 
 namespace gn_rm {
 
+template <class H>
 void resource_allocation(
-    HHAL &hhal, 
+    H &hhal,
+    GNManager &gn_manager, 
     const std::vector<registered_kernel> &kernels, 
     const std::vector<registered_buffer> &buffers, 
     const std::vector<mango_event> &events
@@ -37,7 +39,7 @@ void resource_allocation(
 
     std::vector<uint32_t> tiles_dst(num_tiles);
     
-    auto status = hhal.gn_manager.find_units_set(default_cluster_id, num_tiles, tiles_dst);
+    auto status = gn_manager.find_units_set(default_cluster_id, num_tiles, tiles_dst);
     if (status == GNManagerExitCode::ERROR){
         for (unsigned int i = 0; i< num_tiles; i++){
             tiles_dst[i]= u_pid++;
@@ -49,7 +51,7 @@ void resource_allocation(
 
     printf("[DummyRM] resource_allocation: %d tiles found\n", num_tiles);
 
-    status = hhal.gn_manager.reserve_units_set(default_cluster_id, tiles_dst);
+    status = gn_manager.reserve_units_set(default_cluster_id, tiles_dst);
     if (status != GNManagerExitCode::OK){
         printf("[DummyRM] resource_allocation: tiles reservation failed\n");
         throw std::runtime_error("DummyRM resource allocation error!");
@@ -85,10 +87,10 @@ void resource_allocation(
         info.kernels_out = et.kernels_out;
 
         addr_t phy_addr = event_address++;
-        auto status = hhal.gn_manager.get_synch_register_addr(default_cluster_id, &phy_addr, 1);
+        auto status = gn_manager.get_synch_register_addr(default_cluster_id, &phy_addr, 1);
         if (status != GNManagerExitCode::OK){
             printf("[DummyRM] resource_allocation: not enough registers\n");
-            hhal.gn_manager.release_units_set(default_cluster_id, tiles_dst);
+            gn_manager.release_units_set(default_cluster_id, tiles_dst);
             throw std::runtime_error("DummyRM resource allocation error!");
         }
         printf("[DummyRM] resource_allocation: event=%d, phy_addr=0x%x\n", et.id, phy_addr);
@@ -120,7 +122,7 @@ void resource_allocation(
             throw std::runtime_error("DummyRM resource allocation error!");
         }
         printf("[DummyRM] Fiding memory for cluster=%d, unit=%d, size=%zu\n", default_cluster_id, default_unit, info.size);
-        auto status = hhal.gn_manager.find_memory(default_cluster_id, default_unit, info.size, &memory, &phy_addr);
+        auto status = gn_manager.find_memory(default_cluster_id, default_unit, info.size, &memory, &phy_addr);
         if (status != GNManagerExitCode::OK){
             printf("[DummyRM] resource_allocation: cannot find memory for buffer %d\n", info.id);
             throw std::runtime_error("DummyRM resource allocation error!");
@@ -132,11 +134,29 @@ void resource_allocation(
         hhal.allocate_memory(info.id);
 	}
 
-    hhal.gn_manager.prepare_events_registers();
+    gn_manager.prepare_events_registers();
 }
 
+template void resource_allocation<hhal::HHAL>(
+    hhal::HHAL &hhal, 
+    GNManager &gn_manager, 
+    const std::vector<registered_kernel> &kernels, 
+    const std::vector<registered_buffer> &buffers, 
+    const std::vector<mango_event> &events
+);
+
+template void resource_allocation<hhal_daemon::HHALClient>(
+    hhal_daemon::HHALClient &hhal, 
+    GNManager &gn_manager, 
+    const std::vector<registered_kernel> &kernels, 
+    const std::vector<registered_buffer> &buffers, 
+    const std::vector<mango_event> &events
+);
+
+template <class H>
 void resource_deallocation(
-    HHAL &hhal, 
+    H &hhal, 
+    GNManager &gn_manager, 
     const std::vector<mango_kernel> &kernels, 
     const std::vector<mango_buffer> &buffers, 
     const std::vector<mango_event> &events
@@ -151,7 +171,7 @@ void resource_deallocation(
         tiles_dst.push_back(kernel_id_to_unit_id[k.id]);
     }
 
-    auto status = hhal.gn_manager.release_units_set(default_cluster_id, tiles_dst);
+    auto status = gn_manager.release_units_set(default_cluster_id, tiles_dst);
     if (status != GNManagerExitCode::OK){
         printf("[DummyRM] resource_deallocation: tiles release failed\n");
         throw std::runtime_error("DummyRM resource allocation error!");
@@ -159,19 +179,31 @@ void resource_deallocation(
     printf("[DummyRM] resource_deallocation: %d tiles released\n", num_tiles);
 
     for(auto &et : events) {
-        hhal.gn_manager.release_synch_register_addr(default_cluster_id, event_addresses[et.id]);
+        gn_manager.release_synch_register_addr(default_cluster_id, event_addresses[et.id]);
         printf("[DummyRM] resource_deallocation: event=%d released\n", et.id);
     }
 
     for(auto &bt : buffers) {
-        auto status = hhal.release_memory(bt.id);
-        if (status != HHALExitCode::OK){
-            printf("[DummyRM] resource_deallocation: release memory buffer %d failed\n", bt.id);
-        }
-        printf("[DummyRM] resource_deallocation: memory buffer %d released\n", bt.id);
+        hhal.release_memory(bt.id);
     }
 
 }
+
+template void resource_deallocation<hhal::HHAL>(
+    hhal::HHAL &hhal, 
+    GNManager &gn_manager, 
+    const std::vector<mango_kernel> &kernels, 
+    const std::vector<mango_buffer> &buffers, 
+    const std::vector<mango_event> &events
+);
+
+template void resource_deallocation<hhal_daemon::HHALClient>(
+    hhal_daemon::HHALClient &hhal, 
+    GNManager &gn_manager, 
+    const std::vector<mango_kernel> &kernels, 
+    const std::vector<mango_buffer> &buffers, 
+    const std::vector<mango_event> &events
+);
 
 int get_new_event_id() {
     return rm_common::get_new_event_id();

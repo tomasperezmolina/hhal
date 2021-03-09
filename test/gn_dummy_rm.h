@@ -3,35 +3,40 @@
 
 #include <vector>
 
-#include "hhal.h"
-
 #include "mango_arguments.h"
+#include "hhal.h"
 
 namespace gn_rm {
 
-typedef struct registered_kernel_t {
+struct registered_kernel {
     mango_kernel k;
     int kernel_termination_event;
     std::vector<int> task_events;
-} registered_kernel;
+};
 
-typedef struct registered_buffer_t {
+struct registered_buffer {
     mango_buffer b;
     int event;
-} registered_buffer;
+};
 
+template<class H>
 void resource_allocation(
-    hhal::HHAL &hhal, 
+    H &hhal, 
+    hhal::GNManager &gn_manager, 
     const std::vector<registered_kernel> &kernels, 
     const std::vector<registered_buffer> &buffers, 
     const std::vector<mango_event> &events
 );
+
+template<class H>
 void resource_deallocation(
-    hhal::HHAL &hhal, 
+    H &hhal, 
+    hhal::GNManager &gn_manager, 
     const std::vector<mango_kernel> &kernels, 
     const std::vector<mango_buffer> &buffers, 
     const std::vector<mango_event> &events
 );
+
 registered_kernel register_kernel(mango_kernel kernel);
 registered_buffer register_buffer(mango_buffer buffer);
 int get_new_event_id();

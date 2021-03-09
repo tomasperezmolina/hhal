@@ -7,10 +7,14 @@
 
 namespace hhal {
     namespace events{
-        void write(HHAL &hhal, int event_id, uint32_t value);
-        uint32_t read(HHAL &hhal, int event_id);
-        uint32_t lock(HHAL &hhal, int event_id);
-        void wait(HHAL &hhal, int event_id, uint32_t state);
+        template<class H>
+        void write(H &hhal, int event_id, uint32_t value);
+        template<class H>
+        uint32_t read(H &hhal, int event_id);
+        template<class H>
+        uint32_t lock(H &hhal, int event_id);
+        template<class H>
+        void wait(H &hhal, int event_id, uint32_t state);
     }
 }
 

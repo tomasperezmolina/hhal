@@ -95,7 +95,7 @@ int main(void) {
     }
 
     /* resource allocation */
-    resource_allocation(hhal, {r_kernel}, r_buffers, events);
+    resource_allocation(hhal, hhal.gn_manager, {r_kernel}, r_buffers, events);
 
     const std::map<hhal::Unit, std::string> kernel_images = {{hhal::Unit::GN, KERNEL_PATH}};
     hhal.kernel_write(kernel.id, kernel_images);
@@ -131,7 +131,7 @@ int main(void) {
     events::wait(hhal, kernel_termination_event.id, 1);
 
     /* shut down the mango infrastructure */
-    gn_rm::resource_deallocation(hhal, {kernel}, buffers, events);
+    gn_rm::resource_deallocation(hhal, hhal.gn_manager, {kernel}, buffers, events);
 
     /* check results */
     kernel_function(A, B, D, rows, columns);

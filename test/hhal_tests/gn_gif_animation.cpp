@@ -181,7 +181,7 @@ int main(void) {
     }
 
     /* resource allocation */
-    gn_rm::resource_allocation(hhal, {r_kernel_scale, r_kernel_smooth, r_kernel_copy}, r_buffers, events);
+    gn_rm::resource_allocation(hhal, hhal.gn_manager, {r_kernel_scale, r_kernel_smooth, r_kernel_copy}, r_buffers, events);
 
     const std::map<hhal::Unit, std::string> kernel_scale_images =   {{hhal::Unit::GN, KERNEL_SCALE_PATH}};
     const std::map<hhal::Unit, std::string> kernel_copy_images =    {{hhal::Unit::GN, KERNEL_COPY_PATH}};
@@ -252,7 +252,7 @@ int main(void) {
 
     saver.Save("0123_kernel.gif");
     
-    gn_rm::resource_deallocation(hhal, {kernel_scale, kernel_smooth, kernel_copy}, buffers, events);
+    gn_rm::resource_deallocation(hhal, hhal.gn_manager, {kernel_scale, kernel_smooth, kernel_copy}, buffers, events);
 
     return 0;
 }
