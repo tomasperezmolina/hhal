@@ -39,6 +39,7 @@ bool send_on_socket(int fd, const void *buf, size_t size) {
             byte_offset += bytes_sent;
         }
     }
+    printf("Done sending %zu bytes of data\n", size);
 
     return true;
 }

@@ -72,6 +72,8 @@ void resource_allocation(
         // Hack for deallocation
         kernel_id_to_unit_id[kernel_info.id] = kernel_info.unit_id;
 
+        printf("[DummyRM] resource_allocation: kernel=%d, phy_addr=0x%x\n", kernel_info.id, kernel_info.physical_addr);
+
         hhal.assign_kernel(hhal::Unit::GN, (hhal_kernel *) &kernel_info);
         unit++;
     }
@@ -121,7 +123,7 @@ void resource_allocation(
             printf("[DummyRM] resource_allocation: buffer %d does not have any kernels in/out\n", bt.b.id);
             throw std::runtime_error("DummyRM resource allocation error!");
         }
-        printf("[DummyRM] Fiding memory for cluster=%d, unit=%d, size=%zu\n", default_cluster_id, default_unit, info.size);
+        printf("[DummyRM] Finding memory for cluster=%d, unit=%d, size=%zu\n", default_cluster_id, default_unit, info.size);
         auto status = gn_manager.find_memory(default_cluster_id, default_unit, info.size, &memory, &phy_addr);
         if (status != GNManagerExitCode::OK){
             printf("[DummyRM] resource_allocation: cannot find memory for buffer %d\n", info.id);

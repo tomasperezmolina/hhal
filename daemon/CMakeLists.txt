@@ -74,4 +74,9 @@ install(
     DESTINATION ${CLIENT_EXPORT_DIR}
 )
 
+# Test
+add_executable(serialization_test test/serialization_test.cpp)
+target_include_directories(serialization_test PRIVATE ${INCLUDE_DIRS})
+target_link_libraries(serialization_test hhal_client)
+
 add_subdirectory(external/spdlog)

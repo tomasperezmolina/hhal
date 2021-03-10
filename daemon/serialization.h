@@ -4,9 +4,38 @@
 #include "hhal.h"
 
 namespace hhal_daemon {
+    
     struct serialized_object {
         void *buf;
         size_t size;
+
+        serialized_object(): buf(nullptr), size(0) {}
+        serialized_object(void *buf, size_t size): buf(buf), size(size) {}
+
+        ~serialized_object() noexcept {
+            if (buf != nullptr) free(buf);
+        }
+
+        serialized_object(const serialized_object &) noexcept = delete;
+
+        serialized_object(serialized_object&& other) noexcept {
+            buf = other.buf;
+            size = other.size;
+            other.buf = nullptr;
+            other.size = 0;
+        }
+
+        serialized_object& operator=(serialized_object&& other) noexcept {
+            if (this != &other) {
+                free(buf);
+
+                buf = other.buf;
+                size = other.size;
+                other.buf = nullptr;
+                other.size = 0;
+            }
+            return *this;
+        }
     };
 
     serialized_object serialize(const hhal::Arguments &arguments);

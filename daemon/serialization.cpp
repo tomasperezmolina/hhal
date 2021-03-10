@@ -61,21 +61,23 @@ serialized_object serialize(const std::map<hhal::Unit, std::string> &kernel_imag
 }
 
 serialized_object serialize(const hhal::gn_kernel &kernel) {
+    printf("Serialization: serializing kernel id %d\n", kernel.id);
+    printf("Serialization: Address of &kernel %p\n", &kernel);
     typedef decltype(kernel.task_events)::value_type t_ev_type;
 
-    size_t t_ev_size = sizeof(t_ev_type) * kernel.task_events.size();
+    size_t t_ev_amount = kernel.task_events.size();
+    size_t t_ev_size = sizeof(t_ev_type) * t_ev_amount;
 
     // Size of POD + indicator for size of vector + vector values
     size_t size = sizeof(gn_kernel_POD) + sizeof(size_t) + t_ev_size;
 
     void *buf = malloc(size);
     char *curr = (char *) buf;
-    memcpy(buf, &kernel, sizeof(gn_kernel_POD));
+    memcpy(curr, &kernel, sizeof(gn_kernel_POD));
     curr += sizeof(gn_kernel_POD);
-    *((size_t*) curr) = kernel.task_events.size();
+    memcpy(curr, &t_ev_amount, sizeof(size_t));
     curr += sizeof(size_t);
     memcpy(curr, kernel.task_events.data(), t_ev_size);
-    curr += t_ev_size;
     return {buf, size};
 }
 
@@ -83,24 +85,28 @@ serialized_object serialize(const hhal::gn_buffer &buffer) {
     typedef decltype(buffer.kernels_in)::value_type k_in_type;
     typedef decltype(buffer.kernels_out)::value_type k_out_type;
 
-    size_t k_in_size = sizeof(k_in_type) * buffer.kernels_in.size();
-    size_t k_out_size = sizeof(k_out_type) * buffer.kernels_out.size();
+
+    size_t k_in_amount = buffer.kernels_in.size();
+    size_t k_out_amount = buffer.kernels_out.size();
+    size_t k_in_size = sizeof(k_in_type) * k_in_amount;
+    size_t k_out_size = sizeof(k_out_type) * k_out_amount;
 
     // Size of POD + indicators for size of vectors + vector values
     size_t size = sizeof(gn_buffer_POD) + sizeof(size_t) * 2 + k_in_size + k_out_size;
 
+    
+
     void *buf = malloc(size);
     char *curr = (char *) buf;
-    memcpy(buf, &buffer, sizeof(gn_buffer_POD));
+    memcpy(curr, &buffer, sizeof(gn_buffer_POD));
     curr += sizeof(gn_buffer_POD);
-    *((size_t*) curr) = buffer.kernels_in.size();
+    memcpy(curr, &k_in_amount, sizeof(size_t));
     curr += sizeof(size_t);
-    *((size_t*) curr) = buffer.kernels_out.size();
+    memcpy(curr, &k_out_amount, sizeof(size_t));
     curr += sizeof(size_t);
     memcpy(curr, buffer.kernels_in.data(), k_in_size);
     curr += k_in_size;
     memcpy(curr, buffer.kernels_out.data(), k_out_size);
-    curr += k_out_size;
     return {buf, size};
 }
 
@@ -108,24 +114,25 @@ serialized_object serialize(const hhal::gn_event &event) {
     typedef decltype(event.kernels_in)::value_type k_in_type;
     typedef decltype(event.kernels_out)::value_type k_out_type;
 
-    size_t k_in_size = sizeof(k_in_type) * event.kernels_in.size();
-    size_t k_out_size = sizeof(k_out_type) * event.kernels_out.size();
+    size_t k_in_amount = event.kernels_in.size();
+    size_t k_out_amount = event.kernels_out.size();
+    size_t k_in_size = sizeof(k_in_type) * k_in_amount;
+    size_t k_out_size = sizeof(k_out_type) * k_out_amount;
 
     // Size of POD + indicators for size of vectors + vector values
     size_t size = sizeof(gn_event_POD) + sizeof(size_t) * 2 + k_in_size + k_out_size;
 
     void *buf = malloc(size);
     char *curr = (char *) buf;
-    memcpy(buf, &event, sizeof(gn_event_POD));
+    memcpy(curr, &event, sizeof(gn_event_POD));
     curr += sizeof(gn_event_POD);
-    *((size_t*) curr) = event.kernels_in.size();
+    memcpy(curr, &k_in_amount, sizeof(size_t));
     curr += sizeof(size_t);
-    *((size_t*) curr) = event.kernels_out.size();
+    memcpy(curr, &k_out_amount, sizeof(size_t));
     curr += sizeof(size_t);
     memcpy(curr, event.kernels_in.data(), k_in_size);
     curr += k_in_size;
     memcpy(curr, event.kernels_out.data(), k_out_size);
-    curr += k_out_size;
     return {buf, size};
 }
 
@@ -133,24 +140,25 @@ serialized_object serialize(const hhal::nvidia_buffer &buffer) {
     typedef decltype(buffer.kernels_in)::value_type k_in_type;
     typedef decltype(buffer.kernels_out)::value_type k_out_type;
 
-    size_t k_in_size = sizeof(k_in_type) * buffer.kernels_in.size();
-    size_t k_out_size = sizeof(k_out_type) * buffer.kernels_out.size();
+    size_t k_in_amount = buffer.kernels_in.size();
+    size_t k_out_amount = buffer.kernels_out.size();
+    size_t k_in_size = sizeof(k_in_type) * k_in_amount;
+    size_t k_out_size = sizeof(k_out_type) * k_out_amount;
 
     // Size of POD + indicators for size of vectors + vector values
     size_t size = sizeof(nvidia_buffer_POD) + sizeof(size_t) * 2 + k_in_size + k_out_size;
 
     void *buf = malloc(size);
     char *curr = (char *) buf;
-    memcpy(buf, &buffer, sizeof(nvidia_buffer_POD));
+    memcpy(curr, &buffer, sizeof(nvidia_buffer_POD));
     curr += sizeof(nvidia_buffer_POD);
-    *((size_t*) curr) = buffer.kernels_in.size();
+    memcpy(curr, &k_in_amount, sizeof(size_t));
     curr += sizeof(size_t);
-    *((size_t*) curr) = buffer.kernels_out.size();
+    memcpy(curr, &k_out_amount, sizeof(size_t));
     curr += sizeof(size_t);
     memcpy(curr, buffer.kernels_in.data(), k_in_size);
     curr += k_in_size;
     memcpy(curr, buffer.kernels_out.data(), k_out_size);
-    curr += k_out_size;
     return {buf, size};
 }
 
@@ -174,16 +182,16 @@ hhal::gn_kernel deserialize_gn_kernel(const serialized_object &obj) {
 
     typedef decltype(res.task_events)::value_type t_ev_type;
 
+    size_t t_ev_amount;
     char *curr = (char *) obj.buf;
     memcpy(&res, curr, sizeof(gn_kernel_POD));
     curr += sizeof(gn_kernel_POD);
-    size_t k_in_size = *((size_t* )curr);
+    memcpy(&t_ev_amount, curr, sizeof(size_t));
     curr += sizeof(size_t);
     res.task_events = std::vector<t_ev_type>(
         (t_ev_type *) curr,
-        (t_ev_type *) curr + k_in_size
+        (t_ev_type *) curr + t_ev_amount
     );
-    curr += sizeof(t_ev_type) * k_in_size;
     return res;
 }
 
@@ -193,21 +201,24 @@ hhal::gn_buffer deserialize_gn_buffer(const serialized_object &obj) {
     typedef decltype(res.kernels_in)::value_type k_in_type;
     typedef decltype(res.kernels_out)::value_type k_out_type;
 
+    size_t k_in_amount;
+    size_t k_out_amount;
+
     char *curr = (char *) obj.buf;
     memcpy(&res, curr, sizeof(gn_buffer_POD));
     curr += sizeof(gn_buffer_POD);
-    size_t k_in_size = *((size_t* )curr);
+    memcpy(&k_in_amount, curr, sizeof(size_t));
     curr += sizeof(size_t);
-    size_t k_out_size = *((size_t* )curr);
+    memcpy(&k_out_amount, curr, sizeof(size_t));
     curr += sizeof(size_t);
     res.kernels_in = std::vector<k_in_type>(
         (k_in_type *) curr,
-        (k_in_type *) curr + k_in_size
+        (k_in_type *) curr + k_in_amount
     );
-    curr += sizeof(k_in_type) * k_in_size;
+    curr += sizeof(k_in_type) * k_in_amount;
     res.kernels_out = std::vector<k_out_type>(
         (k_out_type *) curr,
-        (k_out_type *) curr + k_in_size
+        (k_out_type *) curr + k_out_amount
     );
     return res;
 }
@@ -218,21 +229,24 @@ hhal::gn_event deserialize_gn_event(const serialized_object &obj) {
     typedef decltype(res.kernels_in)::value_type k_in_type;
     typedef decltype(res.kernels_out)::value_type k_out_type;
 
+    size_t k_in_amount;
+    size_t k_out_amount;
+
     char *curr = (char *) obj.buf;
     memcpy(&res, curr, sizeof(gn_event_POD));
     curr += sizeof(gn_event_POD);
-    size_t k_in_size = *((size_t* )curr);
+    memcpy(&k_in_amount, curr, sizeof(size_t));
     curr += sizeof(size_t);
-    size_t k_out_size = *((size_t* )curr);
+    memcpy(&k_out_amount, curr, sizeof(size_t));
     curr += sizeof(size_t);
     res.kernels_in = std::vector<k_in_type>(
         (k_in_type *) curr,
-        (k_in_type *) curr + k_in_size
+        (k_in_type *) curr + k_in_amount
     );
-    curr += sizeof(k_in_type) * k_in_size;
+    curr += sizeof(k_in_type) * k_in_amount;
     res.kernels_out = std::vector<k_out_type>(
         (k_out_type *) curr,
-        (k_out_type *) curr + k_in_size
+        (k_out_type *) curr + k_out_amount
     );
     return res;
 }
@@ -243,21 +257,24 @@ hhal::nvidia_buffer deserialize_nvidia_buffer(const serialized_object &obj) {
     typedef decltype(res.kernels_in)::value_type k_in_type;
     typedef decltype(res.kernels_out)::value_type k_out_type;
 
+    size_t k_in_amount;
+    size_t k_out_amount;
+
     char *curr = (char *) obj.buf;
     memcpy(&res, curr, sizeof(nvidia_buffer_POD));
     curr += sizeof(nvidia_buffer_POD);
-    size_t k_in_size = *((size_t* )curr);
+    memcpy(&k_in_amount, curr, sizeof(size_t));
     curr += sizeof(size_t);
-    size_t k_out_size = *((size_t* )curr);
+    memcpy(&k_out_amount, curr, sizeof(size_t));
     curr += sizeof(size_t);
     res.kernels_in = std::vector<k_in_type>(
         (k_in_type *) curr,
-        (k_in_type *) curr + k_in_size
+        (k_in_type *) curr + k_in_amount
     );
-    curr += sizeof(k_in_type) * k_in_size;
+    curr += sizeof(k_in_type) * k_in_amount;
     res.kernels_out = std::vector<k_out_type>(
         (k_out_type *) curr,
-        (k_out_type *) curr + k_in_size
+        (k_out_type *) curr + k_out_amount
     );
     return res;
 }

@@ -111,6 +111,7 @@ Server::DataListenerExitCode HHALServer::handle_data(int id, Server::packet_t pa
     case command_type::KERNEL_START: {
         kernel_start_command *command = (kernel_start_command *) base;
         hhal::Arguments args = deserialize_arguments({packet.extra_data.buf, packet.extra_data.size});
+        packet.extra_data.buf = nullptr;
         hhal.kernel_start(command->kernel_id, args);
         break;
     }
@@ -118,6 +119,7 @@ Server::DataListenerExitCode HHALServer::handle_data(int id, Server::packet_t pa
         kernel_write_command *command = (kernel_write_command *) base;
         std::map<hhal::Unit, std::string> kernel_images = 
             deserialize_kernel_images({packet.extra_data.buf, packet.extra_data.size});
+        packet.extra_data.buf = nullptr;
         hhal.kernel_write(command->kernel_id, kernel_images);
         break;
     }
@@ -128,17 +130,66 @@ Server::DataListenerExitCode HHALServer::handle_data(int id, Server::packet_t pa
     }
     case command_type::ASSIGN_KERNEL: {
         assign_kernel_command *command = (assign_kernel_command *) base;
-        hhal.assign_kernel(command->unit, (hhal::hhal_kernel *) packet.extra_data.buf);
+        switch (command->unit) {
+            case hhal::Unit::GN: {
+                hhal::gn_kernel k = deserialize_gn_kernel({packet.extra_data.buf, packet.extra_data.size});
+                packet.extra_data.buf = nullptr;
+                logger.debug("Received kernel data id: {}, phy_addr: 0x{:x}", k.id, k.physical_addr);
+                hhal.assign_kernel(command->unit, (hhal::hhal_kernel *) &k);
+                break;
+            }
+            case hhal::Unit::NVIDIA: {
+                // Already a POD
+                hhal.assign_kernel(command->unit, (hhal::hhal_kernel *) &packet.extra_data.buf);
+                break;
+            }
+            default:
+                logger.error("Received assign kernel command with unknown unit {}", command->unit);
+                break;
+        }
         break;
     }
     case command_type::ASSIGN_BUFFER: {
         assign_buffer_command *command = (assign_buffer_command *) base;
-        hhal.assign_buffer(command->unit, (hhal::hhal_buffer *) packet.extra_data.buf);
+        switch (command->unit) {
+            case hhal::Unit::GN: {
+                hhal::gn_buffer b = deserialize_gn_buffer({packet.extra_data.buf, packet.extra_data.size});
+                packet.extra_data.buf = nullptr;
+                logger.debug("Received buffer data id: {}, phy_addr: 0x{:x}", b.id, b.physical_addr);
+                hhal.assign_buffer(command->unit, (hhal::hhal_buffer *) &b);
+                break;
+            }
+            case hhal::Unit::NVIDIA: {
+                hhal::nvidia_buffer b = deserialize_nvidia_buffer({packet.extra_data.buf, packet.extra_data.size});
+                packet.extra_data.buf = nullptr;
+                hhal.assign_buffer(command->unit, (hhal::hhal_buffer *) &b);
+                break;
+            }
+            default:
+                logger.error("Received assign buffer command with unknown unit {}", command->unit);
+                break;
+        }
         break;
     }
     case command_type::ASSIGN_EVENT: {
         assign_event_command *command = (assign_event_command *) base;
-        hhal.assign_event(command->unit, (hhal::hhal_event *) packet.extra_data.buf);
+        switch (command->unit) {
+            case hhal::Unit::GN: {
+                hhal::gn_event e = deserialize_gn_event({packet.extra_data.buf, packet.extra_data.size});
+                packet.extra_data.buf = nullptr;
+                logger.debug("Received event data id: {}, phy_addr: 0x{:x}", e.id, e.physical_addr);
+                hhal.assign_event(command->unit, (hhal::hhal_event *) &e);
+                break;
+            }
+            case hhal::Unit::NVIDIA: {
+                // Already a POD
+                hhal.assign_event(command->unit, (hhal::hhal_event *) &packet.extra_data.buf);
+                break;
+            }
+            default:
+                logger.error("Received assign event command with unknown unit {}", command->unit);
+                break;
+        }
         break;
     }
     default: {
@@ -147,7 +198,8 @@ Server::DataListenerExitCode HHALServer::handle_data(int id, Server::packet_t pa
     }
     }
 
-    free(packet.extra_data.buf);
+    if (packet.extra_data.buf != nullptr)
+        free(packet.extra_data.buf);
     free(packet.msg.buf);
     server.send_on_socket(id, ack_message());
     return Server::DataListenerExitCode::OK;
@@ -203,83 +255,21 @@ Server::message_result_t HHALServer::handle_read_sync_register(int id, const rea
 
 // Resource management
 Server::message_result_t HHALServer::handle_assign_kernel(int id, const assign_kernel_command *cmd, Server &server) {
-    logger.info("Received: assign kernel command 2");
-    size_t payload_size;
-    bool error = false;
-    switch (cmd->unit) {
-        case hhal::Unit::NVIDIA:
-            payload_size = sizeof(hhal::nvidia_kernel);
-            break;
-        case hhal::Unit::GN:
-            payload_size = sizeof(hhal::gn_kernel);
-            break;
-        default:
-            logger.error("Unknown unit type {}", cmd->unit);
-            error = true;
-            break;
-    }
-    if (!error) {
-        logger.debug("Prepared to receive {} bytes of data", payload_size);
-        server.send_on_socket(id, ack_message());
-        return {Server::MessageListenerExitCode::OK, sizeof(assign_kernel_command), payload_size};
-    } else {
-        logger.error("ERROR", payload_size);
-        // TODO: error handling
-        server.send_on_socket(id, ack_message());
-        return {Server::MessageListenerExitCode::OK, sizeof(assign_kernel_command), 0};
-    }
+    logger.info("Received: assign kernel command");
+    server.send_on_socket(id, ack_message());
+    return {Server::MessageListenerExitCode::OK, sizeof(assign_kernel_command), cmd->size};
 }
 
 Server::message_result_t HHALServer::handle_assign_buffer(int id, const assign_buffer_command *cmd, Server &server) {
     logger.info("Received: assign buffer command");
-    size_t payload_size;
-    bool error = false;
-    switch (cmd->unit) {
-        case hhal::Unit::NVIDIA:
-            payload_size = sizeof(hhal::nvidia_buffer);
-            break;
-        case hhal::Unit::GN:
-            payload_size = sizeof(hhal::gn_buffer);
-            break;
-        default:
-            logger.error("Unknown unit type {}", cmd->unit);
-            error = true;
-            break;
-    }
-    if (!error) {
-        server.send_on_socket(id, ack_message());
-        return {Server::MessageListenerExitCode::OK, sizeof(assign_buffer_command), payload_size};
-    } else {
-        // TODO: error handling
-        server.send_on_socket(id, ack_message());
-        return {Server::MessageListenerExitCode::OK, sizeof(assign_buffer_command), 0};
-    }
+    server.send_on_socket(id, ack_message());
+    return {Server::MessageListenerExitCode::OK, sizeof(assign_buffer_command), cmd->size};
 }
 
 Server::message_result_t HHALServer::handle_assign_event(int id, const assign_event_command *cmd, Server &server) {
     logger.info("Received: assign event command");
-    size_t payload_size;
-    bool error = false;
-    switch (cmd->unit) {
-        case hhal::Unit::NVIDIA:
-            payload_size = sizeof(hhal::nvidia_event);
-            break;
-        case hhal::Unit::GN:
-            payload_size = sizeof(hhal::gn_event);
-            break;
-        default:
-            logger.error("Unknown unit type {}", cmd->unit);
-            error = true;
-            break;
-    }
-    if (!error) {
-        server.send_on_socket(id, ack_message());
-        return {Server::MessageListenerExitCode::OK, sizeof(assign_event_command), payload_size};
-    } else {
-        // TODO: error handling
-        server.send_on_socket(id, ack_message());
-        return {Server::MessageListenerExitCode::OK, sizeof(assign_event_command), 0};
-    }
+    server.send_on_socket(id, ack_message());
+    return {Server::MessageListenerExitCode::OK, sizeof(assign_event_command), cmd->size};
 }
 
 Server::message_result_t HHALServer::handle_allocate_kernel(int id, const allocate_kernel_command *cmd, Server &server) {

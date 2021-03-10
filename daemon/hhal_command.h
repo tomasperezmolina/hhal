@@ -71,16 +71,19 @@ struct read_register_command {
 struct assign_kernel_command {
     command_type type;
     hhal::Unit unit;
+    size_t size;
 };
 
 struct assign_buffer_command {
     command_type type;
     hhal::Unit unit;
+    size_t size;
 };
 
 struct assign_event_command {
     command_type type;
     hhal::Unit unit;
+    size_t size;
 };
 
 struct allocate_kernel_command {
@@ -148,19 +151,22 @@ inline void init_read_register_command(read_register_command &cmd, int event_id)
     cmd.event_id = event_id;
 }
 
-inline void init_assign_kernel_command(assign_kernel_command &cmd, hhal::Unit unit) {
+inline void init_assign_kernel_command(assign_kernel_command &cmd, hhal::Unit unit, size_t size) {
     cmd.type = command_type::ASSIGN_KERNEL;
     cmd.unit = unit;
+    cmd.size = size;
 }
 
-inline void init_assign_buffer_command(assign_buffer_command &cmd, hhal::Unit unit) {
+inline void init_assign_buffer_command(assign_buffer_command &cmd, hhal::Unit unit, size_t size) {
     cmd.type = command_type::ASSIGN_BUFFER;
     cmd.unit = unit;
+    cmd.size = size;
 }
 
-inline void init_assign_event_command(assign_event_command &cmd, hhal::Unit unit) {
+inline void init_assign_event_command(assign_event_command &cmd, hhal::Unit unit, size_t size) {
     cmd.type = command_type::ASSIGN_EVENT;
     cmd.unit = unit;
+    cmd.size = size;
 }
 
 inline void init_allocate_kernel_command(allocate_kernel_command &cmd, int kernel_id) {
