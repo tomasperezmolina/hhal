@@ -2,12 +2,6 @@
 #include <vector>
 #include <cstring>
 
-struct kernel_image_pair {
-    hhal::Unit unit;
-    const char *str;
-};
-
-
 // All these POD structs should have the same initial section as their regular counterparts.
 struct gn_kernel_POD {
     int id;
@@ -51,18 +45,31 @@ serialized_object serialize(const hhal::Arguments &arguments) {
 }
 
 serialized_object serialize(const std::map<hhal::Unit, std::string> &kernel_images) {
-    size_t size = sizeof(kernel_image_pair) * kernel_images.size();
-    kernel_image_pair *buf = (kernel_image_pair *) malloc(size);
-    unsigned int curr = 0;
+    size_t unit_size = sizeof(hhal::Unit);
+
+    size_t size = 0;
     for(auto it = kernel_images.cbegin(); it != kernel_images.cend(); ++it) {
-        buf[curr++] = {it->first, it->second.c_str()};
+        size += unit_size;
+        size += it->second.size() + 1;
+    }
+    printf("Kernel images buffer size: %zu\n", size);
+    void *buf = malloc(size);
+    char *curr = (char*) buf;
+    int i = 0;
+    for(auto it = kernel_images.cbegin(); it != kernel_images.cend(); ++it) {
+        printf("Serializing kernel image %d\n", i++);
+        hhal::Unit unit = it->first;
+        printf("curr: %p, &unit: %p\n", curr, &unit);
+        memcpy(curr, &unit, unit_size);
+        curr += unit_size;
+        size_t str_size = it->second.size() + 1;
+        memcpy(curr, it->second.c_str(), str_size);
+        curr += str_size;
     }
     return {buf, size};
 }
 
 serialized_object serialize(const hhal::gn_kernel &kernel) {
-    printf("Serialization: serializing kernel id %d\n", kernel.id);
-    printf("Serialization: Address of &kernel %p\n", &kernel);
     typedef decltype(kernel.task_events)::value_type t_ev_type;
 
     size_t t_ev_amount = kernel.task_events.size();
@@ -93,8 +100,6 @@ serialized_object serialize(const hhal::gn_buffer &buffer) {
 
     // Size of POD + indicators for size of vectors + vector values
     size_t size = sizeof(gn_buffer_POD) + sizeof(size_t) * 2 + k_in_size + k_out_size;
-
-    
 
     void *buf = malloc(size);
     char *curr = (char *) buf;
@@ -169,10 +174,15 @@ hhal::Arguments deserialize_arguments(const serialized_object &obj) {
 
 std::map<hhal::Unit, std::string> deserialize_kernel_images(const serialized_object &obj) {
     std::map<hhal::Unit, std::string> res;
-    kernel_image_pair *buf = (kernel_image_pair *) obj.buf;
-    unsigned int size = obj.size / sizeof(kernel_image_pair);
-    for(unsigned int i = 0; i < size; i++) {
-        res[buf[i].unit] = std::string(buf[i].str);
+    char *curr = (char*) obj.buf;
+    char *end = (char*) obj.buf + obj.size;
+    while (curr != end) {
+        hhal::Unit unit;
+        memcpy(&unit, curr, sizeof(hhal::Unit));
+        curr += sizeof(hhal::Unit);
+        std::string path(curr);
+        curr += path.size() + 1;
+        res[unit] = path;
     }
     return res;
 }

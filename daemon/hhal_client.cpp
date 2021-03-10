@@ -201,13 +201,11 @@ HHALClientExitCode HHALClient::read_sync_register(int event_id, uint32_t *data) 
 
 // Resource management
 HHALClientExitCode HHALClient::assign_kernel(hhal::Unit unit, hhal::hhal_kernel *info) {
-    printf("HHALClient: Assigning kernel id %d\n", info->id);
     CHECK_OPEN_SOCKET
 
     serialized_object serialized;
     switch (unit) {
         case hhal::Unit::GN:
-            printf("HHALClient: Address of info: %p\n", info);
             serialized = serialize(*(hhal::gn_kernel *) info);
             break;
         case hhal::Unit::NVIDIA: {
@@ -221,9 +219,6 @@ HHALClientExitCode HHALClient::assign_kernel(hhal::Unit unit, hhal::hhal_kernel 
             printf("Unknown unit type %d", static_cast<int>(unit));
             return HHALClientExitCode::ERROR;
     }
-
-    int id = *(int *) serialized.buf;
-    printf("HHALClient: (After serialization) Assigning kernel id %d\n", id);
 
     assign_kernel_command cmd;
     init_assign_kernel_command(cmd, unit, serialized.size);

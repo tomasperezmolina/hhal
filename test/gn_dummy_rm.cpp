@@ -75,6 +75,7 @@ void resource_allocation(
         printf("[DummyRM] resource_allocation: kernel=%d, phy_addr=0x%x\n", kernel_info.id, kernel_info.physical_addr);
 
         hhal.assign_kernel(hhal::Unit::GN, (hhal_kernel *) &kernel_info);
+        gn_manager.assign_kernel(&kernel_info);
         unit++;
     }
 
@@ -100,6 +101,7 @@ void resource_allocation(
         // hack for deallocation
         event_addresses[info.id] = info.physical_addr;
         hhal.assign_event(hhal::Unit::GN, (hhal_event *) &info);
+        gn_manager.assign_event(&info);
 	}
 
 	for(auto &bt : buffers) {
@@ -133,7 +135,8 @@ void resource_allocation(
         info.mem_tile = memory;
         info.physical_addr = phy_addr;
         hhal.assign_buffer(hhal::Unit::GN, (hhal_buffer *) &info);
-        hhal.allocate_memory(info.id);
+        gn_manager.assign_buffer(&info);
+        gn_manager.allocate_memory(info.id);
 	}
 
     gn_manager.prepare_events_registers();
