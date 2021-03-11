@@ -38,6 +38,18 @@ namespace hhal_daemon {
         }
     };
 
+    struct auxiliary_allocations {
+        std::vector<void *> allocations;
+
+        auxiliary_allocations() {}
+
+        ~auxiliary_allocations() {
+            for(auto &alloc: allocations) {
+                free(alloc);
+            }
+        }
+    };
+
     serialized_object serialize(const hhal::Arguments &arguments);
     serialized_object serialize(const std::map<hhal::Unit, std::string> &kernel_images);
     serialized_object serialize(const hhal::gn_kernel &kernel);
@@ -45,7 +57,7 @@ namespace hhal_daemon {
     serialized_object serialize(const hhal::gn_event &event);
     serialized_object serialize(const hhal::nvidia_buffer &buffer);
 
-    hhal::Arguments deserialize_arguments(const serialized_object &obj);
+    hhal::Arguments deserialize_arguments(const serialized_object &obj, auxiliary_allocations &allocs);
     std::map<hhal::Unit, std::string> deserialize_kernel_images(const serialized_object &obj);
     hhal::gn_kernel deserialize_gn_kernel(const serialized_object &obj);
     hhal::gn_buffer deserialize_gn_buffer(const serialized_object &obj);

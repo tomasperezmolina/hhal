@@ -1,6 +1,8 @@
 #include "serialization.h"
 #include <vector>
 #include <cstring>
+#include <assert.h>
+#include <stdlib.h>
 
 // All these POD structs should have the same initial section as their regular counterparts.
 struct gn_kernel_POD {
@@ -37,10 +39,62 @@ struct nvidia_buffer_POD {
 
 namespace hhal_daemon {
 serialized_object serialize(const hhal::Arguments &arguments) {
-    std::vector<hhal::arg> args = arguments.get_args();
-    size_t size = sizeof(hhal::arg) * args.size();
-    hhal::arg *buf = (hhal::arg *) malloc(size);
-    memcpy(buf, args.data(), size);
+    auto &args = arguments.get_args();
+    size_t size = 0;
+    for (int i = 0; i < args.size(); i++) {
+        size += sizeof(hhal::ArgumentType);
+        switch (args[i].type) {
+            case hhal::ArgumentType::SCALAR: {
+                auto &scalar = args[i].scalar;
+                size += sizeof(hhal::ScalarType);
+                size += sizeof(size_t);
+                size += scalar.size;
+                break;
+            }
+            case hhal::ArgumentType::BUFFER: {
+                auto &buffer = args[i].buffer;
+                size += sizeof(decltype(buffer.id));
+                break;
+            }
+            case hhal::ArgumentType::EVENT: {
+                auto &event = args[i].event;
+                size += sizeof(decltype(event.id));
+                break;
+            }
+        }
+    }
+    void *buf = malloc(size);
+    char *curr = (char*) buf;
+    for (int i = 0; i < args.size(); i++) {
+        memcpy(curr, &args[i].type, sizeof(hhal::ArgumentType));
+        curr += sizeof(hhal::ArgumentType);
+        switch (args[i].type) {
+            case hhal::ArgumentType::SCALAR: {
+                auto &scalar = args[i].scalar;
+                memcpy(curr, &scalar.type, sizeof(hhal::ScalarType));
+                curr += sizeof(hhal::ScalarType);
+                memcpy(curr, &scalar.size, sizeof(size_t));
+                curr += sizeof(size_t);
+                memcpy(curr, scalar.address, scalar.size);
+                curr += scalar.size;
+                break;
+            }
+            case hhal::ArgumentType::BUFFER: {
+                auto &buffer = args[i].buffer;
+                memcpy(curr, &buffer.id, sizeof(decltype(buffer.id)));
+                curr += sizeof(decltype(buffer.id));
+                break;
+            }
+            case hhal::ArgumentType::EVENT: {
+                auto &event = args[i].event;
+                memcpy(curr, &event.id, sizeof(decltype(event.id)));
+                curr += sizeof(decltype(event.id));
+                break;
+            }
+        }
+    }
+    assert(curr - (char*) buf == size && "Allocated space is different from the written data size");
+
     return {buf, size};
 }
 
@@ -48,24 +102,30 @@ serialized_object serialize(const std::map<hhal::Unit, std::string> &kernel_imag
     size_t unit_size = sizeof(hhal::Unit);
 
     size_t size = 0;
+    auxiliary_allocations allocs;
+    std::vector<size_t> full_path_sizes;
     for(auto it = kernel_images.cbegin(); it != kernel_images.cend(); ++it) {
         size += unit_size;
-        size += it->second.size() + 1;
+        char *full_path = realpath(it->second.c_str(), nullptr);
+        size_t full_path_size = strlen(full_path) + 1;
+        size += full_path_size;
+
+        allocs.allocations.push_back(full_path);
+        full_path_sizes.push_back(full_path_size);
     }
-    printf("Kernel images buffer size: %zu\n", size);
     void *buf = malloc(size);
     char *curr = (char*) buf;
     int i = 0;
     for(auto it = kernel_images.cbegin(); it != kernel_images.cend(); ++it) {
-        printf("Serializing kernel image %d\n", i++);
         hhal::Unit unit = it->first;
-        printf("curr: %p, &unit: %p\n", curr, &unit);
         memcpy(curr, &unit, unit_size);
         curr += unit_size;
-        size_t str_size = it->second.size() + 1;
-        memcpy(curr, it->second.c_str(), str_size);
+        size_t str_size = full_path_sizes[i];
+        memcpy(curr, allocs.allocations[i], str_size);
         curr += str_size;
+        i++;
     }
+    assert(curr - (char*) buf == size && "Allocated space is different from the written data size");
     return {buf, size};
 }
 
@@ -85,6 +145,8 @@ serialized_object serialize(const hhal::gn_kernel &kernel) {
     memcpy(curr, &t_ev_amount, sizeof(size_t));
     curr += sizeof(size_t);
     memcpy(curr, kernel.task_events.data(), t_ev_size);
+    curr += t_ev_size;
+    assert(curr - (char*) buf == size && "Allocated space is different from the written data size");
     return {buf, size};
 }
 
@@ -112,6 +174,8 @@ serialized_object serialize(const hhal::gn_buffer &buffer) {
     memcpy(curr, buffer.kernels_in.data(), k_in_size);
     curr += k_in_size;
     memcpy(curr, buffer.kernels_out.data(), k_out_size);
+    curr += k_out_size;
+    assert(curr - (char*) buf == size && "Allocated space is different from the written data size");
     return {buf, size};
 }
 
@@ -138,6 +202,8 @@ serialized_object serialize(const hhal::gn_event &event) {
     memcpy(curr, event.kernels_in.data(), k_in_size);
     curr += k_in_size;
     memcpy(curr, event.kernels_out.data(), k_out_size);
+    curr += k_out_size;
+    assert(curr - (char*) buf == size && "Allocated space is different from the written data size");
     return {buf, size};
 }
 
@@ -164,12 +230,50 @@ serialized_object serialize(const hhal::nvidia_buffer &buffer) {
     memcpy(curr, buffer.kernels_in.data(), k_in_size);
     curr += k_in_size;
     memcpy(curr, buffer.kernels_out.data(), k_out_size);
+    curr += k_out_size;
+    assert(curr - (char*) buf == size && "Allocated space is different from the written data size");
     return {buf, size};
 }
 
-hhal::Arguments deserialize_arguments(const serialized_object &obj) {
-    std::vector<hhal::arg> args((hhal::arg *) obj.buf, (hhal::arg *) obj.buf + obj.size);
-    return hhal::Arguments(args);
+hhal::Arguments deserialize_arguments(const serialized_object &obj, auxiliary_allocations &allocs) {
+    hhal::Arguments result;
+    char *curr = (char*) obj.buf;
+    char *end = (char*) obj.buf + obj.size;
+    while (curr != end) {
+        hhal::ArgumentType arg_type;
+        memcpy(&arg_type, curr, sizeof(hhal::ArgumentType));
+        curr += sizeof(hhal::ArgumentType);
+        switch (arg_type) {
+            case hhal::ArgumentType::SCALAR: {
+                hhal::scalar_arg scalar;
+                memcpy(&scalar.type, curr, sizeof(hhal::ScalarType));                
+                curr += sizeof(hhal::ScalarType);
+                memcpy(&scalar.size, curr, sizeof(size_t));
+                curr += sizeof(size_t);
+                scalar.address = malloc(scalar.size);
+                allocs.allocations.push_back(scalar.address);
+                memcpy(scalar.address, curr, scalar.size);
+                curr += scalar.size;
+                result.add_scalar(scalar);
+                break;
+            }
+            case hhal::ArgumentType::BUFFER: {
+                hhal::buffer_arg buffer;
+                memcpy(&buffer.id, curr, sizeof(decltype(buffer.id)));
+                curr += sizeof(decltype(buffer.id));
+                result.add_buffer(buffer);
+                break;
+            }
+            case hhal::ArgumentType::EVENT: {
+                hhal::event_arg event;
+                memcpy(&event.id, curr, sizeof(decltype(event.id)));
+                curr += sizeof(decltype(event.id));
+                result.add_event(event);
+                break;
+            }
+        }
+    }
+    return result;
 }
 
 std::map<hhal::Unit, std::string> deserialize_kernel_images(const serialized_object &obj) {
@@ -184,6 +288,7 @@ std::map<hhal::Unit, std::string> deserialize_kernel_images(const serialized_obj
         curr += path.size() + 1;
         res[unit] = path;
     }
+    assert(curr - (char*) obj.buf == obj.size && "Allocated space is different from the read data size");
     return res;
 }
 
@@ -202,6 +307,8 @@ hhal::gn_kernel deserialize_gn_kernel(const serialized_object &obj) {
         (t_ev_type *) curr,
         (t_ev_type *) curr + t_ev_amount
     );
+    curr += sizeof(t_ev_type) * t_ev_amount;
+    assert(curr - (char*) obj.buf == obj.size && "Allocated space is different from the read data size");
     return res;
 }
 
@@ -230,6 +337,8 @@ hhal::gn_buffer deserialize_gn_buffer(const serialized_object &obj) {
         (k_out_type *) curr,
         (k_out_type *) curr + k_out_amount
     );
+    curr += sizeof(k_out_type) * k_out_amount;
+    assert(curr - (char*) obj.buf == obj.size && "Allocated space is different from the read data size");
     return res;
 }
 
@@ -258,6 +367,8 @@ hhal::gn_event deserialize_gn_event(const serialized_object &obj) {
         (k_out_type *) curr,
         (k_out_type *) curr + k_out_amount
     );
+    curr += sizeof(k_out_type) * k_out_amount;
+    assert(curr - (char*) obj.buf == obj.size && "Allocated space is different from the read data size");
     return res;
 }
 
@@ -286,6 +397,8 @@ hhal::nvidia_buffer deserialize_nvidia_buffer(const serialized_object &obj) {
         (k_out_type *) curr,
         (k_out_type *) curr + k_out_amount
     );
+    curr += sizeof(k_out_type) * k_out_amount;
+    assert(curr - (char*) obj.buf == obj.size && "Allocated space is different from the read data size");
     return res;
 }
 

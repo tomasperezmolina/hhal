@@ -14,7 +14,7 @@ Server::message_t ack_message() {
 static Logger &logger = Logger::get_instance();
 
 Server::message_result_t HHALServer::handle_command(int id, Server::message_t msg, Server &server) {
-    logger.info("Handling command");
+    logger.trace("Handling command");
     if (msg.size < sizeof(command_base)) {
         return {Server::MessageListenerExitCode::INSUFFICIENT_DATA, 0, 0}; // Need to read more data to determine a command
     }
@@ -104,13 +104,14 @@ Server::message_result_t HHALServer::handle_command(int id, Server::message_t ms
 }
 
 Server::DataListenerExitCode HHALServer::handle_data(int id, Server::packet_t packet, Server &server) {
-    logger.info("Received data, size: {}", packet.extra_data.size);
+    logger.trace("Received data, size: {}", packet.extra_data.size);
     // TODO: error handling everywhere
     command_base *base = (command_base *) packet.msg.buf;
     switch (base->type) {
     case command_type::KERNEL_START: {
         kernel_start_command *command = (kernel_start_command *) base;
-        hhal::Arguments args = deserialize_arguments({packet.extra_data.buf, packet.extra_data.size});
+        auxiliary_allocations aux;
+        hhal::Arguments args = deserialize_arguments({packet.extra_data.buf, packet.extra_data.size}, aux);
         packet.extra_data.buf = nullptr;
         hhal.kernel_start(command->kernel_id, args);
         break;
@@ -207,25 +208,25 @@ Server::DataListenerExitCode HHALServer::handle_data(int id, Server::packet_t pa
 
 // Kernel Execution
 Server::message_result_t HHALServer::handle_kernel_start(int id, const kernel_start_command *cmd, Server &server) {
-    logger.info("Received: kernel start command");
+    logger.trace("Received: kernel start command");
     server.send_on_socket(id, ack_message());
     return {Server::MessageListenerExitCode::OK, sizeof(kernel_start_command), cmd->arguments_size};
 }
 
 Server::message_result_t HHALServer::handle_kernel_write(int id, const kernel_write_command *cmd, Server &server) {
-    logger.info("Received: kernel write command");
+    logger.trace("Received: kernel write command");
     server.send_on_socket(id, ack_message());
     return {Server::MessageListenerExitCode::OK, sizeof(kernel_write_command), cmd->images_size};
 }
 
 Server::message_result_t HHALServer::handle_write_to_memory(int id, const write_memory_command *cmd, Server &server) {
-    logger.info("Received: write to memory command");
+    logger.trace("Received: write to memory command");
     server.send_on_socket(id, ack_message());
     return {Server::MessageListenerExitCode::OK, sizeof(write_memory_command), cmd->size};
 }
 
 Server::message_result_t HHALServer::handle_read_from_memory(int id, const read_memory_command *cmd, Server &server) {
-    logger.info("Received: read from memory command");
+    logger.trace("Received: read from memory command");
     void *buf = malloc(cmd->size);
     // TODO: error handling
     hhal.read_from_memory(cmd->buffer_id, buf, cmd->size);
@@ -235,7 +236,7 @@ Server::message_result_t HHALServer::handle_read_from_memory(int id, const read_
 }
 
 Server::message_result_t HHALServer::handle_write_sync_register(int id, const write_register_command *cmd, Server &server) {
-    logger.info("Received: write sync register command");
+    logger.trace("Received: write sync register command");
     // TODO: error handling
     hhal.write_sync_register(cmd->event_id, cmd->data);
     server.send_on_socket(id, ack_message());
@@ -243,10 +244,11 @@ Server::message_result_t HHALServer::handle_write_sync_register(int id, const wr
 }
 
 Server::message_result_t HHALServer::handle_read_sync_register(int id, const read_register_command *cmd, Server &server) {
-    logger.info("Received: read sync register command");
+    logger.trace("Received: read sync register command");
     // TODO: error handling
     uint32_t val;
     hhal.read_sync_register(cmd->event_id, &val);
+    logger.trace("Read register, got value {}", val);
     register_data_response *res = (register_data_response *) malloc(sizeof(register_data_response));
     init_register_data_response(*res, val);
     server.send_on_socket(id, {res, sizeof(register_data_response)});
@@ -255,25 +257,25 @@ Server::message_result_t HHALServer::handle_read_sync_register(int id, const rea
 
 // Resource management
 Server::message_result_t HHALServer::handle_assign_kernel(int id, const assign_kernel_command *cmd, Server &server) {
-    logger.info("Received: assign kernel command");
+    logger.trace("Received: assign kernel command");
     server.send_on_socket(id, ack_message());
     return {Server::MessageListenerExitCode::OK, sizeof(assign_kernel_command), cmd->size};
 }
 
 Server::message_result_t HHALServer::handle_assign_buffer(int id, const assign_buffer_command *cmd, Server &server) {
-    logger.info("Received: assign buffer command");
+    logger.trace("Received: assign buffer command");
     server.send_on_socket(id, ack_message());
     return {Server::MessageListenerExitCode::OK, sizeof(assign_buffer_command), cmd->size};
 }
 
 Server::message_result_t HHALServer::handle_assign_event(int id, const assign_event_command *cmd, Server &server) {
-    logger.info("Received: assign event command");
+    logger.trace("Received: assign event command");
     server.send_on_socket(id, ack_message());
     return {Server::MessageListenerExitCode::OK, sizeof(assign_event_command), cmd->size};
 }
 
 Server::message_result_t HHALServer::handle_allocate_kernel(int id, const allocate_kernel_command *cmd, Server &server) {
-    logger.info("Received: allocate kernel command");
+    logger.trace("Received: allocate kernel command");
     // TODO: error handling
     hhal.allocate_kernel(cmd->kernel_id);
     server.send_on_socket(id, ack_message());
@@ -281,7 +283,7 @@ Server::message_result_t HHALServer::handle_allocate_kernel(int id, const alloca
 }
 
 Server::message_result_t HHALServer::handle_allocate_memory(int id, const allocate_memory_command *cmd, Server &server) {
-    logger.info("Received: allocate buffer command");
+    logger.trace("Received: allocate buffer command");
     // TODO: error handling
     hhal.allocate_memory(cmd->buffer_id);
     server.send_on_socket(id, ack_message());
@@ -289,7 +291,7 @@ Server::message_result_t HHALServer::handle_allocate_memory(int id, const alloca
 }
 
 Server::message_result_t HHALServer::handle_allocate_event(int id, const allocate_event_command *cmd, Server &server) {
-    logger.info("Received: allocate event command");
+    logger.trace("Received: allocate event command");
     // TODO: error handling
     hhal.allocate_event(cmd->event_id);
     server.send_on_socket(id, ack_message());
@@ -297,7 +299,7 @@ Server::message_result_t HHALServer::handle_allocate_event(int id, const allocat
 }
 
 Server::message_result_t HHALServer::handle_release_kernel(int id, const release_kernel_command *cmd, Server &server) {
-    logger.info("Received: release kernel command");
+    logger.trace("Received: release kernel command");
     // TODO: error handling
     hhal.release_kernel(cmd->kernel_id);
     server.send_on_socket(id, ack_message());
@@ -305,7 +307,7 @@ Server::message_result_t HHALServer::handle_release_kernel(int id, const release
 }
 
 Server::message_result_t HHALServer::handle_release_memory(int id, const release_memory_command *cmd, Server &server) {
-    logger.info("Received: release memory command");
+    logger.trace("Received: release memory command");
     // TODO: error handling
     hhal.release_memory(cmd->buffer_id);
     server.send_on_socket(id, ack_message());
@@ -313,7 +315,7 @@ Server::message_result_t HHALServer::handle_release_memory(int id, const release
 }
 
 Server::message_result_t HHALServer::handle_release_event(int id, const release_event_command *cmd, Server &server) {
-    logger.info("Received: release event command");
+    logger.trace("Received: release event command");
     // TODO: error handling
     hhal.release_event(cmd->event_id);
     server.send_on_socket(id, ack_message());

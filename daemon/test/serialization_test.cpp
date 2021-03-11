@@ -1,12 +1,14 @@
 #include <random>
 #include <assert.h>
 #include "serialization.h"
+#include <cstring>
 
+#define REPETITIONS 5
 #define MAX_NUM_ELEMENTS 5
 
 std::mt19937 random_number_generator;
 std::uniform_int_distribution<int> value_distribution(0, 100);
-std::uniform_int_distribution<int> element_number_distribution(0, MAX_NUM_ELEMENTS);
+std::uniform_int_distribution<int> element_number_distribution(1, MAX_NUM_ELEMENTS);
 
 int random_value() {
     return value_distribution(random_number_generator);
@@ -32,27 +34,89 @@ hhal::gn_kernel random_kernel() {
     return k;
 }
 
+void test_kernel() {
+    for (int i = 0; i < REPETITIONS; i++) {
+        hhal::gn_kernel kernel = random_kernel();
+        hhal_daemon::serialized_object obj = hhal_daemon::serialize(kernel);
+        hhal::gn_kernel deserialized_kernel = hhal_daemon::deserialize_gn_kernel(obj);
+
+        assert(kernel.id == deserialized_kernel.id && "Kernel ids are different");
+        assert(kernel.cluster_id == deserialized_kernel.cluster_id && "Kernel cluster_ids are different");
+        assert(kernel.mem_tile == deserialized_kernel.mem_tile && "Kernel mem tiles are different");
+        assert(kernel.physical_addr == deserialized_kernel.physical_addr && "Kernel physical addresses are different");
+        assert(kernel.size == deserialized_kernel.size && "Kernel sizes are different");
+        assert(kernel.termination_event == deserialized_kernel.termination_event && "Kernel termination events are different");
+        assert(kernel.unit_id == deserialized_kernel.unit_id && "Kernel unit ids are different");
+        assert(kernel.task_events.size() == deserialized_kernel.task_events.size() && "Kernel task events have different number of elements");
+        for (int i = 0; i < kernel.task_events.size(); i++) {
+            assert(kernel.task_events[i] == deserialized_kernel.task_events[i] && "A kernel element is different");
+        }
+    }
+
+    printf("Kernel serialization performed correctly!\n");
+}
+
+void test_arguments() {
+    for (int i = 0; i < REPETITIONS; i++) {
+        hhal::Arguments args;
+
+        std::vector<int> scalars(random_number_of_elements());
+        for (int i = 0; i < scalars.size(); i++) {
+            scalars[i] = random_value();
+            args.add_scalar({&scalars[i], sizeof(int), hhal::ScalarType::INT});
+        }
+
+        for (int i = 0; i < random_number_of_elements(); i++) {
+            args.add_event({random_value()});
+        }
+
+        for (int i = 0; i < random_number_of_elements(); i++) {
+            args.add_buffer({random_value()});
+        }
+
+        hhal_daemon::serialized_object obj = hhal_daemon::serialize(args);
+        hhal_daemon::auxiliary_allocations aux;
+        hhal::Arguments deserialized_args = hhal_daemon::deserialize_arguments(obj, aux);
+
+        assert(args.get_args().size() == deserialized_args.get_args().size() && "Arguments objects have different number of arguments");
+        for(int i = 0; i < args.get_args().size(); i++) {
+            hhal::arg original = args.get_args()[i];
+            hhal::arg deserialized = deserialized_args.get_args()[i];
+            assert(original.type == deserialized.type && "Arg objects have different types");
+            switch (original.type) {
+                case hhal::ArgumentType::SCALAR: {
+                    hhal::scalar_arg original_scalar = original.scalar;
+                    hhal::scalar_arg deserialized_scalar = deserialized.scalar;
+                    assert(original_scalar.type == deserialized_scalar.type && "Scalar arguments have different types");
+                    assert(original_scalar.size == deserialized_scalar.size && "Scalar arguments have different sizes");
+                    int content_diff = memcmp(original_scalar.address, deserialized_scalar.address, original_scalar.size);
+                    assert(content_diff == 0 && "Scalar arguments have different contents");
+                    break;
+                }
+                case hhal::ArgumentType::BUFFER: {
+                    hhal::buffer_arg original_buffer = original.buffer;
+                    hhal::buffer_arg deserialized_buffer = deserialized.buffer;
+                    assert(original_buffer.id == deserialized_buffer.id && "Buffer arguments have different ids");
+                    break;
+                }
+                case hhal::ArgumentType::EVENT: {
+                    hhal::event_arg original_event = original.event;
+                    hhal::event_arg deserialized_event = deserialized.event;
+                    assert(original_event.id == deserialized_event.id && "Event arguments have different ids");
+                    break;
+                }
+            }
+        }
+    }
+    printf("Arguments serialization performed correctly!\n");
+}
+
 
 
 int main(int argc, char const *argv[])
 {
-    hhal::gn_kernel kernel = random_kernel();
-    hhal_daemon::serialized_object obj = hhal_daemon::serialize(kernel);
-    hhal::gn_kernel deserialized_kernel = hhal_daemon::deserialize_gn_kernel(obj);
-
-    assert(kernel.id == deserialized_kernel.id && "Kernel ids are different");
-    assert(kernel.cluster_id == deserialized_kernel.cluster_id && "Kernel cluster_ids are different");
-    assert(kernel.mem_tile == deserialized_kernel.mem_tile && "Kernel mem tiles are different");
-    assert(kernel.physical_addr == deserialized_kernel.physical_addr && "Kernel physical addresses are different");
-    assert(kernel.size == deserialized_kernel.size && "Kernel sizes are different");
-    assert(kernel.termination_event == deserialized_kernel.termination_event && "Kernel termination events are different");
-    assert(kernel.unit_id == deserialized_kernel.unit_id && "Kernel unit ids are different");
-    assert(kernel.task_events.size() == deserialized_kernel.task_events.size() && "Kernel task events have different number of elements");
-    for (int i = 0; i < kernel.task_events.size(); i++) {
-        assert(kernel.task_events[i] == deserialized_kernel.task_events[i] && "A kernel element is different");
-    }
-
-    printf("Kernel serialization performed correctly!\n");
+    test_kernel();
+    test_arguments();
     
     return 0;
 }

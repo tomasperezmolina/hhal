@@ -35,12 +35,9 @@ bool send_on_socket(int fd, const void *buf, size_t size) {
             perror("send");
             return false;
         } else {
-            printf("Bytes sent: %li\n", bytes_sent);
             byte_offset += bytes_sent;
         }
     }
-    printf("Done sending %zu bytes of data\n", size);
-
     return true;
 }
 
@@ -54,7 +51,6 @@ bool receive_on_socket(int fd, void *buf, size_t size) {
             perror("send");
             return false;
         } else {
-            printf("Bytes received: %li\n", bytes_received);
             byte_offset += bytes_received;
         }
     }

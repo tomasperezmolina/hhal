@@ -13,7 +13,7 @@ bool is_exit_code_OK(hhal_daemon::HHALClientExitCode ec) {
 
 template<class H>
 void write(H &hhal, int event_id, uint32_t value) {
-    if (is_exit_code_OK(hhal.write_sync_register(event_id, value))) {
+    if (!is_exit_code_OK(hhal.write_sync_register(event_id, value))) {
         printf("Writing to sync register failed.\n");
     }
 }
@@ -24,7 +24,7 @@ template void write<hhal_daemon::HHALClient>(hhal_daemon::HHALClient &hhal, int 
 template<class H>
 uint32_t read(H &hhal, int event_id) {
     uint32_t value;
-    if (is_exit_code_OK(hhal.read_sync_register(event_id, &value))) {
+    if (!is_exit_code_OK(hhal.read_sync_register(event_id, &value))) {
         printf("Read synch register failed!\n");
     }
     return value;

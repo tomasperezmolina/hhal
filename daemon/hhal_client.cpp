@@ -190,8 +190,10 @@ HHALClientExitCode HHALClient::read_sync_register(int event_id, uint32_t *data) 
     } else if (res.type == response_type::REGISTER_DATA) {
         register_data_response rd_res;
         TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &rd_res, sizeof(rd_res)));
+        *data = rd_res.data;
     } else {
         // Unknown response type
+        printf("Got unknown response type\n");
         return HHALClientExitCode::ERROR;
     }
 

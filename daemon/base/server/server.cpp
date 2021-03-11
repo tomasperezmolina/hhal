@@ -16,7 +16,7 @@ namespace hhal_daemon {
 static Logger &logger = Logger::get_instance();
 
 void Server::close_socket(int fd_idx) {
-  logger.debug("close_socket: Closing socket {}", fd_idx);
+  logger.trace("close_socket: Closing socket {}", fd_idx);
   if (fd_idx != listen_idx)
     sockets[fd_idx] = nullptr;
   else
@@ -40,7 +40,7 @@ Server::AcceptConnectionExitCode Server::accept_new_connection() {
   int new_socket = accept(server_fd, nullptr, nullptr);
   if (new_socket < 0) {
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
-      logger.debug("accept: No connection available, trying again later");
+      logger.trace("accept: No connection available, trying again later");
       return AcceptConnectionExitCode::OK;
     } else {
       logger.error("accept: {}", strerror(errno));
@@ -78,7 +78,7 @@ void Server::send_on_socket(int id, message_t msg) {
 void Server::check_for_writes() {
   for (int i = 0; i < max_connections; i++) {
     if (sockets[i] && sockets[i]->wants_to_write()) {
-      logger.debug("check_for_writes: Incoming data on socket {}", i);
+      logger.trace("check_for_writes: Incoming data on socket {}", i);
       pollfds[i].events |= POLLOUT;
     } else {
       pollfds[i].events &= ~POLLOUT;
@@ -292,7 +292,7 @@ bool Server::Socket::wants_to_write() {
 }
 
 Server::Socket::SendMessagesExitCode Server::Socket::send_messages() {
-  logger.debug("send: Sending data to {}", fd);
+  logger.trace("send: Sending data to {}", fd);
 
   do {
     if (!sending_message.in_progress && !message_queue.empty()) {
@@ -303,9 +303,9 @@ Server::Socket::SendMessagesExitCode Server::Socket::send_messages() {
     if (sending_message.in_progress) {
       size_t bytes_to_send = sending_message.msg.size - sending_message.byte_offset;
       ssize_t bytes_sent = send(fd, (char *)sending_message.msg.buf + sending_message.byte_offset, bytes_to_send, MSG_NOSIGNAL | MSG_DONTWAIT);
-      logger.debug("send: OFFSET {}", sending_message.byte_offset);
+      logger.trace("send: OFFSET {}", sending_message.byte_offset);
       if (bytes_sent == 0 || (bytes_sent < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))) {
-        logger.debug("send: Can't send data right now, trying later");
+        logger.trace("send: Can't send data right now, trying later");
         break;
       } else if (bytes_sent < 0) {
         logger.error("send: {}", strerror(errno));
@@ -326,7 +326,7 @@ Server::Socket::SendMessagesExitCode Server::Socket::send_messages() {
 }
 
 Server::Socket::ReceiveMessagesExitCode Server::Socket::receive_messages() {
-  logger.debug("receive: Receiving data on socket {}", fd);
+  logger.trace("receive: Receiving data on socket {}", fd);
 
   while (true) {
     const bool waiting_for_data = receiving_data.waiting;
@@ -348,7 +348,7 @@ Server::Socket::ReceiveMessagesExitCode Server::Socket::receive_messages() {
       logger.error("receive (read): {}", strerror(errno));
       return ReceiveMessagesExitCode::ERROR;
     } else if (bytes_read == 0) {
-      logger.debug("receive: 0 bytes received, got hang up on");
+      logger.trace("receive: 0 bytes received, got hang up on");
       return ReceiveMessagesExitCode::HANG_UP;
     }
 
@@ -415,7 +415,7 @@ Server::Socket::ReceiveMessagesExitCode Server::Socket::consume_message_buffer()
     const bool data_in_buffer = receiving_data.waiting && buffer_start < receiving_message.byte_offset;
     if (data_in_buffer) {
       size_t data_to_transfer = receiving_message.byte_offset - buffer_start;
-      logger.debug("consume_message_buffer: Moving {} bytes of message buffer data to variable data buffer", data_to_transfer);
+      logger.trace("consume_message_buffer: Moving {} bytes of message buffer data to variable data buffer", data_to_transfer);
       void *data_buffer = (char *)receiving_data.data.buf + receiving_data.byte_offset;
       memcpy(data_buffer, receiving_message.buf + buffer_start, data_to_transfer);
       buffer_start = receiving_message.byte_offset;
