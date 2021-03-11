@@ -59,6 +59,8 @@ add_executable(gn_nvidia_saxpy
     hhal_tests/gn_nvidia_saxpy.cpp
 )
 
+# Daemon
+
 add_executable(daemon_gn_launch_kernel 
     event_utils.cpp 
     gn_dummy_rm.cpp
@@ -66,25 +68,72 @@ add_executable(daemon_gn_launch_kernel
     daemon_tests/gn_launch_kernel.cpp
 )
 
+add_executable(daemon_nvidia_launch_kernel 
+    event_utils.cpp 
+    nvidia_dummy_rm.cpp
+    rm_common.cpp
+    daemon_tests/nvidia_launch_kernel.cpp
+)
+
+add_executable(daemon_gn_serial_saxpy 
+    event_utils.cpp 
+    gn_dummy_rm.cpp
+    rm_common.cpp
+    daemon_tests/gn_serial_saxpy.cpp
+)
+
+add_executable(daemon_nvidia_multiple_kernels 
+    event_utils.cpp 
+    nvidia_dummy_rm.cpp
+    rm_common.cpp
+    daemon_tests/nvidia_multiple_kernels.cpp
+)
+
+add_executable(daemon_gn_gif_animation
+    event_utils.cpp 
+    gn_dummy_rm.cpp
+    rm_common.cpp
+    AnimatedGifSaver.cpp
+    daemon_tests/gn_gif_animation.cpp
+)
+
+add_executable(daemon_gn_nvidia_saxpy
+    event_utils.cpp 
+    gn_dummy_rm.cpp
+    nvidia_dummy_rm.cpp
+    rm_common.cpp
+    daemon_tests/gn_nvidia_saxpy.cpp
+)
+
 find_library(GIF_LIB NAMES gif)
 
-target_include_directories(nvidia_launch_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(gn_launch_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(nvidia_launch_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(gn_serial_saxpy PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(nvidia_multiple_kernels PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(gn_nvidia_saxpy PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(gn_gif_animation PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_include_directories(daemon_gn_launch_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(daemon_nvidia_launch_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(daemon_gn_serial_saxpy PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(daemon_nvidia_multiple_kernels PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(daemon_gn_nvidia_saxpy PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(daemon_gn_gif_animation PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(gn_launch_kernel PRIVATE hhal::hhal hhal_client::hhal_client)
-target_link_libraries(gn_serial_saxpy PRIVATE hhal::hhal hhal_client::hhal_client)
-target_link_libraries(gn_gif_animation PRIVATE hhal::hhal ${GIF_LIB} hhal_client::hhal_client)
 target_link_libraries(nvidia_launch_kernel PRIVATE hhal::hhal hhal_client::hhal_client)
+target_link_libraries(gn_serial_saxpy PRIVATE hhal::hhal hhal_client::hhal_client)
 target_link_libraries(nvidia_multiple_kernels PRIVATE hhal::hhal hhal_client::hhal_client)
 target_link_libraries(gn_nvidia_saxpy PRIVATE hhal::hhal hhal_client::hhal_client)
+target_link_libraries(gn_gif_animation PRIVATE hhal::hhal ${GIF_LIB} hhal_client::hhal_client)
 
 target_link_libraries(daemon_gn_launch_kernel PRIVATE hhal_client::hhal_client)
+target_link_libraries(daemon_nvidia_launch_kernel PRIVATE hhal_client::hhal_client)
+target_link_libraries(daemon_gn_serial_saxpy PRIVATE hhal::hhal hhal_client::hhal_client)
+target_link_libraries(daemon_nvidia_multiple_kernels PRIVATE hhal::hhal hhal_client::hhal_client)
+target_link_libraries(daemon_gn_nvidia_saxpy PRIVATE hhal::hhal hhal_client::hhal_client)
+target_link_libraries(daemon_gn_gif_animation PRIVATE hhal::hhal ${GIF_LIB} hhal_client::hhal_client)
 
 add_subdirectory(gn_kernels)
 add_subdirectory(cuda_kernels)

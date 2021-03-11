@@ -13,8 +13,11 @@ struct registered_kernel {
     int kernel_termination_event;
 };
 
-void resource_allocation(hhal::HHAL &hhal, const std::vector<registered_kernel> &kernels, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events);
-void resource_deallocation(hhal::HHAL &hhal, const std::vector<registered_kernel> &kernels, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events);
+template<class H>
+void resource_allocation(H &hhal, const std::vector<registered_kernel> &kernels, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events);
+
+template<class H>
+void resource_deallocation(H &hhal, const std::vector<registered_kernel> &kernels, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events);
 registered_kernel register_kernel(mango_kernel kernel);
 }
 

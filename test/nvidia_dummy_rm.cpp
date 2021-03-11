@@ -4,6 +4,7 @@
 #include <exception>
 
 #include "hhal.h"
+#include "hhal_client.h"
 
 #include "arguments.h"
 
@@ -18,7 +19,13 @@ namespace nvidia_rm {
 // This should be handled in the RM side, it lives here for now as there are not two libraries at the moment.
 // In the future there would be a library for RM which handles this,
 // and a library for kernel execution which handles whats in the main function.
-void resource_allocation(HHAL &hhal, const std::vector<registered_kernel> &kernels, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events) {
+template<class H>
+void resource_allocation(
+    H &hhal, 
+    const std::vector<registered_kernel> &kernels, 
+    const std::vector<mango_buffer> &buffers, 
+    const std::vector<mango_event> &events) 
+{
     for (auto &kernel: kernels) {
         printf("[Nvidia_Dummy] Allocating kernel %d\n", kernel.k.id);
         nvidia_kernel k;
@@ -44,7 +51,25 @@ void resource_allocation(HHAL &hhal, const std::vector<registered_kernel> &kerne
     }
 }
 
-void resource_deallocation(hhal::HHAL &hhal, const std::vector<registered_kernel> &kernels, const std::vector<mango_buffer> &buffers, const std::vector<mango_event> &events) {
+template void resource_allocation<hhal::HHAL>(
+    hhal::HHAL &hhal, 
+    const std::vector<registered_kernel> &kernels, 
+    const std::vector<mango_buffer> &buffers, 
+    const std::vector<mango_event> &events);
+
+template void resource_allocation<hhal_daemon::HHALClient>(
+    hhal_daemon::HHALClient &hhal, 
+    const std::vector<registered_kernel> &kernels, 
+    const std::vector<mango_buffer> &buffers, 
+    const std::vector<mango_event> &events);
+
+template<class H>
+void resource_deallocation(
+    H &hhal, 
+    const std::vector<registered_kernel> &kernels, 
+    const std::vector<mango_buffer> &buffers, 
+    const std::vector<mango_event> &events) 
+{
     for (auto &k : kernels) {
         printf("[Nvidia_Dummy] Releasing %d\n", k.k.id);
         hhal.release_kernel(k.k.id);
@@ -58,6 +83,18 @@ void resource_deallocation(hhal::HHAL &hhal, const std::vector<registered_kernel
         hhal.release_event(e.id);
     }
 }
+
+template void resource_deallocation<hhal::HHAL>(
+    hhal::HHAL &hhal, 
+    const std::vector<registered_kernel> &kernels, 
+    const std::vector<mango_buffer> &buffers, 
+    const std::vector<mango_event> &events);
+
+template void resource_deallocation<hhal_daemon::HHALClient>(
+    hhal_daemon::HHALClient &hhal, 
+    const std::vector<registered_kernel> &kernels, 
+    const std::vector<mango_buffer> &buffers, 
+    const std::vector<mango_event> &events);
 
 registered_kernel register_kernel(mango_kernel kernel) {
     return {
