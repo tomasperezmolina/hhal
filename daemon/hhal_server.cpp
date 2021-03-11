@@ -141,7 +141,7 @@ Server::DataListenerExitCode HHALServer::handle_data(int id, Server::packet_t pa
             }
             case hhal::Unit::NVIDIA: {
                 // Already a POD
-                hhal.assign_kernel(command->unit, (hhal::hhal_kernel *) &packet.extra_data.buf);
+                hhal.assign_kernel(command->unit, (hhal::hhal_kernel *) packet.extra_data.buf);
                 break;
             }
             default:
@@ -184,7 +184,7 @@ Server::DataListenerExitCode HHALServer::handle_data(int id, Server::packet_t pa
             }
             case hhal::Unit::NVIDIA: {
                 // Already a POD
-                hhal.assign_event(command->unit, (hhal::hhal_event *) &packet.extra_data.buf);
+                hhal.assign_event(command->unit, (hhal::hhal_event *) packet.extra_data.buf);
                 break;
             }
             default:
