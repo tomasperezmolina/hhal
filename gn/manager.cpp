@@ -143,12 +143,36 @@ GNManagerExitCode GNManager::assign_buffer(gn_buffer *info) {
     log_hhal.Debug("GNManager: Assigning buffer %d", info->id);
     log_hhal.Debug("GNManager: cluster_id=%d, mem_tile=%d, phy_addr=0x%x, size=%zu", info->cluster_id, info->mem_tile, info->physical_addr, info->size);
     buffer_info[info->id] = *info;
+
+    // Prepare event register
+    GNManagerExitCode ec;
+    uint32_t value;
+    auto et_id = info->event;
+    ec = read_sync_register(et_id, &value); 
+    if (ec != GNManagerExitCode::OK) return ec;
+    assert( 0 == value );
+
+    const int WRITE = 2;
+    ec = write_sync_register(et_id, WRITE);
+    if (ec != GNManagerExitCode::OK) return ec;
+
     return GNManagerExitCode::OK;
 }
 
 GNManagerExitCode GNManager::assign_event(gn_event *info) {
     log_hhal.Debug("GNManager: Assigning event %d", info->id);
     event_info[info->id] = *info;
+
+    // Prepare event register
+    GNManagerExitCode ec;
+    uint32_t value;
+    ec = read_sync_register(info->id, &value);
+    if (ec != GNManagerExitCode::OK) return ec;
+    // - We re-read the value and now must be zero
+    ec = read_sync_register(info->id, &value);
+    if (ec != GNManagerExitCode::OK) return ec;
+    assert( 0 == value );
+
     return GNManagerExitCode::OK;
 }
 
@@ -426,39 +450,6 @@ GNManagerExitCode GNManager::release_units_set(uint32_t cluster, const std::vect
         return GNManagerExitCode::ERROR;
     else
         return GNManagerExitCode::OK;
-}
-
-GNManagerExitCode GNManager::prepare_events_registers() {
-    log_hhal.Info("GNManager: Preparing event registers");
-    // This function will initialize the event values to zero
-    GNManagerExitCode ec;
-
-	for(auto &et_pair : event_info) {
-        // It follows a strange pattern:
-        // - We read the value (this should change to zero the register)
-        uint32_t value;
-        ec = read_sync_register(et_pair.first, &value);
-        if (ec != GNManagerExitCode::OK) return ec;
-        // - We re-read the value and now must be zero
-        ec = read_sync_register(et_pair.first, &value);
-        if (ec != GNManagerExitCode::OK) return ec;
-        assert( 0 == value );
-    }
-
-	for(auto &bt_pair : buffer_info) {
-        auto et_id = bt_pair.second.event;
-
-        // Read the event BEFORE writing it to allow the initialization
-        // in case of write-accumulate register
-        uint32_t value;
-        ec = read_sync_register(et_id, &value); 
-        if (ec != GNManagerExitCode::OK) return ec;
-        assert( 0 == value );
-
-        const int WRITE = 2;
-        ec = write_sync_register(et_id, WRITE);
-        if (ec != GNManagerExitCode::OK) return ec;
-    }
 }
 
 GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args, std::string &str_args) {
