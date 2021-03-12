@@ -17,5 +17,4 @@ find_package(Threads)
 target_link_libraries(scale_kernel ${MANGODEV} ${CMAKE_THREAD_LIBS_INIT})
 target_include_directories(scale_kernel PUBLIC ${MANGO_ROOT}/usr/include/libmango/)
 
-# add_dependencies (gif_animation scale_kernel)
 add_dependencies (scale_kernel scale_kernel_main_gen)
