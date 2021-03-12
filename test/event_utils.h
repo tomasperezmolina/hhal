@@ -2,8 +2,6 @@
 #define EVENT_UTILS_H
 
 #include <cinttypes>
-#include "hhal.h"
-
 
 namespace hhal {
     namespace events{

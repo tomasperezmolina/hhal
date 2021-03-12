@@ -4,7 +4,6 @@
 #include <exception>
 
 #include "hhal.h"
-#include "hhal_client.h"
 
 #include "arguments.h"
 
@@ -51,18 +50,6 @@ void resource_allocation(
     }
 }
 
-template void resource_allocation<hhal::HHAL>(
-    hhal::HHAL &hhal, 
-    const std::vector<registered_kernel> &kernels, 
-    const std::vector<mango_buffer> &buffers, 
-    const std::vector<mango_event> &events);
-
-template void resource_allocation<hhal_daemon::HHALClient>(
-    hhal_daemon::HHALClient &hhal, 
-    const std::vector<registered_kernel> &kernels, 
-    const std::vector<mango_buffer> &buffers, 
-    const std::vector<mango_event> &events);
-
 template<class H>
 void resource_deallocation(
     H &hhal, 
@@ -83,18 +70,6 @@ void resource_deallocation(
         hhal.release_event(e.id);
     }
 }
-
-template void resource_deallocation<hhal::HHAL>(
-    hhal::HHAL &hhal, 
-    const std::vector<registered_kernel> &kernels, 
-    const std::vector<mango_buffer> &buffers, 
-    const std::vector<mango_event> &events);
-
-template void resource_deallocation<hhal_daemon::HHALClient>(
-    hhal_daemon::HHALClient &hhal, 
-    const std::vector<registered_kernel> &kernels, 
-    const std::vector<mango_buffer> &buffers, 
-    const std::vector<mango_event> &events);
 
 registered_kernel register_kernel(mango_kernel kernel) {
     return {

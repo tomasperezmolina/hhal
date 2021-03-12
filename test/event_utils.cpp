@@ -1,15 +1,9 @@
 #include "event_utils.h"
-#include "hhal_client.h"
 
 namespace hhal { namespace events {
 
-bool is_exit_code_OK(HHALExitCode ec) {
-    return ec == HHALExitCode::OK;
-}
-
-bool is_exit_code_OK(hhal_daemon::HHALClientExitCode ec) {
-    return ec == hhal_daemon::HHALClientExitCode::OK;
-}
+template<class EC>
+bool is_exit_code_OK(EC ec);
 
 template<class H>
 void write(H &hhal, int event_id, uint32_t value) {
@@ -18,8 +12,6 @@ void write(H &hhal, int event_id, uint32_t value) {
     }
 }
 
-template void write<HHAL>(HHAL &hhal, int event_id, uint32_t value);
-template void write<hhal_daemon::HHALClient>(hhal_daemon::HHALClient &hhal, int event_id, uint32_t value);
 
 template<class H>
 uint32_t read(H &hhal, int event_id) {
@@ -30,9 +22,6 @@ uint32_t read(H &hhal, int event_id) {
     return value;
 }
 
-template uint32_t read<HHAL>(HHAL &hhal, int event_id);
-template uint32_t read<hhal_daemon::HHALClient>(hhal_daemon::HHALClient &hhal, int event_id);
-
 template<class H>
 uint32_t lock(H &hhal, int event_id) {
     uint32_t value;
@@ -41,9 +30,6 @@ uint32_t lock(H &hhal, int event_id) {
     } while (value == 0);
     return value;
 }
-
-template uint32_t lock<HHAL>(HHAL &hhal, int event_id);
-template uint32_t lock<hhal_daemon::HHALClient>(hhal_daemon::HHALClient &hhal, int event_id);
 
 template<class H>
 void wait(H &hhal, int event_id, uint32_t state) {
@@ -59,8 +45,5 @@ void wait(H &hhal, int event_id, uint32_t state) {
 
     } while (value != state);
 }
-
-template void wait<HHAL>(HHAL &hhal, int event_id, uint32_t state);
-template void wait<hhal_daemon::HHALClient>(hhal_daemon::HHALClient &hhal, int event_id, uint32_t state);
 
 }}
