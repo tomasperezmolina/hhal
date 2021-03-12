@@ -17,5 +17,4 @@ find_package(Threads)
 target_link_libraries(smooth_kernel ${MANGODEV} ${CMAKE_THREAD_LIBS_INIT})
 target_include_directories(smooth_kernel PUBLIC ${MANGO_ROOT}/usr/include/libmango/)
 
-# add_dependencies (gif_animation smooth_kernel)
 add_dependencies (smooth_kernel smooth_kernel_main_gen)

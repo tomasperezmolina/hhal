@@ -9,8 +9,6 @@
 #include "gn_dummy_rm.h"
 #include "rm_common.h"
 
-#include "hhal_client.h"
-
 using namespace hhal;
 
 std::map<int, int> kernel_id_to_unit_id;
@@ -142,22 +140,6 @@ void resource_allocation(
     gn_manager.prepare_events_registers();
 }
 
-template void resource_allocation<hhal::HHAL>(
-    hhal::HHAL &hhal, 
-    GNManager &gn_manager, 
-    const std::vector<registered_kernel> &kernels, 
-    const std::vector<registered_buffer> &buffers, 
-    const std::vector<mango_event> &events
-);
-
-template void resource_allocation<hhal_daemon::HHALClient>(
-    hhal_daemon::HHALClient &hhal, 
-    GNManager &gn_manager, 
-    const std::vector<registered_kernel> &kernels, 
-    const std::vector<registered_buffer> &buffers, 
-    const std::vector<mango_event> &events
-);
-
 template <class H>
 void resource_deallocation(
     H &hhal, 
@@ -193,22 +175,6 @@ void resource_deallocation(
     }
 
 }
-
-template void resource_deallocation<hhal::HHAL>(
-    hhal::HHAL &hhal, 
-    GNManager &gn_manager, 
-    const std::vector<mango_kernel> &kernels, 
-    const std::vector<mango_buffer> &buffers, 
-    const std::vector<mango_event> &events
-);
-
-template void resource_deallocation<hhal_daemon::HHALClient>(
-    hhal_daemon::HHALClient &hhal, 
-    GNManager &gn_manager, 
-    const std::vector<mango_kernel> &kernels, 
-    const std::vector<mango_buffer> &buffers, 
-    const std::vector<mango_event> &events
-);
 
 int get_new_event_id() {
     return rm_common::get_new_event_id();

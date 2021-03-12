@@ -15,8 +15,8 @@
 
 using namespace hhal;
 
-#define KERNEL_1_PATH "gn_kernels/saxpy1/saxpy1"
-#define KERNEL_2_PATH "gn_kernels/saxpy2/saxpy2"
+#define KERNEL_1_PATH "gn_kernels/saxpy1/gn_saxpy_1"
+#define KERNEL_2_PATH "gn_kernels/saxpy2/gn_saxpy_2"
 #define KID_1 1
 #define KID_2 2
 #define BX_1_ID 1
@@ -25,8 +25,6 @@ using namespace hhal;
 #define BY_ID 4
 #define BO2_ID 5
 
-
-// Note: it may be necessary to copy ./gn/gn/config.xml to MANGO_ROOT/usr/local/share/config.xml
 
 void init_matrix(int *matrix, int rows, int cols)
 {

@@ -16,7 +16,7 @@
 
 using namespace hhal;
 
-#define KERNEL_1_PATH "gn_kernels/saxpy1/saxpy1"
+#define KERNEL_1_PATH "gn_kernels/saxpy1/gn_saxpy_1"
 #define KERNEL_2_PATH "cuda_kernels/saxpy_2"
 #define KID_1 1
 #define KID_2 2
