@@ -14,10 +14,6 @@ enum class response_type {
     ERROR,
 };
 
-enum class error_type {
-    GENERIC,
-};
-
 struct response_base {
     response_type type;
 };
@@ -29,7 +25,7 @@ struct register_data_response {
 
 struct error_response {
     response_type type;
-    error_type error_code;
+    hhal::HHALExitCode error_code;
 };
 
 inline void init_ack_response(response_base &res) {
@@ -41,7 +37,7 @@ inline void init_register_data_response(register_data_response &res, uint32_t da
     res.data = data;
 }
 
-inline void init_error_response(error_response &res, error_type error_code) {
+inline void init_error_response(error_response &res, hhal::HHALExitCode error_code) {
     res.type = response_type::ERROR;
     res.error_code = error_code;
 }

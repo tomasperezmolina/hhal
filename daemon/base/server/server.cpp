@@ -16,7 +16,7 @@ namespace hhal_daemon {
 static Logger &logger = Logger::get_instance();
 
 void Server::close_socket(int fd_idx) {
-  logger.trace("close_socket: Closing socket {}", fd_idx);
+  logger.debug("close_socket: Closing socket {}", fd_idx);
   if (fd_idx != listen_idx)
     sockets[fd_idx] = nullptr;
   else
@@ -371,10 +371,12 @@ Server::Socket::ReceiveMessagesExitCode Server::Socket::consume_data_buffer() {
     packet_t packet;
     packet.msg = receiving_data.msg;
     packet.extra_data = {receiving_data.data.buf, receiving_data.data.size};
-    data_listener(packet);
-
+    DataListenerExitCode ec = data_listener(packet);
+  
     receiving_data.waiting = false;
     receiving_data.byte_offset = 0;
+
+    if (ec != DataListenerExitCode::OK) return ReceiveMessagesExitCode::ERROR;
   }
   return ReceiveMessagesExitCode::OK;
 }

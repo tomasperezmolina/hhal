@@ -1,6 +1,8 @@
 #ifndef HHAL_SERVER_H
 #define HHAL_SERVER_H
 
+#include <string>
+
 #include "server/server.h"
 #include "hhal.h"
 #include "hhal_command.h"
@@ -10,7 +12,7 @@ namespace hhal_daemon {
 class HHALServer {
 
 public:
-    HHALServer(const char *socket_path);
+    HHALServer(std::string socket_path);
     ~HHALServer();
 
 private:
@@ -44,6 +46,13 @@ private:
     Server::message_result_t handle_release_memory(int id, const release_memory_command *cmd, Server &server);
     Server::message_result_t handle_release_event(int id, const release_event_command *cmd, Server &server);
 
+
+    Server::DataListenerExitCode handle_kernel_start_data(int id, kernel_start_command *cmd, Server::message_t data, Server &server);
+    Server::DataListenerExitCode handle_kernel_write_data(int id, kernel_write_command *cmd, Server::message_t data, Server &server);
+    Server::DataListenerExitCode handle_write_to_memory_data(int id, write_memory_command *cmd, Server::message_t data, Server &server);
+    Server::DataListenerExitCode handle_assign_kernel_data(int id, assign_kernel_command *cmd, Server::message_t data, Server &server);
+    Server::DataListenerExitCode handle_assign_buffer_data(int id, assign_buffer_command *cmd, Server::message_t data, Server &server);
+    Server::DataListenerExitCode handle_assign_event_data(int id, assign_event_command *cmd, Server::message_t data, Server &server);
 };
 
 } // namespace daemon

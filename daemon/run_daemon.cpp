@@ -34,5 +34,5 @@ int main(int argc, char const *argv[]) {
 
     logger.info("Server initialized, starting loop...");
 
-    HHALServer hhal_server(socket_path.c_str());
+    HHALServer hhal_server(socket_path);
 }
