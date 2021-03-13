@@ -5,6 +5,7 @@ namespace hhal_daemon {
 
 struct daemon_config_t {
   Logger::Level log_level;
+  std::string daemon_path;
 };
 
 class ConfigReader {

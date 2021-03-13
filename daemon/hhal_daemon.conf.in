@@ -1,0 +1,5 @@
+[daemon]
+path=/tmp/server-test
+
+[log]
+level=DEBUG

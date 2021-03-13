@@ -7,6 +7,7 @@ ConfigReader::ExitCode ConfigReader::read_config(std::string path, daemon_config
   auto reader = INIReader(path);
 
   auto level_str = reader.Get("log", "level", "INFO");
+  auto daemon_path = reader.Get("daemon", "path", "");
 
   Logger::Level level = Logger::Level::INFO;
   if (level_str == "TRACE")
@@ -27,6 +28,7 @@ ConfigReader::ExitCode ConfigReader::read_config(std::string path, daemon_config
     level = Logger::Level::INFO;
 
   config.log_level = level;
+  config.daemon_path = daemon_path;
 
   return ExitCode::OK;
 }
