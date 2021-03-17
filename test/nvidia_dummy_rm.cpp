@@ -30,6 +30,12 @@ void resource_allocation(
         nvidia_kernel k;
         k.id = kernel.k.id;
         k.gpu_id = 0;
+        k.grid_dim_x = 32;
+        k.grid_dim_y = 1;
+        k.grid_dim_z = 1;
+        k.block_dim_x = 128;
+        k.block_dim_y = 1;
+        k.block_dim_z = 1;
         k.mem_id = kernel.k.id;
         k.size = kernel.k.image_size;
         k.termination_event = kernel.kernel_termination_event;

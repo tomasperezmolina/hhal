@@ -195,8 +195,9 @@ GNManagerExitCode GNManager::kernel_start(int kernel_id, const Arguments &argume
 
     full_args.add_event({event});
 
-    for(const auto ev : info.task_events) {
-        full_args.add_event({ev});
+    // Adding 3 empty events required by gn for multithreading (currently unsupported)
+    for(int i=0;i<3;++i) {
+        full_args.add_event({0});
     }
 
     full_args.add_arguments(arguments);

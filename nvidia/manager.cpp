@@ -135,8 +135,12 @@ namespace hhal {
 
     void NvidiaManager::launch_kernel(int kernel_id, char *arg_array, int arg_count) {
         // Should we add mutexes for the kernel and event maps? They should not be modified after being assigned anyway.
-        auto &termination_event = event_info[kernel_info[kernel_id].termination_event];
-        CudaApiExitCode err = cuda_api.launch_kernel(kernel_id, kernel_function_names[kernel_id].c_str(), arg_array, arg_count);
+        nvidia_kernel &info = kernel_info[kernel_id];
+
+        CudaResourceArgs r_args = {info.gpu_id, {info.grid_dim_x, info.grid_dim_y, info.grid_dim_z}, {info.block_dim_x, info.block_dim_y, info.block_dim_z}};
+
+        auto &termination_event = event_info[info.termination_event];
+        CudaApiExitCode err = cuda_api.launch_kernel(kernel_id, kernel_function_names[kernel_id].c_str(), r_args, arg_array, arg_count);
 
         if (err != OK) {
             printf("[Error] NvidiaManager: Error launching kernel\n");
