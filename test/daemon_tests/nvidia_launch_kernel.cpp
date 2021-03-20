@@ -68,11 +68,18 @@ int main(void) {
     float n_float = (float) n;
 
     Arguments arguments;
-    arguments.add_scalar({&a, sizeof(a), ScalarType::FLOAT});
+
+    scalar_arg scalar_arg1 = {hhal::ScalarType::FLOAT, sizeof(float)} ;
+    scalar_arg1.afloat = a;
+    arguments.add_scalar(scalar_arg1);
+
     arguments.add_buffer({BUFFER_X_ID});
     arguments.add_buffer({BUFFER_Y_ID});
     arguments.add_buffer({BUFFER_O_ID});
-    arguments.add_scalar({&n_float, sizeof(float), ScalarType::FLOAT});
+
+    scalar_arg scalar_arg2 = {hhal::ScalarType::FLOAT, sizeof(float)} ;
+    scalar_arg2.afloat = n_float;
+    arguments.add_scalar(scalar_arg2);
 
     // Launch kernel
     hhal.kernel_start(KERNEL_ID, arguments);

@@ -100,16 +100,25 @@ int main(void) {
     float n_float = (float) n;
 
     Arguments arguments_1;
-    arguments_1.add_scalar({&a, sizeof(a), ScalarType::FLOAT});
+    scalar_arg scalar_arg11 = {hhal::ScalarType::FLOAT, sizeof(float)} ;
+    scalar_arg11.afloat = a;
+    arguments_1.add_scalar(scalar_arg11);
+
     arguments_1.add_buffer({BUFFER_X1_ID});
     arguments_1.add_buffer({BUFFER_O1_ID});
-    arguments_1.add_scalar({&n_float, sizeof(float), ScalarType::FLOAT});
+
+    scalar_arg scalar_arg12 = {hhal::ScalarType::FLOAT, sizeof(float)} ;
+    scalar_arg12.afloat = n_float;
+    arguments_1.add_scalar(scalar_arg12);
 
     Arguments arguments_2;
     arguments_2.add_buffer({BUFFER_X2_ID});
     arguments_2.add_buffer({BUFFER_Y2_ID});
     arguments_2.add_buffer({BUFFER_O2_ID});
-    arguments_2.add_scalar({&n_float, sizeof(float), ScalarType::FLOAT});
+
+    scalar_arg scalar_arg21 = {hhal::ScalarType::FLOAT, sizeof(float)} ;
+    scalar_arg21.afloat = n_float;
+    arguments_2.add_scalar(scalar_arg21);
 
 
     // Launch kernel 1

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "types.h"
+#include "stdint.h"
 
 namespace hhal {
 
@@ -23,13 +24,24 @@ typedef struct event_arg_t {
 enum class ScalarType {
     INT,    // any size integer value
     FLOAT,  // any size floating point value
+    LONG    // any size long value
 };
 
 typedef struct scalar_arg_t {
-    void *address;
-    size_t size;
     ScalarType type;
+    size_t size;
+    union {
+       int8_t  aint8; 
+       int16_t aint16; 
+       int32_t aint32; 
+       int64_t aint64; 
+
+       float   afloat; 
+       long    along; 
+    };
 } scalar_arg;
+
+void *get_scalar_ptr(const scalar_arg *scalar);
 
 typedef struct arg_t {
     ArgumentType type;

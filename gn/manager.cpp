@@ -489,16 +489,16 @@ GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args
                     switch (arg.scalar.size)
                     {
                     case sizeof(int8_t):
-                        ss << " " << *(int8_t*)arg.scalar.address;
+                        ss << " " << arg.scalar.aint8;
                         break;
                     case sizeof(int16_t):
-                        ss << " " << *(int16_t*)arg.scalar.address;
+                        ss << " " << arg.scalar.aint16;
                         break;
                     case sizeof(int32_t):
-                        ss << " " << *(int32_t*)arg.scalar.address;
+                        ss << " " << arg.scalar.aint32;
                         break;
                     case sizeof(int64_t):
-                        ss << " " << *(int64_t*)arg.scalar.address;
+                        ss << " " << arg.scalar.aint64;
                         break;
                     default:
                         log_hhal.Error("GNManager: Unknown scalar int size");

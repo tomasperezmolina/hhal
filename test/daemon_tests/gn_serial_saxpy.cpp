@@ -126,16 +126,25 @@ int main(void) {
     /* Execution preparation */
 
     Arguments args_k_1;
-    args_k_1.add_scalar({&a, sizeof(a), ScalarType::INT});
+    scalar_arg scalar_arg11 = {hhal::ScalarType::INT, sizeof(int32_t)};
+    scalar_arg11.aint32 = a;
+    args_k_1.add_scalar(scalar_arg11);
+
     args_k_1.add_buffer({BX_1_ID});
     args_k_1.add_buffer({BO1_ID});
-    args_k_1.add_scalar({&n, sizeof(n), ScalarType::INT});
+
+    scalar_arg scalar_arg12 = {hhal::ScalarType::INT, sizeof(int32_t)};
+    scalar_arg12.aint32 = n;
+    args_k_1.add_scalar(scalar_arg12);
 
     Arguments args_k_2;
     args_k_2.add_buffer({BX_2_ID});
     args_k_2.add_buffer({BY_ID});
     args_k_2.add_buffer({BO2_ID});
-    args_k_2.add_scalar({&n, sizeof(n), ScalarType::INT});
+
+    scalar_arg scalar_arg21 = {hhal::ScalarType::INT, sizeof(int32_t)};
+    scalar_arg21.aint32 = n;
+    args_k_2.add_scalar(scalar_arg21);
 
     /* Data transfer host->device */
     hhal.write_to_memory(BX_1_ID, x, buffer_size);

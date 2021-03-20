@@ -60,10 +60,11 @@ void test_arguments() {
     for (int i = 0; i < REPETITIONS; i++) {
         hhal::Arguments args;
 
-        std::vector<int> scalars(random_number_of_elements());
-        for (int i = 0; i < scalars.size(); i++) {
-            scalars[i] = random_value();
-            args.add_scalar({&scalars[i], sizeof(int), hhal::ScalarType::INT});
+        int scalar_amount = random_number_of_elements();
+        for (int i = 0; i < scalar_amount; i++) {
+            hhal::scalar_arg scalar = {hhal::ScalarType::INT, sizeof(int)} ;
+            scalar.aint32 = random_value(); 
+            args.add_scalar(scalar);
         }
 
         for (int i = 0; i < random_number_of_elements(); i++) {
@@ -89,8 +90,7 @@ void test_arguments() {
                     hhal::scalar_arg deserialized_scalar = deserialized.scalar;
                     assert(original_scalar.type == deserialized_scalar.type && "Scalar arguments have different types");
                     assert(original_scalar.size == deserialized_scalar.size && "Scalar arguments have different sizes");
-                    int content_diff = memcmp(original_scalar.address, deserialized_scalar.address, original_scalar.size);
-                    assert(content_diff == 0 && "Scalar arguments have different contents");
+                    assert(original_scalar.aint32 == deserialized_scalar.aint32 && "Scalar arguments have different values");
                     break;
                 }
                 case hhal::ArgumentType::BUFFER: {

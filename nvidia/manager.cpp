@@ -75,6 +75,7 @@ namespace hhal {
         auto &args = arguments.get_args();
         int arg_count = args.size();
         size_t arg_array_size = 0;
+        size_t arg_scalar_size = 0;
         for(auto &arg: args) {
             switch (arg.type) {
                 case ArgumentType::BUFFER:
@@ -85,13 +86,8 @@ namespace hhal {
                     return NvidiaManagerExitCode::ERROR;
                     break;
                 case ArgumentType::SCALAR:
-                    if (arg.scalar.type == ScalarType::FLOAT && arg.scalar.size == sizeof(float)) {
-                        arg_array_size += sizeof(cuda_manager::ValueArg);
-                    }
-                    else {
-                        printf("NvidiaManager: Only floats are supported at the moment\n");
-                        return NvidiaManagerExitCode::ERROR; 
-                    }
+                    arg_array_size += sizeof(cuda_manager::ScalarArg);
+                    arg_scalar_size += arg.scalar.size;
                     break;
                 default:
                     printf("NvidiaManager: Unknown argument\n");
@@ -99,6 +95,8 @@ namespace hhal {
             }
         }
 
+        char *scalar_allocations = (char*) malloc(arg_scalar_size);
+        char *current_allocation = scalar_allocations;
         char *arg_array = (char*) malloc(arg_array_size);
         char *current_arg = arg_array;
 
@@ -116,10 +114,16 @@ namespace hhal {
                     break;
                 } 
                 case ArgumentType::SCALAR: {
-                    auto *arg_a = (cuda_manager::ValueArg *) current_arg;
-                    *arg_a = {cuda_manager::VALUE, * (float*) arg.scalar.address};
-                    current_arg += sizeof(cuda_manager::ValueArg);
-                    arg_array_size += sizeof(cuda_manager::ValueArg);
+                    hhal::scalar_arg scalar = arg.scalar;
+                    auto *arg_a = (cuda_manager::ScalarArg *) current_arg;
+                    void *scalar_ptr = get_scalar_ptr(&scalar);
+                    memcpy(current_allocation, scalar_ptr, scalar.size);
+
+                    *arg_a = {cuda_manager::SCALAR, (void*)current_allocation};
+
+                    current_allocation += scalar.size;
+                    current_arg += sizeof(cuda_manager::ScalarArg);
+                    arg_array_size += sizeof(cuda_manager::ScalarArg);
                     break;
                 }
                 default:
@@ -128,12 +132,12 @@ namespace hhal {
             }
         }
 
-        thread_pool.push_task(std::bind(&NvidiaManager::launch_kernel, this, kernel_id, arg_array, arg_count));
+        thread_pool.push_task(std::bind(&NvidiaManager::launch_kernel, this, kernel_id, arg_array, arg_count, scalar_allocations));
 
         return NvidiaManagerExitCode::OK;
     }
 
-    void NvidiaManager::launch_kernel(int kernel_id, char *arg_array, int arg_count) {
+    void NvidiaManager::launch_kernel(int kernel_id, char *arg_array, int arg_count, char* scalar_allocations) {
         // Should we add mutexes for the kernel and event maps? They should not be modified after being assigned anyway.
         nvidia_kernel &info = kernel_info[kernel_id];
 
@@ -141,6 +145,9 @@ namespace hhal {
 
         auto &termination_event = event_info[info.termination_event];
         CudaApiExitCode err = cuda_api.launch_kernel(kernel_id, kernel_function_names[kernel_id].c_str(), r_args, arg_array, arg_count);
+
+        free(arg_array);
+        free(scalar_allocations);
 
         if (err != OK) {
             printf("[Error] NvidiaManager: Error launching kernel\n");

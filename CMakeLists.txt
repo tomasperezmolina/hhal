@@ -26,6 +26,7 @@ set(GN_SOURCES
 )
 
 set(SOURCES 
+    arguments.cpp
     hhal.cpp
 )
 

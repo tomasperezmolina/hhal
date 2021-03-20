@@ -70,12 +70,15 @@ serialized_object serialize(const hhal::Arguments &arguments) {
         curr += sizeof(hhal::ArgumentType);
         switch (args[i].type) {
             case hhal::ArgumentType::SCALAR: {
-                auto &scalar = args[i].scalar;
+                const hhal::scalar_arg scalar = args[i].scalar;
                 memcpy(curr, &scalar.type, sizeof(hhal::ScalarType));
                 curr += sizeof(hhal::ScalarType);
                 memcpy(curr, &scalar.size, sizeof(size_t));
                 curr += sizeof(size_t);
-                memcpy(curr, scalar.address, scalar.size);
+                //memcpy(curr, scalar.address, scalar.size);
+
+                void *scalar_ptr = get_scalar_ptr(&scalar);
+                memcpy(curr, scalar_ptr, scalar.size);
                 curr += scalar.size;
                 break;
             }
@@ -250,9 +253,12 @@ hhal::Arguments deserialize_arguments(const serialized_object &obj, auxiliary_al
                 curr += sizeof(hhal::ScalarType);
                 memcpy(&scalar.size, curr, sizeof(size_t));
                 curr += sizeof(size_t);
-                scalar.address = malloc(scalar.size);
-                allocs.allocations.push_back(scalar.address);
-                memcpy(scalar.address, curr, scalar.size);
+                //scalar.address = malloc(scalar.size);
+                //allocs.allocations.push_back(scalar.address);
+                //memcpy(scalar.address, curr, scalar.size);
+
+                void *scalar_ptr = get_scalar_ptr(&scalar);
+                memcpy(scalar_ptr, curr, scalar.size);
                 curr += scalar.size;
                 result.add_scalar(scalar);
                 break;

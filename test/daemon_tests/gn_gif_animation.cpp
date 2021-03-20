@@ -204,26 +204,35 @@ int main(void) {
     int sx2 = SX*2;
     int sy2 = SY*2;
 
+    scalar_arg scalar_arg_sx1 = {hhal::ScalarType::INT, sizeof(int32_t)} ;
+    scalar_arg_sx1.aint32 = sx;
+    scalar_arg scalar_arg_sy1 = {hhal::ScalarType::INT, sizeof(int32_t)} ;
+    scalar_arg_sy1.aint32 = sy;
+    scalar_arg scalar_arg_sx2 = {hhal::ScalarType::INT, sizeof(int32_t)} ;
+    scalar_arg_sx2.aint32 = sx2;
+    scalar_arg scalar_arg_sy2 = {hhal::ScalarType::INT, sizeof(int32_t)} ;
+    scalar_arg_sy2.aint32 = sy2;
+
     Arguments args_k_scale;
     args_k_scale.add_event({sync_ev.id});
     args_k_scale.add_buffer({B2});
     args_k_scale.add_buffer({B1});
-    args_k_scale.add_scalar({&sx, sizeof(sx), ScalarType::INT});
-    args_k_scale.add_scalar({&sy, sizeof(sy), ScalarType::INT});
+    args_k_scale.add_scalar(scalar_arg_sx1);
+    args_k_scale.add_scalar(scalar_arg_sy1);
 
     Arguments args_k_copy;
     args_k_copy.add_event({sync_ev.id});
     args_k_copy.add_buffer({B3});
     args_k_copy.add_buffer({B2});
-    args_k_copy.add_scalar({&sx2, sizeof(sx2), ScalarType::INT});
-    args_k_copy.add_scalar({&sy2, sizeof(sy2), ScalarType::INT});
+    args_k_copy.add_scalar(scalar_arg_sx2);
+    args_k_copy.add_scalar(scalar_arg_sy2);
 
     Arguments args_k_smooth;
     args_k_smooth.add_event({sync_ev.id});
     args_k_smooth.add_buffer({B3});
     args_k_smooth.add_buffer({B2});
-    args_k_smooth.add_scalar({&sx2, sizeof(sx2), ScalarType::INT});
-    args_k_smooth.add_scalar({&sy2, sizeof(sy2), ScalarType::INT});
+    args_k_smooth.add_scalar(scalar_arg_sx2);
+    args_k_smooth.add_scalar(scalar_arg_sy2);
     
     Byte *frames[4] = { frame0, frame1, frame2, frame3 };
 

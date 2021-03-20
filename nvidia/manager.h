@@ -55,7 +55,7 @@ class NvidiaManager {
         ThreadPool thread_pool;
         EventRegistry registry;
 
-        void launch_kernel(int kernel_id, char *arg_array, int arg_count);
+        void launch_kernel(int kernel_id, char *arg_array, int arg_count, char* scalar_allocations);
 
         CudaApi cuda_api;
 

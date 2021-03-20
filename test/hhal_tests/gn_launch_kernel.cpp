@@ -107,8 +107,14 @@ int main(void) {
     args.add_buffer({buffers[0].id});
     args.add_buffer({buffers[1].id});
     args.add_buffer({buffers[2].id});
-    args.add_scalar({&rows, sizeof(rows), ScalarType::INT});
-    args.add_scalar({&columns, sizeof(columns), ScalarType::INT});
+
+    scalar_arg scalar_arg1 = {hhal::ScalarType::INT, sizeof(int32_t)} ;
+    scalar_arg1.aint32 = rows;
+    args.add_scalar(scalar_arg1);
+    scalar_arg scalar_arg2 = {hhal::ScalarType::INT, sizeof(int32_t)} ;
+    scalar_arg2.aint32 = columns;
+    args.add_scalar(scalar_arg2);
+
     args.add_event({buffer_event.id});
 
     /* Data transfer host->device */
