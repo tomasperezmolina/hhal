@@ -22,7 +22,6 @@ struct registered_buffer {
 template<class H>
 void resource_allocation(
     H &hhal, 
-    hhal::GNManager &gn_manager, 
     const std::vector<registered_kernel> &kernels, 
     const std::vector<registered_buffer> &buffers, 
     const std::vector<mango_event> &events
@@ -31,7 +30,6 @@ void resource_allocation(
 template<class H>
 void resource_deallocation(
     H &hhal, 
-    hhal::GNManager &gn_manager, 
     const std::vector<mango_kernel> &kernels, 
     const std::vector<mango_buffer> &buffers, 
     const std::vector<mango_event> &events

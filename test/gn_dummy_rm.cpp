@@ -11,9 +11,6 @@
 
 using namespace hhal;
 
-std::map<int, int> kernel_id_to_unit_id;
-std::map<int, addr_t> event_addresses;
-
 #define GN_DEFAULT_CLUSTER 0
 
 namespace gn_rm {
@@ -21,7 +18,6 @@ namespace gn_rm {
 template <class H>
 void resource_allocation(
     H &hhal,
-    GNManager &gn_manager, 
     const std::vector<registered_kernel> &kernels, 
     const std::vector<registered_buffer> &buffers, 
     const std::vector<mango_event> &events
@@ -67,7 +63,6 @@ void resource_allocation(
 template <class H>
 void resource_deallocation(
     H &hhal, 
-    GNManager &gn_manager, 
     const std::vector<mango_kernel> &kernels, 
     const std::vector<mango_buffer> &buffers, 
     const std::vector<mango_event> &events

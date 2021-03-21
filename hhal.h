@@ -7,7 +7,6 @@
 #include "types.h"
 
 // This moves to cpp when we figure out what to do with GNManager specific API
-#include "gn/manager.h"
 
 #include "gn/types.h"
 #include "nvidia/types.h"
@@ -49,9 +48,6 @@ class HHAL {
         HHALExitCode allocate_event(int event_id);
         HHALExitCode release_event(int event_id);
         // -----------------------
-        
-        // This should be moved into Managers when we figure out how to expose its specific API (only necessary for RM)
-        GNManager gn_manager;
 
     private:
         class Managers;

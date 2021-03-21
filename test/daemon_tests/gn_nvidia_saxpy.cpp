@@ -49,8 +49,6 @@ void saxpy(int a, float *x, float *y, float *o, size_t n) {
 
 int main(void) {
     hhal_daemon::HHALClient hhal(DAEMON_PATH);
-    GNManager gn_manager;
-    gn_manager.initialize();
 
     std::ifstream kernel_1_fd(KERNEL_1_PATH, std::ifstream::in | std::ifstream::ate);
     assert(kernel_1_fd.good() && "Kernel file 1 does not exist");
@@ -107,7 +105,7 @@ int main(void) {
     std::vector<mango_event> nvidia_events = {kernel_2_termination_event};;
 
     /* resource allocation */
-    gn_rm::resource_allocation(hhal, gn_manager, {r_kernel_1}, r_gn_buffers, gn_events);
+    gn_rm::resource_allocation(hhal, {r_kernel_1}, r_gn_buffers, gn_events);
     nvidia_rm::resource_allocation(hhal, {r_kernel_2}, nvidia_buffers, nvidia_events);
 
     const std::map<hhal::Unit, std::string> kernel_1_images = {{hhal::Unit::GN, KERNEL_1_PATH}};
@@ -204,7 +202,7 @@ int main(void) {
         printf("Sample host: second stage of SAXPY correctly performed\n");
     }
 
-    gn_rm::resource_deallocation(hhal, gn_manager, {kernel_1}, gn_buffers, gn_events);
+    gn_rm::resource_deallocation(hhal, {kernel_1}, gn_buffers, gn_events);
     nvidia_rm::resource_deallocation(hhal, {r_kernel_2}, nvidia_buffers, nvidia_events);
 
     float *expected_3 = new float[n];

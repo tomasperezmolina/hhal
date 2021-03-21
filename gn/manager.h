@@ -51,16 +51,6 @@ class GNManager {
         GNManagerExitCode write_sync_register(int event_id, uint32_t data);
         GNManagerExitCode read_sync_register(int event_id, uint32_t *data);
 
-        GNManagerExitCode find_memory(uint32_t cluster, uint32_t unit, uint32_t size, uint32_t *memory, addr_t *phy_addr);
-        GNManagerExitCode find_units_set(uint32_t cluster, uint32_t num_tiles, std::vector<uint32_t> &tiles_dst);
-        GNManagerExitCode reserve_units_set(uint32_t cluster, const std::vector<uint32_t> &tiles);
-        GNManagerExitCode release_units_set(uint32_t cluster, const std::vector<uint32_t> &tiles);
-
-        GNManagerExitCode get_synch_register_addr(uint32_t cluster, addr_t *reg_address, bool isINCRWRITE_REG);
-        void release_synch_register_addr(uint32_t cluster, addr_t reg_address);
-
-        GNManagerExitCode prepare_events_registers();
-
     private:
         int num_clusters;
         bool initialized = false;
@@ -83,6 +73,13 @@ class GNManager {
 
         GNManagerExitCode get_string_arguments(int kernel_id, Arguments &args, std::string &str_args);
         GNManagerExitCode kernel_start_string_args(int kernel_id, std::string arguments);
+        GNManagerExitCode find_memory(uint32_t cluster, uint32_t unit, uint32_t size, uint32_t *memory, addr_t *phy_addr);
+        GNManagerExitCode find_units_set(uint32_t cluster, uint32_t num_tiles, std::vector<uint32_t> &tiles_dst);
+        GNManagerExitCode reserve_units_set(uint32_t cluster, const std::vector<uint32_t> &tiles);
+        GNManagerExitCode release_units_set(uint32_t cluster, const std::vector<uint32_t> &tiles);
+
+        GNManagerExitCode get_synch_register_addr(uint32_t cluster, addr_t *reg_address, bool isINCRWRITE_REG);
+        void release_synch_register_addr(uint32_t cluster, addr_t reg_address);
 
         uint32_t get_memory_size(uint32_t cluster, uint32_t memory) const;
 };

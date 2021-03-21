@@ -110,7 +110,7 @@ int main(void) {
     }
 
     /* resource allocation */
-    resource_allocation(hhal, hhal.gn_manager, {r_kernel_1, r_kernel_2}, r_buffers, events);
+    resource_allocation(hhal, {r_kernel_1, r_kernel_2}, r_buffers, events);
 
     const std::map<hhal::Unit, std::string> kernel_1_images = {{hhal::Unit::GN, KERNEL_1_PATH}};
     const std::map<hhal::Unit, std::string> kernel_2_images = {{hhal::Unit::GN, KERNEL_2_PATH}};
@@ -207,7 +207,7 @@ int main(void) {
         printf("Sample host: second stage of SAXPY correctly performed\n");
     }
 
-    gn_rm::resource_deallocation(hhal, hhal.gn_manager, {kernel_1, kernel_2}, buffers, events);
+    gn_rm::resource_deallocation(hhal, {kernel_1, kernel_2}, buffers, events);
 
     float *expected_3 = new float[n];
 

@@ -50,8 +50,6 @@ void kernel_function(int *A, int *B, int *C, int rows, int cols) {
 
 int main(void) {
     hhal_daemon::HHALClient hhal(DAEMON_PATH);
-    GNManager gn_manager;
-    gn_manager.initialize();
 
     std::ifstream kernel_fd(KERNEL_PATH, std::ifstream::in | std::ifstream::ate);
     assert(kernel_fd.good() && "Kernel file does not exist");
@@ -99,7 +97,7 @@ int main(void) {
     }
 
     /* resource allocation */
-    resource_allocation(hhal, gn_manager, {r_kernel}, r_buffers, events);
+    resource_allocation(hhal, {r_kernel}, r_buffers, events);
 
     const std::map<hhal::Unit, std::string> kernel_images = {{hhal::Unit::GN, KERNEL_PATH}};
     hhal.kernel_write(kernel.id, kernel_images);
@@ -141,7 +139,7 @@ int main(void) {
     events::wait(hhal, kernel_termination_event.id, 1);
 
     /* shut down the mango infrastructure */
-    gn_rm::resource_deallocation(hhal, gn_manager, {kernel}, buffers, events);
+    gn_rm::resource_deallocation(hhal, {kernel}, buffers, events);
 
     /* check results */
     kernel_function(A, B, D, rows, columns);

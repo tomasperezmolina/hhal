@@ -127,8 +127,6 @@ void smooth_frame(Byte *out, Byte *in, int X, int Y)
 
 int main(void) {
     hhal_daemon::HHALClient hhal(DAEMON_PATH);
-    GNManager gn_manager;
-    gn_manager.initialize();
 
     AnimatedGifSaver saver(SX*2,SY*2);
 
@@ -186,7 +184,7 @@ int main(void) {
     }
 
     /* resource allocation */
-    gn_rm::resource_allocation(hhal, gn_manager, {r_kernel_scale, r_kernel_smooth, r_kernel_copy}, r_buffers, events);
+    gn_rm::resource_allocation(hhal, {r_kernel_scale, r_kernel_smooth, r_kernel_copy}, r_buffers, events);
 
     const std::map<hhal::Unit, std::string> kernel_scale_images =   {{hhal::Unit::GN, KERNEL_SCALE_PATH}};
     const std::map<hhal::Unit, std::string> kernel_copy_images =    {{hhal::Unit::GN, KERNEL_COPY_PATH}};
@@ -266,7 +264,7 @@ int main(void) {
 
     saver.Save("0123_kernel.gif");
     
-    gn_rm::resource_deallocation(hhal, gn_manager, {kernel_scale, kernel_smooth, kernel_copy}, buffers, events);
+    gn_rm::resource_deallocation(hhal, {kernel_scale, kernel_smooth, kernel_copy}, buffers, events);
 
     printf("Gif animation finished! File name: 0123_kernel.gif\n");
 
