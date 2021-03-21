@@ -18,26 +18,6 @@ int random_number_of_elements() {
     return element_number_distribution(random_number_generator);
 }
 
-hhal::gn_kernel random_kernel() {
-    hhal::gn_kernel k;
-    k.id = random_value();
-    k.termination_event = random_value();
-    return k;
-}
-
-void test_kernel() {
-    for (int i = 0; i < REPETITIONS; i++) {
-        hhal::gn_kernel kernel = random_kernel();
-        hhal_daemon::serialized_object obj = hhal_daemon::serialize(kernel);
-        hhal::gn_kernel deserialized_kernel = hhal_daemon::deserialize_gn_kernel(obj);
-
-        assert(kernel.id == deserialized_kernel.id && "Kernel ids are different");
-        assert(kernel.termination_event == deserialized_kernel.termination_event && "Kernel termination events are different");
-    }
-
-    printf("Kernel serialization performed correctly!\n");
-}
-
 void test_arguments() {
     for (int i = 0; i < REPETITIONS; i++) {
         hhal::Arguments args;
@@ -97,7 +77,6 @@ void test_arguments() {
 
 int main(int argc, char const *argv[])
 {
-    test_kernel();
     test_arguments();
     
     return 0;

@@ -205,16 +205,16 @@ HHALClientExitCode HHALClient::read_sync_register(int event_id, uint32_t *data) 
 HHALClientExitCode HHALClient::assign_kernel(hhal::Unit unit, hhal::hhal_kernel *info) {
     CHECK_OPEN_SOCKET
 
-    serialized_object serialized;
+    size_t kernel_info_size;
     switch (unit) {
-        case hhal::Unit::GN:
-            serialized = serialize(*(hhal::gn_kernel *) info);
+        case hhal::Unit::GN: {
+            // Already a POD
+            kernel_info_size = sizeof(hhal::gn_kernel);
             break;
+        }
         case hhal::Unit::NVIDIA: {
             // Already a POD
-            void *info_buf = malloc(sizeof(hhal::nvidia_kernel));
-            memcpy(info_buf, info, sizeof(hhal::nvidia_kernel));
-            serialized = {info_buf, sizeof(hhal::nvidia_kernel)};
+            kernel_info_size = sizeof(hhal::nvidia_kernel);
             break;
         }
         default:
@@ -223,7 +223,7 @@ HHALClientExitCode HHALClient::assign_kernel(hhal::Unit unit, hhal::hhal_kernel 
     }
 
     assign_kernel_command cmd;
-    init_assign_kernel_command(cmd, unit, serialized.size);
+    init_assign_kernel_command(cmd, unit, kernel_info_size);
     TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
 
     response_base res;
@@ -235,7 +235,7 @@ HHALClientExitCode HHALClient::assign_kernel(hhal::Unit unit, hhal::hhal_kernel 
         return HHALClientExitCode::ERROR;
     }
 
-    TRY_OR_CLOSE(send_on_socket(socket_fd, serialized.buf, serialized.size))
+    TRY_OR_CLOSE(send_on_socket(socket_fd, info, kernel_info_size))
     printf("Done sending serialized kernel\n");
     TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
 

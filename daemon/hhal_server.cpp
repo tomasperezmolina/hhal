@@ -181,15 +181,14 @@ Server::DataListenerExitCode HHALServer::handle_write_to_memory_data(int id, wri
 Server::DataListenerExitCode HHALServer::handle_assign_kernel_data(int id, assign_kernel_command *cmd, Server::message_t data, Server &server) {
     switch (cmd->unit) {
         case hhal::Unit::GN: {
-            hhal::gn_kernel k = deserialize_gn_kernel({data.buf, data.size});
-            logger.debug("Received kernel data id: {}", k.id);
-            auto ec = hhal.assign_kernel(cmd->unit, (hhal::hhal_kernel *) &k);
+            auto ec = hhal.assign_kernel(cmd->unit, (hhal::hhal_kernel *) data.buf);
             if (ec != hhal::HHALExitCode::OK) {
                 server.send_on_socket(id, error_message(ec));
             } else {
                 server.send_on_socket(id, ack_message());
             }
             free(cmd);
+            free(data.buf);
             return Server::DataListenerExitCode::OK;
         }
         case hhal::Unit::NVIDIA: {

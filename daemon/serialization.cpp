@@ -5,11 +5,6 @@
 #include <stdlib.h>
 
 // All these POD structs should have the same initial section as their regular counterparts.
-struct gn_kernel_POD {
-    int id;
-    int termination_event;
-};
-
 struct gn_buffer_POD {
     int id;
     size_t size;
@@ -118,18 +113,6 @@ serialized_object serialize(const std::map<hhal::Unit, std::string> &kernel_imag
         curr += str_size;
         i++;
     }
-    assert(curr - (char*) buf == size && "Allocated space is different from the written data size");
-    return {buf, size};
-}
-
-serialized_object serialize(const hhal::gn_kernel &kernel) {
-    // Size of POD
-    size_t size = sizeof(gn_kernel_POD);
-
-    void *buf = malloc(size);
-    char *curr = (char *) buf;
-    memcpy(curr, &kernel, sizeof(gn_kernel_POD));
-    curr += sizeof(gn_kernel_POD);
     assert(curr - (char*) buf == size && "Allocated space is different from the written data size");
     return {buf, size};
 }
@@ -275,16 +258,6 @@ std::map<hhal::Unit, std::string> deserialize_kernel_images(const serialized_obj
         curr += path.size() + 1;
         res[unit] = path;
     }
-    assert(curr - (char*) obj.buf == obj.size && "Allocated space is different from the read data size");
-    return res;
-}
-
-hhal::gn_kernel deserialize_gn_kernel(const serialized_object &obj) {
-    hhal::gn_kernel res;
-
-    char *curr = (char *) obj.buf;
-    memcpy(&res, curr, sizeof(gn_kernel_POD));
-    curr += sizeof(gn_kernel_POD);
     assert(curr - (char*) obj.buf == obj.size && "Allocated space is different from the read data size");
     return res;
 }
