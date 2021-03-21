@@ -22,8 +22,6 @@ hhal::gn_kernel random_kernel() {
     hhal::gn_kernel k;
     k.id = random_value();
     k.cluster_id = random_value();
-    k.mem_tile = random_value();
-    k.physical_addr = random_value();
     k.size = random_value();
     k.termination_event = random_value();
     k.unit_id = random_value();
@@ -42,8 +40,6 @@ void test_kernel() {
 
         assert(kernel.id == deserialized_kernel.id && "Kernel ids are different");
         assert(kernel.cluster_id == deserialized_kernel.cluster_id && "Kernel cluster_ids are different");
-        assert(kernel.mem_tile == deserialized_kernel.mem_tile && "Kernel mem tiles are different");
-        assert(kernel.physical_addr == deserialized_kernel.physical_addr && "Kernel physical addresses are different");
         assert(kernel.size == deserialized_kernel.size && "Kernel sizes are different");
         assert(kernel.termination_event == deserialized_kernel.termination_event && "Kernel termination events are different");
         assert(kernel.unit_id == deserialized_kernel.unit_id && "Kernel unit ids are different");

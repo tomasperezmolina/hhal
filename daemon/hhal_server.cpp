@@ -182,7 +182,7 @@ Server::DataListenerExitCode HHALServer::handle_assign_kernel_data(int id, assig
     switch (cmd->unit) {
         case hhal::Unit::GN: {
             hhal::gn_kernel k = deserialize_gn_kernel({data.buf, data.size});
-            logger.debug("Received kernel data id: {}, phy_addr: 0x{:x}", k.id, k.physical_addr);
+            logger.debug("Received kernel data id: {}", k.id);
             auto ec = hhal.assign_kernel(cmd->unit, (hhal::hhal_kernel *) &k);
             if (ec != hhal::HHALExitCode::OK) {
                 server.send_on_socket(id, error_message(ec));

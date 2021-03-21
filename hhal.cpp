@@ -167,6 +167,9 @@ HHALExitCode HHAL::allocate_kernel(int kernel_id) {
         case Unit::NVIDIA:
             MAP_NVIDIA_EXIT_CODE(NVIDIA_MANAGER.allocate_kernel(kernel_id));
             break;
+        case Unit::GN:
+            MAP_GN_EXIT_CODE(gn_manager.allocate_kernel(kernel_id));
+            break;
         default:
             break;
     }
@@ -177,6 +180,9 @@ HHALExitCode HHAL::release_kernel(int kernel_id) {
     switch (kernel_to_unit[kernel_id]) {
         case Unit::NVIDIA:
             MAP_NVIDIA_EXIT_CODE(NVIDIA_MANAGER.release_kernel(kernel_id));
+            break;
+        case Unit::GN:
+            MAP_GN_EXIT_CODE(gn_manager.release_kernel(kernel_id));
             break;
         default:
             break;
@@ -245,6 +251,9 @@ HHALExitCode HHAL::allocate_event(int event_id) {
         case Unit::NVIDIA:
             MAP_NVIDIA_EXIT_CODE(NVIDIA_MANAGER.allocate_event(event_id));
             break;
+        case Unit::GN:
+            MAP_GN_EXIT_CODE(gn_manager.allocate_event(event_id));
+            break;
         default:
             break;
     }
@@ -255,6 +264,9 @@ HHALExitCode HHAL::release_event(int event_id) {
     switch (event_to_unit[event_id]) {
         case Unit::NVIDIA:
             MAP_NVIDIA_EXIT_CODE(NVIDIA_MANAGER.release_event(event_id));
+            break;
+        case Unit::GN:
+            MAP_GN_EXIT_CODE(gn_manager.release_event(event_id));
             break;
         default:
             break;

@@ -39,8 +39,12 @@ class GNManager {
         GNManagerExitCode kernel_write(int kernel_id, std::string image_path);
         GNManagerExitCode kernel_start(int kernel_id, const Arguments &arguments);
 
+        GNManagerExitCode allocate_kernel(int kernel_id);
+        GNManagerExitCode release_kernel(int kernel_id);
         GNManagerExitCode allocate_memory(int buffer_id);
         GNManagerExitCode release_memory(int buffer_id);
+        GNManagerExitCode allocate_event(int event_id);
+        GNManagerExitCode release_event(int event_id);
 
         GNManagerExitCode write_to_memory(int buffer_id, const void *source, size_t size);
         GNManagerExitCode read_from_memory(int buffer_id, void *dest, size_t size);

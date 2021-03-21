@@ -7,11 +7,10 @@
 // All these POD structs should have the same initial section as their regular counterparts.
 struct gn_kernel_POD {
     int id;
-    uint32_t physical_addr;
     int cluster_id;
-    int mem_tile;
     size_t size;
-    int event;
+    uint32_t unit_id;
+    int termination_event;
 };
 
 struct gn_buffer_POD {
@@ -20,8 +19,7 @@ struct gn_buffer_POD {
     int cluster_id;
     int mem_tile;
     size_t size;
-    int unit_id;
-    int termination_event;
+    int event;
 };
 
 struct gn_event_POD {

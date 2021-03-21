@@ -9,11 +9,9 @@ namespace hhal {
 
 typedef struct gn_kernel_t {
     int id;
-    uint32_t physical_addr;
     int cluster_id;
-    int mem_tile;
     size_t size;
-    int unit_id;
+    uint32_t unit_id;
     int termination_event;
     std::vector<int> task_events;
 } gn_kernel;

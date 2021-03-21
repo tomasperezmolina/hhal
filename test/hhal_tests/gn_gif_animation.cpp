@@ -263,5 +263,7 @@ int main(void) {
     
     gn_rm::resource_deallocation(hhal, hhal.gn_manager, {kernel_scale, kernel_smooth, kernel_copy}, buffers, events);
 
+    printf("Gif animation finished! File name: 0123_kernel.gif\n");
+
     return 0;
 }
