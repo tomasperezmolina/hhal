@@ -167,15 +167,6 @@ int main(void) {
     events.push_back({r_kernel_scale.kernel_termination_event, {r_kernel_scale.k.id}, {r_kernel_scale.k.id}});
     events.push_back({r_kernel_smooth.kernel_termination_event, {r_kernel_smooth.k.id}, {r_kernel_smooth.k.id}});
     events.push_back({r_kernel_copy.kernel_termination_event, {r_kernel_copy.k.id}, {r_kernel_copy.k.id}});
-    for(int e_id: r_kernel_scale.task_events) {
-        events.push_back({e_id, {r_kernel_scale.k.id}, {r_kernel_scale.k.id}});
-    }
-    for(int e_id: r_kernel_copy.task_events) {
-        events.push_back({e_id, {r_kernel_copy.k.id}, {r_kernel_copy.k.id}});
-    }
-    for(int e_id: r_kernel_smooth.task_events) {
-        events.push_back({e_id, {r_kernel_smooth.k.id}, {r_kernel_smooth.k.id}});
-    }
     for(auto &b: r_buffers) {
         events.push_back({b.event, b.b.kernels_in, b.b.kernels_out});
     }

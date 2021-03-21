@@ -22,10 +22,6 @@ hhal::gn_kernel random_kernel() {
     hhal::gn_kernel k;
     k.id = random_value();
     k.termination_event = random_value();
-    k.task_events = std::vector<int>();
-    for (int i = 0; i < random_number_of_elements(); i++) {
-        k.task_events.push_back(random_value());
-    }
     return k;
 }
 
@@ -37,10 +33,6 @@ void test_kernel() {
 
         assert(kernel.id == deserialized_kernel.id && "Kernel ids are different");
         assert(kernel.termination_event == deserialized_kernel.termination_event && "Kernel termination events are different");
-        assert(kernel.task_events.size() == deserialized_kernel.task_events.size() && "Kernel task events have different number of elements");
-        for (int i = 0; i < kernel.task_events.size(); i++) {
-            assert(kernel.task_events[i] == deserialized_kernel.task_events[i] && "A kernel element is different");
-        }
     }
 
     printf("Kernel serialization performed correctly!\n");

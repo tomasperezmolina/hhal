@@ -95,9 +95,6 @@ int main(void) {
 
     std::vector<mango_event> gn_events;
     gn_events.push_back({r_kernel_1.kernel_termination_event, {r_kernel_1.k.id}, {r_kernel_1.k.id}});
-    for(int e_id: r_kernel_1.task_events) {
-        gn_events.push_back({e_id, {r_kernel_1.k.id}, {r_kernel_1.k.id}});
-    }
     for(auto &b: r_gn_buffers) {
         gn_events.push_back({b.event, b.b.kernels_in, b.b.kernels_out});
     }

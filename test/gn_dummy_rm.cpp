@@ -27,7 +27,6 @@ void resource_allocation(
     for (auto &k : kernels) {
         gn_kernel kernel_info;
         kernel_info.id = k.k.id;
-        kernel_info.task_events = k.task_events;
         kernel_info.termination_event = k.kernel_termination_event;
 
         hhal.assign_kernel(hhal::Unit::GN, (hhal_kernel *) &kernel_info);
@@ -88,11 +87,6 @@ registered_kernel register_kernel(mango_kernel kernel) {
     return {
         kernel,
         rm_common::get_new_event_id(),
-        {
-            rm_common::get_new_event_id(), // Task event
-            rm_common::get_new_event_id(), // Barrier event
-            rm_common::get_new_event_id()  // Release event
-        },
     };
 }
 

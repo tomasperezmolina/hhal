@@ -123,22 +123,13 @@ serialized_object serialize(const std::map<hhal::Unit, std::string> &kernel_imag
 }
 
 serialized_object serialize(const hhal::gn_kernel &kernel) {
-    typedef decltype(kernel.task_events)::value_type t_ev_type;
-
-    size_t t_ev_amount = kernel.task_events.size();
-    size_t t_ev_size = sizeof(t_ev_type) * t_ev_amount;
-
-    // Size of POD + indicator for size of vector + vector values
-    size_t size = sizeof(gn_kernel_POD) + sizeof(size_t) + t_ev_size;
+    // Size of POD
+    size_t size = sizeof(gn_kernel_POD);
 
     void *buf = malloc(size);
     char *curr = (char *) buf;
     memcpy(curr, &kernel, sizeof(gn_kernel_POD));
     curr += sizeof(gn_kernel_POD);
-    memcpy(curr, &t_ev_amount, sizeof(size_t));
-    curr += sizeof(size_t);
-    memcpy(curr, kernel.task_events.data(), t_ev_size);
-    curr += t_ev_size;
     assert(curr - (char*) buf == size && "Allocated space is different from the written data size");
     return {buf, size};
 }
@@ -291,19 +282,9 @@ std::map<hhal::Unit, std::string> deserialize_kernel_images(const serialized_obj
 hhal::gn_kernel deserialize_gn_kernel(const serialized_object &obj) {
     hhal::gn_kernel res;
 
-    typedef decltype(res.task_events)::value_type t_ev_type;
-
-    size_t t_ev_amount;
     char *curr = (char *) obj.buf;
     memcpy(&res, curr, sizeof(gn_kernel_POD));
     curr += sizeof(gn_kernel_POD);
-    memcpy(&t_ev_amount, curr, sizeof(size_t));
-    curr += sizeof(size_t);
-    res.task_events = std::vector<t_ev_type>(
-        (t_ev_type *) curr,
-        (t_ev_type *) curr + t_ev_amount
-    );
-    curr += sizeof(t_ev_type) * t_ev_amount;
     assert(curr - (char*) obj.buf == obj.size && "Allocated space is different from the read data size");
     return res;
 }

@@ -10,7 +10,6 @@ namespace hhal {
 struct gn_kernel {
     int id;
     int termination_event;
-    std::vector<int> task_events;
 };
 
 struct gn_buffer {

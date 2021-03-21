@@ -11,7 +11,6 @@ namespace gn_rm {
 struct registered_kernel {
     mango_kernel k;
     int kernel_termination_event;
-    std::vector<int> task_events;
 };
 
 struct registered_buffer {
