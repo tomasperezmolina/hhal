@@ -27,7 +27,6 @@ void resource_allocation(
     for (auto &k : kernels) {
         gn_kernel kernel_info;
         kernel_info.id = k.k.id;
-        kernel_info.size = k.k.image_size;
         kernel_info.task_events = k.task_events;
         kernel_info.termination_event = k.kernel_termination_event;
 

@@ -52,14 +52,33 @@ class GNManager {
         GNManagerExitCode read_sync_register(int event_id, uint32_t *data);
 
     private:
+        struct allocated_kernel {
+            int cluster_id;
+            uint32_t unit_id;
+        };
+
+        struct allocated_event {
+            int cluster_id;
+            uint32_t physical_addr;
+        };
+
+        struct allocated_buffer {
+            int cluster_id;
+            uint32_t physical_addr;
+            int mem_tile;
+        };
+
         int num_clusters;
         bool initialized = false;
         int max_buffers = 2048;
         int max_kernels = 2048;
 
         std::map<int, gn_kernel> kernel_info;
+        std::map<int, allocated_kernel> allocated_kernel_info;
         std::map<int, gn_event> event_info;
+        std::map<int, allocated_event> allocated_event_info;
         std::map<int, gn_buffer> buffer_info;
+        std::map<int, allocated_buffer> allocated_buffer_info;
 
         std::map<int, std::string> kernel_images;
         

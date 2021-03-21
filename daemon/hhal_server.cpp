@@ -216,7 +216,7 @@ Server::DataListenerExitCode HHALServer::handle_assign_buffer_data(int id, assig
     switch (cmd->unit) {
         case hhal::Unit::GN: {
             hhal::gn_buffer b = deserialize_gn_buffer({data.buf, data.size});
-            logger.debug("Received buffer data id: {}, phy_addr: 0x{:x}", b.id, b.physical_addr);
+            logger.debug("Received buffer data id: {}", b.id);
             auto ec = hhal.assign_buffer(cmd->unit, (hhal::hhal_buffer *) &b);
             if (ec != hhal::HHALExitCode::OK) {
                 server.send_on_socket(id, error_message(ec));
@@ -249,7 +249,7 @@ Server::DataListenerExitCode HHALServer::handle_assign_event_data(int id, assign
     switch (cmd->unit) {
         case hhal::Unit::GN: {
             hhal::gn_event e = deserialize_gn_event({data.buf, data.size});
-            logger.debug("Received event data id: {}, phy_addr: 0x{:x}", e.id, e.physical_addr);
+            logger.debug("Received event data id: {}", e.id);
             auto ec = hhal.assign_event(cmd->unit, (hhal::hhal_event *) &e);
             if (ec != hhal::HHALExitCode::OK) {
                 server.send_on_socket(id, error_message(ec));
