@@ -17,8 +17,6 @@
 
 using namespace hhal;
 
-#define DAEMON_PATH "/tmp/server-test"
-
 #define KERNEL_1_PATH "gn_kernels/saxpy1/gn_saxpy_1"
 #define KERNEL_2_PATH "cuda_kernels/saxpy_2"
 #define KID_1 1

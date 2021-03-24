@@ -16,8 +16,6 @@
 
 using namespace hhal;
 
-#define DAEMON_PATH "/tmp/server-test"
-
 #define KERNEL_SCALE_PATH   "gn_kernels/gif_scale_kernel/scale_kernel"
 #define KERNEL_COPY_PATH    "gn_kernels/gif_copy_kernel/copy_kernel"
 #define KERNEL_SMOOTH_PATH  "gn_kernels/gif_smooth_kernel/smooth_kernel"

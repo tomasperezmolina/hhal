@@ -1,5 +1,5 @@
 [daemon]
-path=/tmp/server-test
+path=/tmp/mango_hhal_daemon
 
 [log]
 level=DEBUG

@@ -1,3 +1,7 @@
+set(DAEMON_PATH "/tmp/mango_hhal_daemon")
+
+add_definitions(-DDAEMON_PATH="${DAEMON_PATH}")
+
 add_executable(daemon_gn_launch_kernel 
     event_utils_hhal_client.cpp 
     gn_dummy_rm_hhal_client.cpp

@@ -16,7 +16,6 @@
 
 using namespace hhal;
 
-#define DAEMON_PATH "/tmp/server-test"
 #define KERNEL_PATH "gn_kernels/matrix_multiplication/matrix_multiplication_dev"
 #define KID 1
 #define B1 1

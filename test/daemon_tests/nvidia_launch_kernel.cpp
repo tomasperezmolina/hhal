@@ -10,7 +10,6 @@
 #include "event_utils.h"
 #include "nvidia_dummy_rm.h"
 
-#define DAEMON_PATH "/tmp/server-test"
 #define KERNEL_PATH "cuda_kernels/saxpy"
 
 #define KERNEL_ID 1
