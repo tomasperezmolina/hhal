@@ -568,29 +568,48 @@ GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args
                 ss << " 0x" << std::hex << allocated_event_info[arg.event.id].physical_addr;
                 break;
             case ArgumentType::SCALAR:
-                if (arg.scalar.type == ScalarType::INT) {
-                    switch (arg.scalar.size)
-                    {
-                    case sizeof(int8_t):
-                        ss << " " << arg.scalar.aint8;
+                switch (arg.scalar.type) {
+                    case ScalarType::INT: {
+                        switch (arg.scalar.size) {
+                            case sizeof(int8_t):
+                                ss << " " << arg.scalar.aint8;
+                                break;
+                            case sizeof(int16_t):
+                                ss << " " << arg.scalar.aint16;
+                                break;
+                            case sizeof(int32_t):
+                                ss << " " << arg.scalar.aint32;
+                                break;
+                            default:
+                                log_hhal.Error("GNManager: Unknown scalar int size");
+                                return GNManagerExitCode::ERROR;
+                        }
                         break;
-                    case sizeof(int16_t):
-                        ss << " " << arg.scalar.aint16;
-                        break;
-                    case sizeof(int32_t):
-                        ss << " " << arg.scalar.aint32;
-                        break;
-                    case sizeof(int64_t):
-                        ss << " " << arg.scalar.aint64;
-                        break;
-                    default:
-                        log_hhal.Error("GNManager: Unknown scalar int size");
-                        return GNManagerExitCode::ERROR;
                     }
-                }
-                else {
-                    log_hhal.Error("GNManager: Float scalars not supported");
-                    return GNManagerExitCode::ERROR;
+                    case ScalarType::UINT: {
+                        switch (arg.scalar.size) {
+                            case sizeof(uint8_t):
+                                ss << " " << arg.scalar.uint8;
+                                break;
+                            case sizeof(uint16_t):
+                                ss << " " << arg.scalar.uint16;
+                                break;
+                            case sizeof(uint32_t):
+                                ss << " " << arg.scalar.uint32;
+                                break;
+                            default:
+                                log_hhal.Error("GNManager: Unknown scalar int size");
+                                return GNManagerExitCode::ERROR;
+                        }
+                        break;
+                    }
+                    case ScalarType::LONG: {
+                       ss << " " << arg.scalar.along;
+                       break;
+                    }
+                    default:
+                        log_hhal.Error("GNManager: Float scalars not supported");
+                        return GNManagerExitCode::ERROR;
                 }
                 break;
             default:

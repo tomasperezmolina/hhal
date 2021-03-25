@@ -205,6 +205,7 @@ HHALClientExitCode HHALClient::read_sync_register(int event_id, uint32_t *data) 
 HHALClientExitCode HHALClient::assign_kernel(hhal::Unit unit, hhal::hhal_kernel *info) {
     CHECK_OPEN_SOCKET
 
+
     size_t kernel_info_size;
     switch (unit) {
         case hhal::Unit::GN: {
