@@ -36,6 +36,10 @@ class GNManager {
         GNManagerExitCode assign_buffer(gn_buffer *info);
         GNManagerExitCode assign_event(gn_event *info);
 
+        GNManagerExitCode deassign_kernel(int kernel_id);
+        GNManagerExitCode deassign_buffer(int buffer_id);
+        GNManagerExitCode deassign_event(int event_id);
+
         GNManagerExitCode kernel_write(int kernel_id, std::string image_path);
         GNManagerExitCode kernel_start(int kernel_id, const Arguments &arguments);
 

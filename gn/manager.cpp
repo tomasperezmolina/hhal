@@ -155,6 +155,24 @@ GNManagerExitCode GNManager::assign_event(gn_event *info) {
     return GNManagerExitCode::OK;
 }
 
+GNManagerExitCode GNManager::deassign_kernel(int kernel_id) {
+    log_hhal.Debug("GNManager: Deassigning kernel %d", kernel_id);
+    kernel_info.erase(kernel_id);
+    return GNManagerExitCode::OK;
+}
+
+GNManagerExitCode GNManager::deassign_buffer(int buffer_id) {
+    log_hhal.Debug("GNManager: Deassigning buffer %d", buffer_id);
+    buffer_info.erase(buffer_id);
+    return GNManagerExitCode::OK;
+}
+
+GNManagerExitCode GNManager::deassign_event(int event_id) {
+    log_hhal.Debug("GNManager: Deassigning event %d", event_id);
+    event_info.erase(event_id);
+    return GNManagerExitCode::OK;
+}
+
 GNManagerExitCode GNManager::kernel_write(int kernel_id, std::string image_path) {
     assert(initialized == true);
     assert(image_path.size() > 0);

@@ -66,14 +66,17 @@ void resource_deallocation(
     for (auto &k : kernels) {
         printf("[Nvidia_Dummy] Releasing %d\n", k.k.id);
         hhal.release_kernel(k.k.id);
+        hhal.deassign_kernel(k.k.id);
     }
     
     for (auto &b : buffers) {
         hhal.release_memory(b.id);
+        hhal.deassign_buffer(b.id);
     }
 
     for (auto &e : events) {
         hhal.release_event(e.id);
+        hhal.deassign_event(e.id);
     }
 }
 

@@ -26,6 +26,24 @@ namespace hhal {
         return NvidiaManagerExitCode::OK;
     }
 
+    NvidiaManagerExitCode NvidiaManager::deassign_kernel(int kernel_id) {
+        printf("NvidiaManager: Deassigning kernel %d\n", kernel_id);
+        kernel_info.erase(kernel_id);
+        return NvidiaManagerExitCode::OK;
+    }
+
+    NvidiaManagerExitCode NvidiaManager::deassign_buffer(int buffer_id) {
+        printf("NvidiaManager: Deassigning buffer %d\n", buffer_id);
+        buffer_info.erase(buffer_id);
+        return NvidiaManagerExitCode::OK;
+    }
+
+    NvidiaManagerExitCode NvidiaManager::deassign_event(int event_id) {
+        printf("NvidiaManager: Deassigning event %d\n", event_id);
+        event_info.erase(event_id);
+        return NvidiaManagerExitCode::OK;
+    }
+
     NvidiaManagerExitCode NvidiaManager::kernel_write(int kernel_id, std::string image_path) {
         nvidia_kernel &info = kernel_info[kernel_id];
 

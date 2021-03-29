@@ -96,7 +96,7 @@ HHALExitCode HHAL::assign_event(Unit unit, hhal_event *info) {
     return HHALExitCode::ERROR;
 }
 
-HHALExitCode HHAL::deassign_kernel(int kernel_id) {
+HHALExitCode deassign_kernel(int kernel_id) {
     Unit unit = kernel_to_unit[kernel_id];
     kernel_to_unit.erase(kernel_id);
     switch (unit) {
@@ -112,7 +112,7 @@ HHALExitCode HHAL::deassign_kernel(int kernel_id) {
     return HHALExitCode::ERROR;
 }
 
-HHALExitCode HHAL::deassign_buffer(int buffer_id) {
+HHALExitCode deassign_buffer(int buffer_id) {
     Unit unit = buffer_to_unit[buffer_id];
     buffer_to_unit.erase(buffer_id);
     switch (unit) {
@@ -128,7 +128,7 @@ HHALExitCode HHAL::deassign_buffer(int buffer_id) {
     return HHALExitCode::ERROR;
 }
 
-HHALExitCode HHAL::deassign_event(int event_id) {
+HHALExitCode deassign_event(int event_id) {
     Unit unit = event_to_unit[event_id];
     event_to_unit.erase(event_id);
     switch (unit) {

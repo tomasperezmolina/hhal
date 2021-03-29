@@ -336,6 +336,63 @@ HHALClientExitCode HHALClient::assign_event(hhal::Unit unit, hhal::hhal_event *i
     return HHALClientExitCode::OK;
 }
 
+HHALClientExitCode HHALClient::deassign_kernel(int kernel_id) {
+    CHECK_OPEN_SOCKET
+
+    deassign_kernel_command cmd;
+    init_deassign_kernel_command(cmd, kernel_id);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
+}
+
+HHALClientExitCode HHALClient::deassign_buffer(int buffer_id) {
+    CHECK_OPEN_SOCKET
+
+    deassign_buffer_command cmd;
+    init_deassign_buffer_command(cmd, buffer_id);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
+}
+
+HHALClientExitCode HHALClient::deassign_event(int event_id) {
+    CHECK_OPEN_SOCKET
+
+    deassign_event_command cmd;
+    init_deassign_event_command(cmd, event_id);
+    TRY_OR_CLOSE(send_on_socket(socket_fd, &cmd, sizeof(cmd)))
+
+    response_base res;
+    TRY_OR_CLOSE(receive_on_socket(socket_fd, &res, sizeof(res)))
+
+    if (res.type == response_type::ERROR) {
+        error_response error_res;
+        TRY_OR_CLOSE(receive_rest_of_response(socket_fd, res, &error_res, sizeof(error_res)));
+        return HHALClientExitCode::ERROR;
+    }
+
+    return HHALClientExitCode::OK;
+}
+
 HHALClientExitCode HHALClient::allocate_memory(int buffer_id) {
     CHECK_OPEN_SOCKET
 

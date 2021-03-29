@@ -22,7 +22,7 @@ void resource_allocation(
     const std::vector<registered_buffer> &buffers, 
     const std::vector<mango_event> &events
 ) {
-	printf("[DummyRM] resource_allocation\n");
+	printf("[GN_Dummy] resource_allocation\n");
 
     for (auto &k : kernels) {
         gn_kernel kernel_info;
@@ -33,7 +33,7 @@ void resource_allocation(
         hhal.allocate_kernel(kernel_info.id);
     }
 
-    printf("[DummyRM] resource_allocation: %zu tiles reserved\n", kernels.size());
+    printf("[GN_Dummy] resource_allocation: %zu tiles reserved\n", kernels.size());
 
 	for(auto &et : events) {
         gn_event info;
@@ -66,17 +66,20 @@ void resource_deallocation(
     const std::vector<mango_event> &events
 ) {
     for (auto &k : kernels) {
+        printf("[GN_Dummy] Releasing %d\n", k.id);
         hhal.release_kernel(k.id);
+        hhal.deassign_kernel(k.id);
     }
 
     for(auto &et : events) {
         hhal.release_event(et.id);
+        hhal.deassign_event(et.id);
     }
 
     for(auto &bt : buffers) {
         hhal.release_memory(bt.id);
+        hhal.deassign_buffer(bt.id);
     }
-
 }
 
 int get_new_event_id() {

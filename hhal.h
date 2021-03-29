@@ -6,8 +6,6 @@
 #include "arguments.h"
 #include "types.h"
 
-// This moves to cpp when we figure out what to do with GNManager specific API
-
 #include "gn/types.h"
 #include "nvidia/types.h"
 
@@ -38,6 +36,10 @@ class HHAL {
         HHALExitCode assign_kernel(Unit unit, hhal_kernel *info);
         HHALExitCode assign_buffer(Unit unit, hhal_buffer *info);
         HHALExitCode assign_event (Unit unit, hhal_event *info);
+
+        HHALExitCode deassign_kernel(int kernel_id);
+        HHALExitCode deassign_buffer(int buffer_id);
+        HHALExitCode deassign_event(int event_id);
 
         HHALExitCode allocate_memory(int buffer_id);
         HHALExitCode release_memory(int buffer_id);

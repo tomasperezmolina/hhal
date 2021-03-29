@@ -35,6 +35,10 @@ class HHALClient {
     HHALClientExitCode assign_buffer(hhal::Unit unit, hhal::hhal_buffer *info);
     HHALClientExitCode assign_event (hhal::Unit unit, hhal::hhal_event *info);
 
+    HHALClientExitCode deassign_kernel(int kernel_id);
+    HHALClientExitCode deassign_buffer(int buffer_id);
+    HHALClientExitCode deassign_event(int event_id);
+
     HHALClientExitCode allocate_memory(int buffer_id);
     HHALClientExitCode release_memory(int buffer_id);
 

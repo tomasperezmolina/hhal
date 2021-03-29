@@ -21,6 +21,9 @@ enum class command_type {
     ASSIGN_KERNEL,
     ASSIGN_BUFFER,
     ASSIGN_EVENT,
+    DEASSIGN_KERNEL,
+    DEASSIGN_BUFFER,
+    DEASSIGN_EVENT,
     ALLOCATE_MEMORY,
     ALLOCATE_KERNEL,
     ALLOCATE_EVENT,
@@ -84,6 +87,21 @@ struct assign_event_command {
     command_type type;
     hhal::Unit unit;
     size_t size;
+};
+
+struct deassign_kernel_command {
+    command_type type;
+    int kernel_id;
+};
+
+struct deassign_buffer_command {
+    command_type type;
+    int buffer_id;
+};
+
+struct deassign_event_command {
+    command_type type;
+    int event_id;
 };
 
 struct allocate_kernel_command {
@@ -167,6 +185,21 @@ inline void init_assign_event_command(assign_event_command &cmd, hhal::Unit unit
     cmd.type = command_type::ASSIGN_EVENT;
     cmd.unit = unit;
     cmd.size = size;
+}
+
+inline void init_deassign_kernel_command(deassign_kernel_command &cmd, int kernel_id) {
+    cmd.type = command_type::DEASSIGN_KERNEL;
+    cmd.kernel_id = kernel_id;
+}
+
+inline void init_deassign_buffer_command(deassign_buffer_command &cmd, int buffer_id) {
+    cmd.type = command_type::DEASSIGN_BUFFER;
+    cmd.buffer_id = buffer_id;
+}
+
+inline void init_deassign_event_command(deassign_event_command &cmd, int event_id) {
+    cmd.type = command_type::DEASSIGN_EVENT;
+    cmd.event_id = event_id;
 }
 
 inline void init_allocate_kernel_command(allocate_kernel_command &cmd, int kernel_id) {

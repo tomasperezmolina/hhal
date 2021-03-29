@@ -38,6 +38,11 @@ private:
     Server::message_result_t handle_assign_buffer(int id, const assign_buffer_command *cmd, Server &server);
     Server::message_result_t handle_assign_event(int id, const assign_event_command *cmd, Server &server);
 
+    Server::message_result_t handle_deassign_kernel(int id, const deassign_kernel_command *cmd, Server &server);
+    Server::message_result_t handle_deassign_buffer(int id, const deassign_buffer_command *cmd, Server &server);
+    Server::message_result_t handle_deassign_event(int id, const deassign_event_command *cmd, Server &server);
+
+
     Server::message_result_t handle_allocate_kernel(int id, const allocate_kernel_command *cmd, Server &server);
     Server::message_result_t handle_allocate_memory(int id, const allocate_memory_command *cmd, Server &server);
     Server::message_result_t handle_allocate_event(int id, const allocate_event_command *cmd, Server &server);

@@ -71,6 +71,21 @@ Server::message_result_t HHALServer::handle_command(int id, Server::message_t ms
             return handle_assign_buffer(id, (assign_buffer_command *)msg.buf, server);
         }
         break;
+    case command_type::DEASSIGN_KERNEL:
+        if (msg.size >= sizeof(deassign_kernel_command)) {
+            return handle_deassign_kernel(id, (deassign_kernel_command *)msg.buf, server);
+        }
+        break;
+    case command_type::DEASSIGN_EVENT:
+        if (msg.size >= sizeof(deassign_event_command)) {
+            return handle_deassign_event(id, (deassign_event_command *)msg.buf, server);
+        }
+        break;
+    case command_type::DEASSIGN_BUFFER:
+        if (msg.size >= sizeof(deassign_buffer_command)) {
+            return handle_deassign_buffer(id, (deassign_buffer_command *)msg.buf, server);
+        }
+        break;
     case command_type::ALLOCATE_KERNEL:
         if (msg.size >= sizeof(allocate_kernel_command)) {
             return handle_allocate_kernel(id, (allocate_kernel_command *)msg.buf, server);
@@ -353,6 +368,39 @@ Server::message_result_t HHALServer::handle_assign_event(int id, const assign_ev
     logger.trace("Received: assign event command");
     server.send_on_socket(id, ack_message());
     return {Server::MessageListenerExitCode::OK, sizeof(assign_event_command), cmd->size};
+}
+
+Server::message_result_t HHALServer::handle_deassign_kernel(int id, const deassign_kernel_command *cmd, Server &server) {
+    logger.trace("Received: Deassign kernel command");
+    auto ec = hhal.deassign_kernel(cmd->kernel_id);
+    if (ec != hhal::HHALExitCode::OK) {
+        server.send_on_socket(id, error_message(ec));
+    } else {
+        server.send_on_socket(id, ack_message());
+    }
+    return {Server::MessageListenerExitCode::OK, sizeof(deassign_kernel_command), 0};
+}
+
+Server::message_result_t HHALServer::handle_deassign_buffer(int id, const deassign_buffer_command *cmd, Server &server) {
+    logger.trace("Received: Deassign buffer command");
+    auto ec = hhal.deassign_buffer(cmd->buffer_id);
+    if (ec != hhal::HHALExitCode::OK) {
+        server.send_on_socket(id, error_message(ec));
+    } else {
+        server.send_on_socket(id, ack_message());
+    }
+    return {Server::MessageListenerExitCode::OK, sizeof(deassign_buffer_command), 0};
+}
+
+Server::message_result_t HHALServer::handle_deassign_event(int id, const deassign_event_command *cmd, Server &server) {
+    logger.trace("Received: Deassign kernel command");
+    auto ec = hhal.deassign_event(cmd->event_id);
+    if (ec != hhal::HHALExitCode::OK) {
+        server.send_on_socket(id, error_message(ec));
+    } else {
+        server.send_on_socket(id, ack_message());
+    }
+    return {Server::MessageListenerExitCode::OK, sizeof(deassign_event_command), 0};
 }
 
 Server::message_result_t HHALServer::handle_allocate_kernel(int id, const allocate_kernel_command *cmd, Server &server) {
