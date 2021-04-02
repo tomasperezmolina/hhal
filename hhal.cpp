@@ -97,6 +97,7 @@ HHALExitCode HHAL::assign_event(Unit unit, hhal_event *info) {
 }
 
 HHALExitCode HHAL::deassign_kernel(int kernel_id) {
+    printf("Kernel id %d deassigned\n", kernel_id);
     Unit unit = kernel_to_unit[kernel_id];
     kernel_to_unit.erase(kernel_id);
     switch (unit) {
@@ -113,6 +114,7 @@ HHALExitCode HHAL::deassign_kernel(int kernel_id) {
 }
 
 HHALExitCode HHAL::deassign_buffer(int buffer_id) {
+    printf("Buffer id %d deassigned\n", buffer_id);
     Unit unit = buffer_to_unit[buffer_id];
     buffer_to_unit.erase(buffer_id);
     switch (unit) {
@@ -129,6 +131,7 @@ HHALExitCode HHAL::deassign_buffer(int buffer_id) {
 }
 
 HHALExitCode HHAL::deassign_event(int event_id) {
+    printf("Event id %d deassigned\n", event_id);
     Unit unit = event_to_unit[event_id];
     event_to_unit.erase(event_id);
     switch (unit) {

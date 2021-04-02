@@ -571,6 +571,7 @@ GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args
 
     if (kernel_images.find(info.id) == kernel_images.end()) {
         log_hhal.Error("GNManager: No kernel path");
+        assert(false && "No kernel path");
         return GNManagerExitCode::ERROR;
     }
 

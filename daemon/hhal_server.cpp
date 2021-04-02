@@ -158,6 +158,7 @@ Server::DataListenerExitCode HHALServer::handle_data(int id, Server::packet_t pa
 Server::DataListenerExitCode HHALServer::handle_kernel_start_data(int id, kernel_start_command *cmd, Server::message_t data, Server &server) {
     auxiliary_allocations aux;
     hhal::Arguments args = deserialize_arguments({data.buf, data.size}, aux);
+    logger.info("Starting kernel {}", cmd->kernel_id);
     auto ec = hhal.kernel_start(cmd->kernel_id, args);
     if (ec != hhal::HHALExitCode::OK) {
         server.send_on_socket(id, error_message(ec));
