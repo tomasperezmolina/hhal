@@ -175,13 +175,13 @@ int main(void) {
     /* resource allocation */
     gn_rm::resource_allocation(hhal, {r_kernel_scale, r_kernel_smooth, r_kernel_copy}, r_buffers, events);
 
-    const std::map<hhal::Unit, std::string> kernel_scale_images =   {{hhal::Unit::GN, KERNEL_SCALE_PATH}};
-    const std::map<hhal::Unit, std::string> kernel_copy_images =    {{hhal::Unit::GN, KERNEL_COPY_PATH}};
-    const std::map<hhal::Unit, std::string> kernel_smooth_images =  {{hhal::Unit::GN, KERNEL_SMOOTH_PATH}};
-    
-    hhal.kernel_write(kernel_scale.id, kernel_scale_images);
-    hhal.kernel_write(kernel_copy.id, kernel_copy_images);
-    hhal.kernel_write(kernel_smooth.id, kernel_smooth_images);
+    const std::map<hhal::Unit, hhal::hhal_kernel_source> kernel_scale_sources = {{hhal::Unit::GN, {hhal::source_type::BINARY, KERNEL_SCALE_PATH}}};
+    const std::map<hhal::Unit, hhal::hhal_kernel_source> kernel_copy_sources = {{hhal::Unit::GN, {hhal::source_type::BINARY, KERNEL_COPY_PATH}}};
+    const std::map<hhal::Unit, hhal::hhal_kernel_source> kernel_smooth_sources = {{hhal::Unit::GN, {hhal::source_type::BINARY, KERNEL_SMOOTH_PATH}}};
+
+    hhal.kernel_write(kernel_scale.id, kernel_scale_sources);
+    hhal.kernel_write(kernel_copy.id, kernel_copy_sources);
+    hhal.kernel_write(kernel_smooth.id, kernel_smooth_sources);
     printf("resource allocation done\n");
 
     /* Execution preparation */

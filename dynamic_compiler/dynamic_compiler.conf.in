@@ -1,0 +1,10 @@
+[compiler]
+expiration=86400
+
+[GN]
+path=cc
+libclang=true
+
+[ARM]
+path=test_test
+libclang=true

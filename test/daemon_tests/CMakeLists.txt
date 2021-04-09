@@ -46,12 +46,29 @@ add_executable(daemon_gn_nvidia_saxpy
     gn_nvidia_saxpy.cpp
 )
 
+add_executable(daemon_gn_serial_saxpy_bin_source
+    event_utils_hhal_client.cpp 
+    gn_dummy_rm_hhal_client.cpp
+    ../rm_common.cpp
+    gn_serial_saxpy_bin_source.cpp
+)
+
+add_executable(daemon_gn_serial_saxpy_bin_string
+    event_utils_hhal_client.cpp 
+    gn_dummy_rm_hhal_client.cpp
+    ../rm_common.cpp
+    gn_serial_saxpy_bin_string.cpp
+)
+
+
 target_include_directories(daemon_gn_launch_kernel PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(daemon_nvidia_launch_kernel PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(daemon_gn_serial_saxpy PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(daemon_nvidia_multiple_kernels PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(daemon_gn_nvidia_saxpy PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(daemon_gn_gif_animation PRIVATE ${PROJECT_SOURCE_DIR})
+target_include_directories(daemon_gn_serial_saxpy_bin_source PRIVATE ${PROJECT_SOURCE_DIR})
+target_include_directories(daemon_gn_serial_saxpy_bin_string PRIVATE ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(daemon_gn_launch_kernel PRIVATE hhal_client::hhal_client)
 target_link_libraries(daemon_nvidia_launch_kernel PRIVATE hhal_client::hhal_client)
@@ -59,6 +76,8 @@ target_link_libraries(daemon_gn_serial_saxpy PRIVATE hhal::hhal hhal_client::hha
 target_link_libraries(daemon_nvidia_multiple_kernels PRIVATE hhal::hhal hhal_client::hhal_client)
 target_link_libraries(daemon_gn_nvidia_saxpy PRIVATE hhal::hhal hhal_client::hhal_client)
 target_link_libraries(daemon_gn_gif_animation PRIVATE hhal::hhal ${GIF_LIB} hhal_client::hhal_client)
+target_link_libraries(daemon_gn_serial_saxpy_bin_source PRIVATE hhal::hhal hhal_client::hhal_client)
+target_link_libraries(daemon_gn_serial_saxpy_bin_string PRIVATE hhal::hhal hhal_client::hhal_client)
 
 add_dependencies(daemon_gn_launch_kernel matrix_multiplication_dev)
 add_dependencies(daemon_nvidia_launch_kernel nvidia_saxpy)
@@ -66,3 +85,5 @@ add_dependencies(daemon_gn_serial_saxpy gn_saxpy_1 gn_saxpy_2)
 add_dependencies(daemon_nvidia_multiple_kernels nvidia_saxpy_1 nvidia_saxpy_2)
 add_dependencies(daemon_gn_nvidia_saxpy gn_saxpy_1 nvidia_saxpy_2)
 add_dependencies(daemon_gn_gif_animation copy_kernel smooth_kernel scale_kernel)
+add_dependencies(daemon_gn_serial_saxpy_bin_source gn_saxpy_1)
+add_dependencies(daemon_gn_serial_saxpy_bin_string gn_saxpy_1)

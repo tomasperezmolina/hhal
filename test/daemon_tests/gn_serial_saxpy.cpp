@@ -107,10 +107,11 @@ int main(void) {
     /* resource allocation */
     resource_allocation(hhal, {r_kernel_1, r_kernel_2}, r_buffers, events);
 
-    const std::map<hhal::Unit, std::string> kernel_1_images = {{hhal::Unit::GN, KERNEL_1_PATH}};
-    const std::map<hhal::Unit, std::string> kernel_2_images = {{hhal::Unit::GN, KERNEL_2_PATH}};
-    hhal.kernel_write(kernel_1.id, kernel_1_images);
-    hhal.kernel_write(kernel_2.id, kernel_2_images);
+    const std::map<hhal::Unit, hhal::hhal_kernel_source> kernel_1_sources = {{hhal::Unit::GN, {hhal::source_type::BINARY, KERNEL_1_PATH}}};
+    const std::map<hhal::Unit, hhal::hhal_kernel_source> kernel_2_sources = {{hhal::Unit::GN, {hhal::source_type::BINARY, KERNEL_2_PATH}}};
+
+    hhal.kernel_write(kernel_1.id, kernel_1_sources);
+    hhal.kernel_write(kernel_2.id, kernel_2_sources);
     printf("resource allocation done\n");
 
     /* Execution preparation */

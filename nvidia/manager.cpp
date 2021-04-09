@@ -62,6 +62,12 @@ namespace hhal {
         input_file.close();
         ptx[input_size] = '\0';
 
+        CudaApiExitCode all_err = cuda_api.allocate_kernel(info.mem_id, buffer_size);
+
+        if (all_err != OK) {
+            return NvidiaManagerExitCode::ERROR;
+        }
+
         CudaApiExitCode err = cuda_api.write_kernel(info.mem_id, ptx, buffer_size);
 
         delete[] ptx;
@@ -187,6 +193,8 @@ namespace hhal {
     }
 
     NvidiaManagerExitCode NvidiaManager::allocate_kernel(int kernel_id) {
+        // Allocating at kernel write time because we no longer have kernel size info here
+        /*
         nvidia_kernel &info = kernel_info[kernel_id];
 
         CudaApiExitCode err = cuda_api.allocate_kernel(info.mem_id, info.size);
@@ -194,7 +202,7 @@ namespace hhal {
         if (err != OK) {
             return NvidiaManagerExitCode::ERROR;
         }
-
+        */
         return NvidiaManagerExitCode::OK;
     }
 

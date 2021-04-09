@@ -51,14 +51,14 @@ namespace hhal_daemon {
     };
 
     serialized_object serialize(const hhal::Arguments &arguments);
-    serialized_object serialize(const std::map<hhal::Unit, std::string> &kernel_images);
+    serialized_object serialize(const std::map<hhal::Unit, hhal::hhal_kernel_source> &kernel_sources);
     serialized_object serialize(const hhal::gn_kernel &kernel);
     serialized_object serialize(const hhal::gn_buffer &buffer);
     serialized_object serialize(const hhal::gn_event &event);
     serialized_object serialize(const hhal::nvidia_buffer &buffer);
 
     hhal::Arguments deserialize_arguments(const serialized_object &obj, auxiliary_allocations &allocs);
-    std::map<hhal::Unit, std::string> deserialize_kernel_images(const serialized_object &obj);
+    std::map<hhal::Unit, hhal::hhal_kernel_source> deserialize_kernel_sources(const serialized_object &obj);
     hhal::gn_kernel deserialize_gn_kernel(const serialized_object &obj);
     hhal::gn_buffer deserialize_gn_buffer(const serialized_object &obj);
     hhal::gn_event deserialize_gn_event(const serialized_object &obj);

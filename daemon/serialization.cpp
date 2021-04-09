@@ -86,30 +86,49 @@ serialized_object serialize(const hhal::Arguments &arguments) {
     return {buf, size};
 }
 
-serialized_object serialize(const std::map<hhal::Unit, std::string> &kernel_images) {
+serialized_object serialize(const std::map<hhal::Unit, hhal::hhal_kernel_source> &kernel_sources) {
     size_t unit_size = sizeof(hhal::Unit);
+    size_t source_type_size = sizeof(hhal::source_type);
 
     size_t size = 0;
     auxiliary_allocations allocs;
-    std::vector<size_t> full_path_sizes;
-    for(auto it = kernel_images.cbegin(); it != kernel_images.cend(); ++it) {
+    std::vector<size_t> source_sizes;
+    for(auto it = kernel_sources.cbegin(); it != kernel_sources.cend(); ++it) {
         size += unit_size;
-        char *full_path = realpath(it->second.c_str(), nullptr);
-        size_t full_path_size = strlen(full_path) + 1;
-        size += full_path_size;
+        size += source_type_size;
+        if (it->second.type == hhal::source_type::STRING) {
+            size_t str_source_size = it->second.path_or_string.size() + 1;
+            size += str_source_size;
+            source_sizes.push_back(str_source_size);
+        } else {
+            char *full_path = realpath(it->second.path_or_string.c_str(), nullptr);
+            size_t full_path_size = strlen(full_path) + 1;
+            size += full_path_size;
 
-        allocs.allocations.push_back(full_path);
-        full_path_sizes.push_back(full_path_size);
+            allocs.allocations.push_back(full_path);
+            source_sizes.push_back(full_path_size);
+        }
     }
     void *buf = malloc(size);
     char *curr = (char*) buf;
-    int i = 0;
-    for(auto it = kernel_images.cbegin(); it != kernel_images.cend(); ++it) {
+    int i = 0; // source sizes
+    int j = 0; // allocations
+    for(auto it = kernel_sources.cbegin(); it != kernel_sources.cend(); ++it) {
         hhal::Unit unit = it->first;
         memcpy(curr, &unit, unit_size);
         curr += unit_size;
-        size_t str_size = full_path_sizes[i];
-        memcpy(curr, allocs.allocations[i], str_size);
+
+        hhal::source_type source_type = it->second.type;
+        memcpy(curr, &source_type, source_type_size);
+        curr += source_type_size;
+
+        size_t str_size = source_sizes[i];
+        if (it->second.type == hhal::source_type::STRING) {
+            memcpy(curr, it->second.path_or_string.c_str(), str_size);
+        } else {
+            memcpy(curr, allocs.allocations[j], str_size);
+            j++;
+        }
         curr += str_size;
         i++;
     }
@@ -246,17 +265,23 @@ hhal::Arguments deserialize_arguments(const serialized_object &obj, auxiliary_al
     return result;
 }
 
-std::map<hhal::Unit, std::string> deserialize_kernel_images(const serialized_object &obj) {
-    std::map<hhal::Unit, std::string> res;
+std::map<hhal::Unit, hhal::hhal_kernel_source> deserialize_kernel_sources(const serialized_object &obj) {
+    std::map<hhal::Unit, hhal::hhal_kernel_source> res;
     char *curr = (char*) obj.buf;
     char *end = (char*) obj.buf + obj.size;
     while (curr != end) {
         hhal::Unit unit;
         memcpy(&unit, curr, sizeof(hhal::Unit));
         curr += sizeof(hhal::Unit);
-        std::string path(curr);
-        curr += path.size() + 1;
-        res[unit] = path;
+
+        hhal::source_type source_type;
+        memcpy(&source_type, curr, sizeof(hhal::source_type));
+        curr += sizeof(hhal::source_type);
+
+        std::string path_or_string(curr);
+        curr += path_or_string.size() + 1;
+
+        res[unit] = {source_type, path_or_string};
     }
     assert(curr - (char*) obj.buf == obj.size && "Allocated space is different from the read data size");
     return res;

@@ -170,8 +170,8 @@ Server::DataListenerExitCode HHALServer::handle_kernel_start_data(int id, kernel
 }  
 
 Server::DataListenerExitCode HHALServer::handle_kernel_write_data(int id, kernel_write_command *cmd, Server::message_t data, Server &server) {
-    std::map<hhal::Unit, std::string> kernel_images = 
-        deserialize_kernel_images({data.buf, data.size});
+    std::map<hhal::Unit, hhal::hhal_kernel_source> kernel_images = 
+        deserialize_kernel_sources({data.buf, data.size});
     auto ec = hhal.kernel_write(cmd->kernel_id, kernel_images);
     if (ec != hhal::HHALExitCode::OK) {
         server.send_on_socket(id, error_message(ec));
@@ -304,7 +304,7 @@ Server::message_result_t HHALServer::handle_kernel_start(int id, const kernel_st
 Server::message_result_t HHALServer::handle_kernel_write(int id, const kernel_write_command *cmd, Server &server) {
     logger.trace("Received: kernel write command");
     server.send_on_socket(id, ack_message());
-    return {Server::MessageListenerExitCode::OK, sizeof(kernel_write_command), cmd->images_size};
+    return {Server::MessageListenerExitCode::OK, sizeof(kernel_write_command), cmd->sources_size};
 }
 
 Server::message_result_t HHALServer::handle_write_to_memory(int id, const write_memory_command *cmd, Server &server) {

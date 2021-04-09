@@ -39,7 +39,7 @@ struct command_base {
 struct kernel_write_command {
     command_type type;
     int kernel_id;
-    size_t images_size;
+    size_t sources_size;
 };
 
 struct kernel_start_command {
@@ -134,10 +134,10 @@ struct release_event_command {
     int event_id;
 };
 
-inline void init_kernel_write_command(kernel_write_command &cmd, int kernel_id, size_t images_size) {
+inline void init_kernel_write_command(kernel_write_command &cmd, int kernel_id, size_t sources_size) {
     cmd.type = command_type::KERNEL_WRITE;
     cmd.kernel_id = kernel_id;
-    cmd.images_size = images_size;
+    cmd.sources_size = sources_size;
 }
 
 inline void init_kernel_start_command(kernel_start_command &cmd, int kernel_id, size_t arguments_size) {

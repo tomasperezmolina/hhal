@@ -45,10 +45,10 @@ void HHALClient::close_socket() {
 }
 
 // Kernel execution
-HHALClientExitCode HHALClient::kernel_write(int kernel_id, const std::map<hhal::Unit, std::string> &kernel_images) {
+HHALClientExitCode HHALClient::kernel_write(int kernel_id, const std::map<hhal::Unit, hhal::hhal_kernel_source> &kernel_sources) {
     CHECK_OPEN_SOCKET
 
-    serialized_object serialized = serialize(kernel_images);
+    serialized_object serialized = serialize(kernel_sources);
 
     kernel_write_command cmd;
     init_kernel_write_command(cmd, kernel_id, serialized.size);

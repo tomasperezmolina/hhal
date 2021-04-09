@@ -20,7 +20,7 @@ class HHALClient {
     ~HHALClient();
 
     // Kernel execution
-    HHALClientExitCode kernel_write(int kernel_id, const std::map<hhal::Unit, std::string> &kernel_images);
+    HHALClientExitCode kernel_write(int kernel_id, const std::map<hhal::Unit, hhal::hhal_kernel_source> &kernel_sources);
     HHALClientExitCode kernel_start(int kernel_id, const hhal::Arguments &arguments);
 
     HHALClientExitCode write_to_memory(int buffer_id, const void *source, size_t size);

@@ -56,9 +56,10 @@ int main(void) {
 
     nvidia_rm::resource_allocation(hhal, {r_kernel}, buffers, events);
 
-    const std::map<hhal::Unit, std::string> kernel_images = {{hhal::Unit::NVIDIA, KERNEL_PATH}};
+    const std::map<hhal::Unit, hhal::hhal_kernel_source> kernel_sources = {{hhal::Unit::NVIDIA, {hhal::source_type::BINARY, KERNEL_PATH}}};
 
-    hhal.kernel_write(KERNEL_ID, kernel_images);
+    hhal.kernel_write(KERNEL_ID, kernel_sources);
+
 
     hhal.write_to_memory(BUFFER_X_ID, x, buffer_size);
     hhal.write_to_memory(BUFFER_Y_ID, y, buffer_size);

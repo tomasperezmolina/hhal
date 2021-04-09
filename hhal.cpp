@@ -1,6 +1,7 @@
 #include "hhal.h"
 #include "nvidia/manager.h"
 #include "gn/manager.h"
+#include "dynamic_compiler/compiler.h"
 
 #define GN_MANAGER      managers->gn_manager
 #define NVIDIA_MANAGER  managers->nvidia_manager
@@ -26,6 +27,8 @@
         } while(0)
 
 namespace hhal {
+
+static dynamic_compiler::Compiler compiler;
 
 class HHAL::Managers {
     public:
@@ -147,25 +150,71 @@ HHALExitCode HHAL::deassign_event(int event_id) {
     return HHALExitCode::ERROR;
 }
 
-HHALExitCode HHAL::kernel_write(int kernel_id, const std::map<Unit, std::string> &kernel_images) {
-    std::map<Unit, std::string>::const_iterator it;
+HHALExitCode HHAL::kernel_write(int kernel_id, const std::map<Unit, hhal_kernel_source> &kernel_sources) {
+    std::string kernel_path; // path to the final kernel binary file
+    std::map<Unit, hhal_kernel_source>::const_iterator it;
     switch (kernel_to_unit[kernel_id]) {
         case Unit::GN:
-            it = kernel_images.find(Unit::GN);
-            if (it == kernel_images.end()) {
-                printf("No kernel image for GN\n");
+        {
+            it = kernel_sources.find(Unit::GN);
+            if (it == kernel_sources.end()) {
+                printf("No kernel source for GN\n");
                 return HHALExitCode::ERROR;
             }
-            MAP_GN_EXIT_CODE(GN_MANAGER.kernel_write(kernel_id, it->second));
+
+            hhal_kernel_source source = it->second;
+
+            switch (source.type) {
+                case source_type::BINARY:
+                    kernel_path = source.path_or_string;
+                    break;
+                case source_type::SOURCE: 
+                    kernel_path = compiler.get_binary(source.path_or_string, Unit::GN);
+                    if (kernel_path == "") {
+                        return HHALExitCode::ERROR;
+                    }
+                    break;
+                case source_type::STRING:
+                {
+                    std::string saved_file = dynamic_compiler::save_to_file(source.path_or_string);
+                    kernel_path = compiler.get_binary(saved_file, Unit::GN);
+                    if (kernel_path == "") {
+                        return HHALExitCode::ERROR;
+                    }
+                    break;
+                }
+                default:
+                    return HHALExitCode::ERROR;
+            } 
+            MAP_GN_EXIT_CODE(GN_MANAGER.kernel_write(kernel_id, kernel_path));
             break;
+        }
         case Unit::NVIDIA:
-            it = kernel_images.find(Unit::NVIDIA);
-            if (it == kernel_images.end()) {
-                printf("No kernel image for NVIDIA\n");
+        {
+            it = kernel_sources.find(Unit::NVIDIA);
+            if (it == kernel_sources.end()) {
+                printf("No kernel source for NVIDIA\n");
                 return HHALExitCode::ERROR;
             }
-            MAP_NVIDIA_EXIT_CODE(NVIDIA_MANAGER.kernel_write(kernel_id, it->second));
+
+            hhal_kernel_source source = it->second;
+
+            switch (source.type) {
+                case source_type::BINARY:
+                    kernel_path = source.path_or_string;
+                    break;
+                case source_type::SOURCE:
+                    return HHALExitCode::ERROR;
+                    break;
+                case source_type::STRING:
+                    return HHALExitCode::ERROR;
+                    break;
+                default:
+                    return HHALExitCode::ERROR;
+            }
+            MAP_NVIDIA_EXIT_CODE(NVIDIA_MANAGER.kernel_write(kernel_id, kernel_path));
             break;
+        }
         default:
             break;
     }

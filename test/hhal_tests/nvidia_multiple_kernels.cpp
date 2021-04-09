@@ -85,11 +85,11 @@ int main(void) {
 
     nvidia_rm::resource_allocation(hhal, kernels, buffers, events);
 
-    const std::map<hhal::Unit, std::string> kernel_1_images = {{hhal::Unit::NVIDIA, KERNEL_1_PATH}};
-    const std::map<hhal::Unit, std::string> kernel_2_images = {{hhal::Unit::NVIDIA, KERNEL_2_PATH}};
+    const std::map<hhal::Unit, hhal::hhal_kernel_source> kernel_1_sources = {{hhal::Unit::NVIDIA, {hhal::source_type::BINARY, KERNEL_1_PATH}}};
+    const std::map<hhal::Unit, hhal::hhal_kernel_source> kernel_2_sources = {{hhal::Unit::NVIDIA, {hhal::source_type::BINARY, KERNEL_2_PATH}}};
 
-    hhal.kernel_write(KERNEL_1_ID, kernel_1_images);
-    hhal.kernel_write(KERNEL_2_ID, kernel_2_images);
+    hhal.kernel_write(KERNEL_1_ID, kernel_1_sources);
+    hhal.kernel_write(KERNEL_2_ID, kernel_2_sources);
 
     hhal.write_to_memory(BUFFER_X1_ID, x, buffer_size);
     printf("Sample host: Resource allocation done\n");

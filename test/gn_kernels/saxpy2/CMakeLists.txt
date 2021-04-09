@@ -18,3 +18,7 @@ target_link_libraries(gn_saxpy_2 ${MANGODEV} ${CMAKE_THREAD_LIBS_INIT})
 target_include_directories(gn_saxpy_2 PUBLIC ${MANGO_ROOT}/usr/include/libmango/)
 
 add_dependencies (gn_saxpy_2 gn_saxpy_2_main_gen)
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/saxpy2_source.c
+	DESTINATION ./
+	FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

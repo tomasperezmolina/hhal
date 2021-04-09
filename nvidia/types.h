@@ -13,7 +13,6 @@ typedef struct nvidia_kernel_t {
     uint32_t block_dim_x;
     uint32_t block_dim_y;
     uint32_t block_dim_z;
-    size_t size;
     int termination_event;
 } nvidia_kernel;
 

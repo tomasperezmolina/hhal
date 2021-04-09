@@ -103,12 +103,12 @@ int main(void) {
     gn_rm::resource_allocation(hhal, {r_kernel_1}, r_gn_buffers, gn_events);
     nvidia_rm::resource_allocation(hhal, {r_kernel_2}, nvidia_buffers, nvidia_events);
 
-    const std::map<hhal::Unit, std::string> kernel_1_images = {{hhal::Unit::GN, KERNEL_1_PATH}};
-    const std::map<hhal::Unit, std::string> kernel_2_images = {{hhal::Unit::NVIDIA, KERNEL_2_PATH}};
-    printf("resource allocation done\n");
+       const std::map<hhal::Unit, hhal::hhal_kernel_source> kernel_1_sources = {{hhal::Unit::GN, {hhal::source_type::BINARY, KERNEL_1_PATH}}};
+    const std::map<hhal::Unit, hhal::hhal_kernel_source> kernel_2_sources = {{hhal::Unit::NVIDIA, {hhal::source_type::BINARY, KERNEL_2_PATH}}};
 
-    hhal.kernel_write(kernel_1.id, kernel_1_images);
-    hhal.kernel_write(kernel_2.id, kernel_2_images);
+    hhal.kernel_write(kernel_1.id, kernel_1_sources);
+    hhal.kernel_write(kernel_2.id, kernel_2_sources);
+    printf("resource allocation done\n");
 
     /* Execution preparation */
 

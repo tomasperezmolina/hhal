@@ -95,8 +95,8 @@ int main(void) {
     /* resource allocation */
     resource_allocation(hhal, {r_kernel}, r_buffers, events);
 
-    const std::map<hhal::Unit, std::string> kernel_images = {{hhal::Unit::GN, KERNEL_PATH}};
-    hhal.kernel_write(kernel.id, kernel_images);
+    const std::map<hhal::Unit, hhal::hhal_kernel_source> kernel_sources = {{hhal::Unit::GN, {hhal::source_type::BINARY, KERNEL_PATH}}};
+    hhal.kernel_write(kernel.id, kernel_sources);
     printf("resource allocation done\n");
 
     /* Execution preparation */

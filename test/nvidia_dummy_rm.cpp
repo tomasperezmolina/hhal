@@ -37,7 +37,7 @@ void resource_allocation(
         k.block_dim_y = 1;
         k.block_dim_z = 1;
         k.mem_id = kernel.k.id;
-        k.size = kernel.k.image_size;
+        //k.size = kernel.k.image_size;
         k.termination_event = kernel.kernel_termination_event;
         hhal.assign_kernel(hhal::Unit::NVIDIA, (hhal_kernel *) &k);
         hhal.allocate_kernel(kernel.k.id);
