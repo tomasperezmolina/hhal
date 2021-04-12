@@ -204,7 +204,10 @@ HHALExitCode HHAL::kernel_write(int kernel_id, const std::map<Unit, hhal_kernel_
                     kernel_path = source.path_or_string;
                     break;
                 case source_type::SOURCE:
-                    return HHALExitCode::ERROR;
+                    kernel_path = compiler.get_binary(source.path_or_string, Unit::NVIDIA);
+                    if (kernel_path == "") {
+                        return HHALExitCode::ERROR;
+                    }
                     break;
                 case source_type::STRING:
                     return HHALExitCode::ERROR;

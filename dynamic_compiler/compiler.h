@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include "dynamic_compiler/config_reader.h"
+#include "cuda_compiler.h"
 
 namespace dynamic_compiler {
 
@@ -27,14 +28,15 @@ namespace dynamic_compiler {
             * \returns Path to binary file
             * \note Compilation is only performed if there is no binary for the given source file that is newer than the source file.
             */
-            const std::string get_binary(const std::string source, hhal::Unit arch) const;
+            const std::string get_binary(const std::string source, hhal::Unit arch);
 
         private:
-            bool generate_bin(const std::vector<std::string> &cmds, const std::string outputFilename, hhal::Unit arch) const;
+            bool gn_generate_bin(const std::vector<std::string> &cmds, const std::string outputFilename, hhal::Unit arch) const;
 
             int expiration_time = 259200; // 3 days by default
 
             dynamic_compiler_config config;
+            cuda_compiler::CudaCompiler cuda_compiler;
     };
 }
 

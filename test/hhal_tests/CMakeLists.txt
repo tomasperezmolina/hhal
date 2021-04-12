@@ -56,6 +56,13 @@ add_executable(gn_serial_saxpy_bin_string
     gn_serial_saxpy_bin_string.cpp
 )
 
+add_executable(nvidia_launch_kernel_source
+    event_utils_hhal.cpp 
+    nvidia_dummy_rm_hhal.cpp
+    ../rm_common.cpp
+    nvidia_launch_kernel_source.cpp
+)
+
 target_include_directories(gn_launch_kernel PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(nvidia_launch_kernel PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(gn_serial_saxpy PRIVATE ${PROJECT_SOURCE_DIR})
@@ -64,6 +71,7 @@ target_include_directories(gn_nvidia_saxpy PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(gn_gif_animation PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(gn_serial_saxpy_bin_source PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(gn_serial_saxpy_bin_string PRIVATE ${PROJECT_SOURCE_DIR})
+target_include_directories(nvidia_launch_kernel_source PRIVATE ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(gn_launch_kernel PRIVATE hhal::hhal)
 target_link_libraries(nvidia_launch_kernel PRIVATE hhal::hhal)
@@ -73,6 +81,7 @@ target_link_libraries(gn_nvidia_saxpy PRIVATE hhal::hhal)
 target_link_libraries(gn_gif_animation PRIVATE hhal::hhal ${GIF_LIB})
 target_link_libraries(gn_serial_saxpy_bin_source PRIVATE hhal::hhal)
 target_link_libraries(gn_serial_saxpy_bin_string PRIVATE hhal::hhal)
+target_link_libraries(nvidia_launch_kernel_source PRIVATE hhal::hhal)
 
 add_dependencies(gn_launch_kernel matrix_multiplication_dev)
 add_dependencies(nvidia_launch_kernel nvidia_saxpy)

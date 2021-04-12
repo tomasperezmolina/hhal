@@ -60,6 +60,12 @@ add_executable(daemon_gn_serial_saxpy_bin_string
     gn_serial_saxpy_bin_string.cpp
 )
 
+add_executable(daemon_nvidia_launch_kernel_source
+    event_utils_hhal_client.cpp 
+    nvidia_dummy_rm_hhal_client.cpp
+    ../rm_common.cpp
+    nvidia_launch_kernel_source.cpp
+)
 
 target_include_directories(daemon_gn_launch_kernel PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(daemon_nvidia_launch_kernel PRIVATE ${PROJECT_SOURCE_DIR})
@@ -69,6 +75,7 @@ target_include_directories(daemon_gn_nvidia_saxpy PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(daemon_gn_gif_animation PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(daemon_gn_serial_saxpy_bin_source PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(daemon_gn_serial_saxpy_bin_string PRIVATE ${PROJECT_SOURCE_DIR})
+target_include_directories(daemon_nvidia_launch_kernel_source PRIVATE ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(daemon_gn_launch_kernel PRIVATE hhal_client::hhal_client)
 target_link_libraries(daemon_nvidia_launch_kernel PRIVATE hhal_client::hhal_client)
@@ -78,6 +85,7 @@ target_link_libraries(daemon_gn_nvidia_saxpy PRIVATE hhal::hhal hhal_client::hha
 target_link_libraries(daemon_gn_gif_animation PRIVATE hhal::hhal ${GIF_LIB} hhal_client::hhal_client)
 target_link_libraries(daemon_gn_serial_saxpy_bin_source PRIVATE hhal::hhal hhal_client::hhal_client)
 target_link_libraries(daemon_gn_serial_saxpy_bin_string PRIVATE hhal::hhal hhal_client::hhal_client)
+target_link_libraries(daemon_nvidia_launch_kernel_source PRIVATE hhal_client::hhal_client)
 
 add_dependencies(daemon_gn_launch_kernel matrix_multiplication_dev)
 add_dependencies(daemon_nvidia_launch_kernel nvidia_saxpy)

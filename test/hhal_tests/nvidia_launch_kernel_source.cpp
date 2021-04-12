@@ -1,0 +1,118 @@
+#include <fstream>
+#include <iostream>
+#include <vector>
+#include <assert.h>
+
+#include "hhal.h"
+
+#include "mango_arguments.h"
+#include "event_utils.h"
+#include "nvidia_dummy_rm.h"
+
+#define KERNEL_SOURCE_PATH "cuda_kernels/saxpy.cu"
+
+#define KERNEL_ID 1
+#define BUFFER_X_ID 0
+#define BUFFER_Y_ID 1
+#define BUFFER_O_ID 2
+
+using namespace hhal;
+
+void saxpy(float a, float *x, float *y, float *o, float n) {
+    for (size_t i = 0; i < n; ++i) {
+        o[i] = a * x[i] + y[i];
+    }
+}
+
+int main(void) {
+    HHAL hhal;
+
+    std::ifstream kernel_fd(KERNEL_SOURCE_PATH, std::ifstream::in | std::ifstream::ate);
+    assert(kernel_fd.good() && "Kernel file does not exist");
+
+    mango_kernel kernel = { KERNEL_ID };
+    nvidia_rm::registered_kernel r_kernel = nvidia_rm::register_kernel(kernel);
+
+    mango_event kernel_termination_event = {r_kernel.kernel_termination_event};
+    std::vector<mango_event> events = {kernel_termination_event};
+
+    // Setup input and output buffers
+    size_t n = 100;
+    size_t buffer_size = n * sizeof(float);
+    float a = 2.5f;
+    float *x = new float[n], *y = new float[n], *o = new float[n];
+
+    for (size_t i = 0; i < n; ++i) {
+        x[i] = static_cast<float>(i);
+        y[i] = static_cast<float>(i * 2);
+    }
+
+    std::vector<mango_buffer> buffers = {
+        {BUFFER_X_ID, buffer_size, {}, {KERNEL_ID}},
+        {BUFFER_Y_ID, buffer_size, {}, {KERNEL_ID}},
+        {BUFFER_O_ID, buffer_size, {KERNEL_ID}, {}},
+    };
+
+    nvidia_rm::resource_allocation(hhal, {r_kernel}, buffers, events);
+
+    const std::map<hhal::Unit, hhal::hhal_kernel_source> kernel_sources = {{hhal::Unit::NVIDIA, {hhal::source_type::SOURCE, KERNEL_SOURCE_PATH}}};
+
+    hhal.kernel_write(KERNEL_ID, kernel_sources);
+
+
+    hhal.write_to_memory(BUFFER_X_ID, x, buffer_size);
+    hhal.write_to_memory(BUFFER_Y_ID, y, buffer_size);
+
+    float n_float = (float) n;
+
+    Arguments arguments;
+
+    scalar_arg scalar_arg1 = {hhal::ScalarType::FLOAT, sizeof(float)} ;
+    scalar_arg1.afloat = a;
+    arguments.add_scalar(scalar_arg1);
+
+    arguments.add_buffer({BUFFER_X_ID});
+    arguments.add_buffer({BUFFER_Y_ID});
+    arguments.add_buffer({BUFFER_O_ID});
+
+    scalar_arg scalar_arg2 = {hhal::ScalarType::FLOAT, sizeof(float)} ;
+    scalar_arg2.afloat = n_float;
+    arguments.add_scalar(scalar_arg2);
+
+    // Launch kernel
+    hhal.kernel_start(KERNEL_ID, arguments);
+    printf("Before kernel finishes!\n");
+
+    events::wait(hhal, kernel_termination_event.id, 1);
+
+    hhal.read_from_memory(BUFFER_O_ID, o, buffer_size);
+
+    for (size_t i = 0; i < 10; ++i) { // first 10 results only
+        std::cout << a << " * " << x[i] << " + " << y[i] << " = " << o[i] << '\n';
+    }
+
+    float *expected = new float[n];
+    saxpy(a, x, y, expected, n);
+
+    bool correct = true;
+    for (int i = 0; i < n; ++i) {
+        if (o[i] != expected[i]) {
+            printf("Sample host: Incorrect value at %d: got %.2f vs %.2f\n", i, o[i], expected[i]);
+            std::cout << "Sample host: Stopping...\n" << std::endl;
+            correct = false;
+            break;
+        }
+    }
+    if(correct) {
+        std::cout << "Sample host: SAXPY correctly performed" << std::endl;
+    }
+
+    nvidia_rm::resource_deallocation(hhal, {r_kernel}, buffers, events);
+
+    delete[] x;
+    delete[] y;
+    delete[] o;
+    delete[] expected;
+
+    return 0;
+}
