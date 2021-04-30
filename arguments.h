@@ -36,8 +36,8 @@ typedef struct scalar_arg_t {
        int16_t aint16; 
        int32_t aint32; 
        uint8_t uint8;
-       uint8_t uint16;
-       uint8_t uint32;
+       uint16_t uint16;
+       uint32_t uint32;
 
        float   afloat; 
        long    along; 
