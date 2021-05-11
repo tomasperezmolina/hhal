@@ -28,9 +28,9 @@ set (PUBLIC_HEADERS
 
 set(INCLUDE_DIRS 
     ${PROJECT_SOURCE_DIR}
-    external
-    base
-    /opt/mango/include/hhal
+    ${PROJECT_SOURCE_DIR}/external
+    ${PROJECT_SOURCE_DIR}/base
+    ${PROJECT_SOURCE_DIR}/..
 )
 
 set(SERVER_SOURCES
@@ -48,8 +48,6 @@ set(CLIENT_SOURCES
     hhal_client.cpp
 )
 
-find_package(hhal CONFIG REQUIRED HINTS /opt/mango/lib/cmake)
-
 add_library(hhal_client SHARED ${CLIENT_SOURCES})
 
 # Specify rpath to avoid having to add the path to LD_LIBRARY_PATH
@@ -57,12 +55,12 @@ add_library(hhal_client SHARED ${CLIENT_SOURCES})
 set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_RPATH}:${MANGO_ROOT}/lib/hhal)
 add_executable(hhal_daemon ${SERVER_SOURCES})
 
-target_link_libraries(hhal_daemon PRIVATE hhal::hhal spdlog::spdlog)
-target_link_libraries(hhal_client PUBLIC hhal::hhal)
+target_link_libraries(hhal_daemon PRIVATE hhal spdlog::spdlog)
+target_link_libraries(hhal_client PUBLIC hhal)
 
 target_include_directories(hhal_daemon PRIVATE ${INCLUDE_DIRS})
 target_include_directories(hhal_client PUBLIC 
-    $<BUILD_INTERFACE:${INCLUDE_DIRS}>
+    "$<BUILD_INTERFACE:${INCLUDE_DIRS}>"
     $<INSTALL_INTERFACE:${CLIENT_INCLUDE_DIR}>
 )
 

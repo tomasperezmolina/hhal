@@ -70,8 +70,8 @@ endif (CONFIG_DYNAMIC_COMPILER_LLVM_ENABLE)
 
 target_include_directories(hhal PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<INSTALL_INTERFACE:${INCLUDE_DIR}>)
-
+    $<INSTALL_INTERFACE:${INCLUDE_DIR}>
+)
 
 find_package(cuda_compiler CONFIG REQUIRED HINTS /opt/mango/lib/cmake)
 find_package(cuda_manager CONFIG REQUIRED HINTS /opt/mango/lib/cmake)
@@ -107,3 +107,4 @@ install(FILES "${PROJECT_BINARY_DIR}/${DYNAMIC_COMPILER_CONFIG_FILE_PATH}" DESTI
 add_subdirectory(dynamic_compiler)
 add_subdirectory(gn)
 add_subdirectory(nvidia)
+add_subdirectory(daemon)

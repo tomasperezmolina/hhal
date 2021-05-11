@@ -12,7 +12,7 @@ ConfigReader::ExitCode ConfigReader::read_config(std::string path, dynamic_compi
     gn_config.compiler_path = reader.Get("GN", "path", "");
     gn_config.libclang = reader.GetBoolean("GN", "libclang", true);
 
-    printf("Compiler: Reading config file %s", path.c_str());
+    printf("Compiler: Reading config file %s\n", path.c_str());
 
     /*
     printf("expiration time: %d\n", expiration);
