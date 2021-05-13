@@ -29,8 +29,7 @@
 #include "dynamic_compiler/LLVMInstanceManager.h"
 #endif
 
-
-
+#include "cuda_compiler.h"
 
 #include "dynamic_compiler/compiler.h"
 #include "dynamic_compiler/mango_gen_kernel_entry.h"
@@ -107,6 +106,7 @@ namespace dynamic_compiler {
             switch(arch) {
                 case hhal::Unit::NVIDIA: 
                 {
+                    cuda_compiler::CudaCompiler cuda_compiler;
                     char *ptx;
                     cuda_compiler.compile_to_ptx(source.c_str(), &ptx);
                     cuda_compiler.save_ptx_to_file(ptx, bin_path.c_str());

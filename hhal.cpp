@@ -3,8 +3,9 @@
 #include "gn/manager.h"
 #include "dynamic_compiler/compiler.h"
 
-#define GN_MANAGER      managers->gn_manager
-#define NVIDIA_MANAGER  managers->nvidia_manager
+#define GN_MANAGER      impl->gn_manager
+#define NVIDIA_MANAGER  impl->nvidia_manager
+#define COMPILER        impl->compiler
 
 #define MAP_GN_EXIT_CODE(x)                     \
         do {                                    \
@@ -28,16 +29,15 @@
 
 namespace hhal {
 
-static dynamic_compiler::Compiler compiler;
-
-class HHAL::Managers {
+class HHAL::Impl {
     public:
         NvidiaManager nvidia_manager;
         GNManager gn_manager;
+        dynamic_compiler::Compiler compiler;
 };
 
 HHAL::HHAL() {
-    managers = new HHAL::Managers;
+    impl = new HHAL::Impl;
     GNManagerExitCode ec = GN_MANAGER.initialize();
     if (ec != GNManagerExitCode::OK) {
         printf("[Error] Could not initialize GNManager\n");
@@ -51,7 +51,7 @@ HHAL::~HHAL() {
     if (ec != GNManagerExitCode::OK) {
         printf("[Error] Could not finalize GNManager properly\n");
     }
-    delete managers;
+    delete impl;
     printf("HHAL: Destroyed\n");
 }
 
@@ -170,7 +170,7 @@ HHALExitCode HHAL::kernel_write(int kernel_id, const std::map<Unit, hhal_kernel_
                     kernel_path = source.path_or_string;
                     break;
                 case source_type::SOURCE: 
-                    kernel_path = compiler.get_binary(source.path_or_string, Unit::GN);
+                    kernel_path = COMPILER.get_binary(source.path_or_string, Unit::GN);
                     if (kernel_path == "") {
                         return HHALExitCode::ERROR;
                     }
@@ -178,7 +178,7 @@ HHALExitCode HHAL::kernel_write(int kernel_id, const std::map<Unit, hhal_kernel_
                 case source_type::STRING:
                 {
                     std::string saved_file = dynamic_compiler::save_to_file(source.path_or_string);
-                    kernel_path = compiler.get_binary(saved_file, Unit::GN);
+                    kernel_path = COMPILER.get_binary(saved_file, Unit::GN);
                     if (kernel_path == "") {
                         return HHALExitCode::ERROR;
                     }
@@ -205,7 +205,7 @@ HHALExitCode HHAL::kernel_write(int kernel_id, const std::map<Unit, hhal_kernel_
                     kernel_path = source.path_or_string;
                     break;
                 case source_type::SOURCE:
-                    kernel_path = compiler.get_binary(source.path_or_string, Unit::NVIDIA);
+                    kernel_path = COMPILER.get_binary(source.path_or_string, Unit::NVIDIA);
                     if (kernel_path == "") {
                         return HHALExitCode::ERROR;
                     }

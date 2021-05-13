@@ -104,7 +104,6 @@ add_definitions(-DDYNAMIC_COMPILER_CONFIG="${DYNAMIC_COMPILER_CONFIG_INSTALL_PAT
 configure_file("${DYNAMIC_COMPILER_CONFIG_FILE_PATH}.in" ${DYNAMIC_COMPILER_CONFIG_FILE_PATH} COPYONLY)
 install(FILES "${PROJECT_BINARY_DIR}/${DYNAMIC_COMPILER_CONFIG_FILE_PATH}" DESTINATION ${CONFIG_DIR})
 
-add_subdirectory(dynamic_compiler)
 add_subdirectory(gn)
 add_subdirectory(nvidia)
 add_subdirectory(daemon)

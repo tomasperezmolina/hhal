@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include "dynamic_compiler/config_reader.h"
-#include "cuda_compiler.h"
 
 namespace dynamic_compiler {
 
@@ -36,7 +35,6 @@ namespace dynamic_compiler {
             int expiration_time = 259200; // 3 days by default
 
             dynamic_compiler_config config;
-            cuda_compiler::CudaCompiler cuda_compiler;
     };
 }
 

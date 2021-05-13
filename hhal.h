@@ -52,10 +52,10 @@ class HHAL {
         // -----------------------
 
     private:
-        class Managers;
+        class Impl;
 
-        // Pointer to forward declared class to avoid including manager headers
-        Managers *managers;
+        // Pointer to forward declared class to avoid including implementation dependent headers
+        Impl *impl;
 
         std::map<int, Unit> kernel_to_unit;
         std::map<int, Unit> buffer_to_unit;
