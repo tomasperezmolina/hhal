@@ -37,6 +37,7 @@ set(SERVER_SOURCES
     base/server/server.cpp
     utils/config_reader.cpp
     utils/logger.cpp
+    utils/thread_pool.cpp
     hhal_server.cpp
     run_daemon.cpp
     serialization.cpp
@@ -54,6 +55,14 @@ add_library(hhal_client SHARED ${CLIENT_SOURCES})
 # Necessary because hhal is in a non-standard location
 set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_RPATH}:${MANGO_ROOT}/lib/hhal)
 add_executable(hhal_daemon ${SERVER_SOURCES})
+
+if(PROFILING_MODE)
+    message("PROFILING MODE!")
+    add_definitions(-DPROFILING_MODE)
+    find_package(profiling CONFIG REQUIRED HINTS ${MANGO_ROOT}/lib/cmake)
+    target_link_libraries(hhal_daemon PRIVATE profiling::profiling)
+    target_include_directories(hhal_daemon PRIVATE ${MANGO_ROOT}/include/profiling)
+endif(PROFILING_MODE)
 
 target_link_libraries(hhal_daemon PRIVATE hhal spdlog::spdlog)
 target_link_libraries(hhal_client PUBLIC hhal)

@@ -68,6 +68,16 @@ if (CONFIG_DYNAMIC_COMPILER_LLVM_ENABLE)
 	target_link_libraries (hhal PRIVATE LLVM ${CLANG_DRIVER} ${CLANG_BASIC})
 endif (CONFIG_DYNAMIC_COMPILER_LLVM_ENABLE)
 
+set(PROFILING_MODE true)
+
+if(PROFILING_MODE)
+    message("PROFILING MODE!")
+    add_definitions(-DPROFILING_MODE)
+    find_package(profiling CONFIG REQUIRED HINTS ${MANGO_ROOT}/lib/cmake)
+    target_link_libraries(hhal PRIVATE profiling::profiling)
+    target_include_directories(hhal PRIVATE ${MANGO_ROOT}/include/profiling)
+endif(PROFILING_MODE)
+
 target_include_directories(hhal PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:${INCLUDE_DIR}>

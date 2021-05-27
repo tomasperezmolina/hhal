@@ -18,6 +18,10 @@ int main(int argc, char const *argv[]) {
         return -1;
     }
 
+#ifdef PROFILING_MODE
+    logger.info("Profiling enabled");
+#endif
+
     std::string socket_path;
     if(argc > 1) {
         socket_path = argv[1];

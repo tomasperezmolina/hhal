@@ -1,11 +1,17 @@
 #include "hhal_server.h"
 #include "utils/logger.h"
+#include "utils/thread_pool.h"
 #include "serialization.h"
 #include "hhal_response.h"
+
+#ifdef PROFILING_MODE
+    #include "profiling.h"
+#endif
 
 namespace hhal_daemon {
 
 static Logger &logger = Logger::get_instance();
+static ThreadPool dump_thread(1);
 
 Server::message_t ack_message() {
     response_base *response = (response_base *) malloc(sizeof(response_base));
@@ -183,7 +189,13 @@ Server::DataListenerExitCode HHALServer::handle_kernel_write_data(int id, kernel
 }
 
 Server::DataListenerExitCode HHALServer::handle_write_to_memory_data(int id, write_memory_command *cmd, Server::message_t data, Server &server) {
+#ifdef PROFILING_MODE
+    auto ref = profiling::Profiler::get_instance().start_buffer_write(cmd->buffer_id, data.size);
+#endif
     auto ec = hhal.write_to_memory(cmd->buffer_id, data.buf, data.size);
+#ifdef PROFILING_MODE
+    ref->finish();
+#endif
     if (ec != hhal::HHALExitCode::OK) {
         server.send_on_socket(id, error_message(ec));
     } else {
@@ -316,7 +328,13 @@ Server::message_result_t HHALServer::handle_write_to_memory(int id, const write_
 Server::message_result_t HHALServer::handle_read_from_memory(int id, const read_memory_command *cmd, Server &server) {
     logger.trace("Received: read from memory command");
     void *buf = malloc(cmd->size);
+#ifdef PROFILING_MODE
+    auto ref = profiling::Profiler::get_instance().start_buffer_read(cmd->buffer_id, cmd->size);
+#endif
     auto ec = hhal.read_from_memory(cmd->buffer_id, buf, cmd->size);
+#ifdef PROFILING_MODE
+    ref->finish();
+#endif
     if (ec != hhal::HHALExitCode::OK) {
         server.send_on_socket(id, error_message(ec));
     } else {
@@ -379,6 +397,9 @@ Server::message_result_t HHALServer::handle_deassign_kernel(int id, const deassi
     } else {
         server.send_on_socket(id, ack_message());
     }
+#ifdef PROFILING_MODE
+    dump_thread.push_task([]{profiling::Profiler::get_instance().dump();});
+#endif 
     return {Server::MessageListenerExitCode::OK, sizeof(deassign_kernel_command), 0};
 }
 

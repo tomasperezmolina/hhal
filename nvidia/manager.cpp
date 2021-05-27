@@ -3,6 +3,10 @@
 #include <thread>
 #include <functional>
 
+#ifdef PROFILING_MODE
+#include "profiling.h"
+#endif
+
 #include "nvidia/manager.h"
 #include "kernel_arguments.h"
 
@@ -65,6 +69,7 @@ namespace hhal {
         CudaApiExitCode all_err = cuda_api.allocate_kernel(info.mem_id, buffer_size);
 
         if (all_err != OK) {
+            delete [] ptx;
             return NvidiaManagerExitCode::ERROR;
         }
 
@@ -168,7 +173,14 @@ namespace hhal {
         CudaResourceArgs r_args = {info.gpu_id, {info.grid_dim_x, info.grid_dim_y, info.grid_dim_z}, {info.block_dim_x, info.block_dim_y, info.block_dim_z}};
 
         auto &termination_event = event_info[info.termination_event];
+
+#ifdef PROFILING_MODE
+        auto ref = profiling::Profiler::get_instance().start_kernel_execution(kernel_id);
+#endif
         CudaApiExitCode err = cuda_api.launch_kernel(kernel_id, kernel_function_names[kernel_id].c_str(), r_args, arg_array, arg_count);
+#ifdef PROFILING_MODE
+        ref->finish();
+#endif
 
         free(arg_array);
         free(scalar_allocations);
