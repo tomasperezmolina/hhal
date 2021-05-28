@@ -54,8 +54,6 @@ class NvidiaManager {
         std::map<int, nvidia_buffer> buffer_info;
         std::map<int, nvidia_event> event_info;
 
-        std::map<int, std::string> kernel_function_names;
-        
         ThreadPool thread_pool;
         EventRegistry registry;
 

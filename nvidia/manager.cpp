@@ -73,14 +73,6 @@ namespace hhal {
             return NvidiaManagerExitCode::ERROR;
         }
 
-        CudaApiExitCode err = cuda_api.write_kernel(info.mem_id, ptx, buffer_size);
-
-        delete[] ptx;
-
-        if (err != OK) {
-            return NvidiaManagerExitCode::ERROR;
-        }
-
         // For now we assume that the function name is equal to the filename
         std::string function_name = image_path;
 
@@ -95,7 +87,14 @@ namespace hhal {
         if (std::string::npos != period_idx) {
             function_name.erase(period_idx);
         }
-        kernel_function_names[info.id] = function_name;
+
+        CudaApiExitCode err = cuda_api.write_kernel(info.mem_id, function_name.c_str(), ptx, buffer_size);
+
+        delete[] ptx;
+
+        if (err != OK) {
+            return NvidiaManagerExitCode::ERROR;
+        }
 
         return NvidiaManagerExitCode::OK;
     }
@@ -177,7 +176,7 @@ namespace hhal {
 #ifdef PROFILING_MODE
         auto ref = profiling::Profiler::get_instance().start_kernel_execution(kernel_id);
 #endif
-        CudaApiExitCode err = cuda_api.launch_kernel(kernel_id, kernel_function_names[kernel_id].c_str(), r_args, arg_array, arg_count);
+        CudaApiExitCode err = cuda_api.launch_kernel(kernel_id, r_args, arg_array, arg_count);
 #ifdef PROFILING_MODE
         ref->finish();
 #endif
