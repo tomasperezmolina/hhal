@@ -324,6 +324,7 @@ GNManagerExitCode GNManager::allocate_kernel(int kernel_id){
     }
 
     allocated_kernel_info[kernel_id] = {GN_DEFAULT_CLUSTER, tiles_dst[0]};
+    return GNManagerExitCode::OK;
 }
 
 GNManagerExitCode GNManager::release_kernel(int kernel_id){
@@ -371,27 +372,26 @@ GNManagerExitCode GNManager::allocate_memory(int buffer_id){
         log_hhal.Error("GNManager: memory allocation failed: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
                        alloc_info.cluster_id, alloc_info.mem_tile, alloc_info.physical_addr, info.size);
         return GNManagerExitCode::ERROR;
-    } else {
-        log_hhal.Debug("GNManager: memory allocated: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
-                       alloc_info.cluster_id, alloc_info.mem_tile, alloc_info.physical_addr, info.size);
-
-        // Prepare event register
-        GNManagerExitCode ec;
-        uint32_t value;
-        auto et_id = info.event;
-        auto &ev_info = allocated_event_info[et_id];
-        log_hhal.Debug("GNManager: allocate_memory: setting buffer event to WRITE, event %d, phy_addr 0x%x", et_id, ev_info.physical_addr);
-        ec = read_sync_register(et_id, &value); 
-        if (ec != GNManagerExitCode::OK) return ec;
-        assert( 0 == value );
-
-        const int WRITE = 2;
-        ec = write_sync_register(et_id, WRITE);
-        if (ec != GNManagerExitCode::OK) return ec;
-    
-        return GNManagerExitCode::OK;
     }
+    
+    log_hhal.Debug("GNManager: memory allocated: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
+                    alloc_info.cluster_id, alloc_info.mem_tile, alloc_info.physical_addr, info.size);
 
+    // Prepare event register
+    GNManagerExitCode ec;
+    uint32_t value;
+    auto et_id = info.event;
+    auto &ev_info = allocated_event_info[et_id];
+    log_hhal.Debug("GNManager: allocate_memory: setting buffer event to WRITE, event %d, phy_addr 0x%x", et_id, ev_info.physical_addr);
+    ec = read_sync_register(et_id, &value); 
+    if (ec != GNManagerExitCode::OK) return ec;
+    assert( 0 == value );
+
+    const int WRITE = 2;
+    ec = write_sync_register(et_id, WRITE);
+    if (ec != GNManagerExitCode::OK) return ec;
+
+    return GNManagerExitCode::OK;
 }
 
 GNManagerExitCode GNManager::release_memory(int buffer_id){
@@ -402,11 +402,10 @@ GNManagerExitCode GNManager::release_memory(int buffer_id){
         log_hhal.Error("GNManager: memory free failed: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
                        info.cluster_id, info.mem_tile, info.physical_addr, buf_size);
         return GNManagerExitCode::ERROR;
-    } else {
-        log_hhal.Debug("GNManager: memory released: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
-                       info.cluster_id, info.mem_tile, info.physical_addr, buf_size);
-        return GNManagerExitCode::OK;
     }
+    log_hhal.Debug("GNManager: memory released: cluster=%d, memory=%d, phy_addr=0x%x, size=%d",
+                    info.cluster_id, info.mem_tile, info.physical_addr, buf_size);
+    return GNManagerExitCode::OK;
 }
 
 GNManagerExitCode GNManager::allocate_event(int event_id){
@@ -474,9 +473,8 @@ GNManagerExitCode GNManager::get_synch_register_addr(uint32_t cluster, addr_t *r
     if (reg <= MANGO_REG_SIZE ){
         *reg_address = reg*4 + cluster*MANGO_REG_SIZE*4 ;
         return GNManagerExitCode::OK;
-    } else {
-        return GNManagerExitCode::ERROR;
     }
+    return GNManagerExitCode::ERROR;
 }
 
 void GNManager::release_synch_register_addr(uint32_t cluster, addr_t reg_address) {
@@ -507,13 +505,12 @@ GNManagerExitCode GNManager::find_memory(uint32_t cluster, uint32_t unit,
         log_hhal.Error("GNManager: memory not found: cluster=%d, unit=%d, size=%d",
                        cluster, unit, size);
         return GNManagerExitCode::ERROR;
-    } else {
-        *phy_addr = phy_addr_l;
-        log_hhal.Debug("GNManager: free memory found: cluster=%d, unit=%d, size=%d, "
-                       "memory=%d, phy_addr=0x%x",
-                       cluster, unit, size, *memory, *phy_addr);
-        return GNManagerExitCode::OK;
     }
+    *phy_addr = phy_addr_l;
+    log_hhal.Debug("GNManager: free memory found: cluster=%d, unit=%d, size=%d, "
+                    "memory=%d, phy_addr=0x%x",
+                    cluster, unit, size, *memory, *phy_addr);
+    return GNManagerExitCode::OK;
 }
 
 GNManagerExitCode GNManager::find_units_set(uint32_t cluster, uint32_t num_tiles, std::vector<uint32_t> &tiles_dst){
@@ -541,17 +538,16 @@ GNManagerExitCode GNManager::reserve_units_set(uint32_t cluster, const std::vect
     auto status = HNemu::instance()->reserve_units_set(cluster, tiles.size(), tiles.data());
     if (status!=HN_SUCCEEDED)
         return GNManagerExitCode::ERROR;
-    else
-        return GNManagerExitCode::OK;
-
+    
+    return GNManagerExitCode::OK;
 }
 
 GNManagerExitCode GNManager::release_units_set(uint32_t cluster, const std::vector<uint32_t> &tiles){
     auto status = HNemu::instance()->release_units_set(cluster, tiles.size(), tiles.data());
     if (status!=HN_SUCCEEDED)
         return GNManagerExitCode::ERROR;
-    else
-        return GNManagerExitCode::OK;
+    
+    return GNManagerExitCode::OK;
 }
 
 GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args, std::string &str_args) {
