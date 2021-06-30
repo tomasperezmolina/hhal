@@ -25,7 +25,6 @@ enum class ScalarType {
     INT,    // any size integer value
     UINT,    // any size unsigned integer value
     FLOAT,  // any size floating point value
-    LONG    // any size long value
 };
 
 typedef struct scalar_arg_t {
@@ -35,12 +34,14 @@ typedef struct scalar_arg_t {
        int8_t  aint8; 
        int16_t aint16; 
        int32_t aint32; 
-       uint8_t uint8;
+       int64_t aint64; 
+       uint8_t  uint8;
        uint16_t uint16;
        uint32_t uint32;
+       uint64_t uint64;
 
-       float   afloat; 
-       long    along; 
+       float   afloat;
+       double   adouble;
     };
 } scalar_arg;
 

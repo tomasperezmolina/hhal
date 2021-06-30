@@ -70,10 +70,13 @@ GNManagerExitCode GNManager::initialize() {
         mem_size += mem_size_cluster;
     }
 
-    assert(0 == ftruncate(f_mem, mem_size));
+    int truncate_res = ftruncate(f_mem, mem_size);
+    assert(0 == truncate_res);
 
     mem = (addr_t*) mmap (NULL, mem_size,
                             PROT_READ|PROT_WRITE, MAP_SHARED, f_mem,0);
+
+    log_hhal.Debug("Memory pointer=%p", mem);
 
     if (mem==MAP_FAILED) {
         log_hhal.Error("Memory not present in hn emulation configuration ");
@@ -293,14 +296,22 @@ GNManagerExitCode GNManager::read_sync_register(int event_id, uint32_t *data) {
     reg_address -= info.cluster_id * MANGO_REG_SIZE * 4;
     reg_address /= ADDR_SIZE;
 
+    log_hhal.Trace("GNManager: read_sync_register: id=%d, reg_address=%d", event_id, reg_address);
+
     sem_wait(sem_id);
 
+    log_hhal.Trace("GNManager: read_sync_register: id=%d, got semaphore", event_id);
+    log_hhal.Trace("GNManager: read_sync_register: reading effective event addr=%p", mem + reg_address);
+
     uint32_t result = mem[reg_address];
+    log_hhal.Trace("GNManager: read_sync_register: id=%d, read result, data=%d", event_id, result);
     mem[reg_address] = 0;
+    log_hhal.Trace("GNManager: read_sync_register: id=%d zeroed out event register", event_id);
 
     sem_post(sem_id);
+    log_hhal.Trace("GNManager: read_sync_register: id=%d, released semaphore ", event_id);
 
-    log_hhal.Trace("GNManager: read_sync_register: cluster=%d, phy_addr=%p, reg_address=0x%x, data=%d",
+    log_hhal.Trace("GNManager: read_sync_register: cluster=%d, phy_addr=%p, reg_address=%d, data=%d",
                    info.cluster_id, info.physical_addr, reg_address, result);
 
     *data = result;
@@ -419,13 +430,17 @@ GNManagerExitCode GNManager::allocate_event(int event_id){
 
     log_hhal.Debug("GNManager: allocate_event: event=%d, phy_addr=0x%x", event_id, allocated_event_info[event_id].physical_addr);
 
+    log_hhal.Debug("GNManager: allocate_event: preparing sync register %d", event_id);
+
     // Prepare event register
     GNManagerExitCode ec;
     uint32_t value;
     ec = read_sync_register(event_id, &value);
+    log_hhal.Debug("GNManager: allocate_event: error reading sync register %d", event_id);
     if (ec != GNManagerExitCode::OK) return ec;
     // - We re-read the value and now must be zero
     ec = read_sync_register(event_id, &value);
+    log_hhal.Debug("GNManager: allocate_event: error reading sync register %d", event_id);
     if (ec != GNManagerExitCode::OK) return ec;
     assert( 0 == value );
 
@@ -595,6 +610,9 @@ GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args
                             case sizeof(int32_t):
                                 ss << " " << arg.scalar.aint32;
                                 break;
+                            case sizeof(int64_t):
+                                ss << " " << arg.scalar.aint64;
+                                break;
                             default:
                                 log_hhal.Error("GNManager: Unknown scalar int size");
                                 return GNManagerExitCode::ERROR;
@@ -612,15 +630,14 @@ GNManagerExitCode GNManager::get_string_arguments(int kernel_id, Arguments &args
                             case sizeof(uint32_t):
                                 ss << " " << arg.scalar.uint32;
                                 break;
+                            case sizeof(uint64_t):
+                                ss << " " << arg.scalar.uint64;
+                                break;
                             default:
                                 log_hhal.Error("GNManager: Unknown scalar int size");
                                 return GNManagerExitCode::ERROR;
                         }
                         break;
-                    }
-                    case ScalarType::LONG: {
-                       ss << " " << arg.scalar.along;
-                       break;
                     }
                     default:
                         log_hhal.Error("GNManager: Float scalars not supported");
