@@ -9,7 +9,7 @@ endif (NOT MANGO_ROOT)
 set(CLIENT_LIB_DIR ${MANGO_ROOT}/lib/hhal_client)
 set(CLIENT_INCLUDE_DIR ${MANGO_ROOT}/include/hhal_client)
 set(CLIENT_EXPORT_DIR ${MANGO_ROOT}/lib/cmake/hhal_client)
-set(DAEMON_BIN_DIR ${MANGO_ROOT}/bin)
+set(DAEMON_BIN_DIR ${MANGO_ROOT}/usr/bin/hhal_daemon)
 set(CONFIG_DIR ${MANGO_ROOT}/etc)
 
 set(DAEMON_CONFIG_FILENAME hhal_daemon.conf)
