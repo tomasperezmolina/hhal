@@ -1,10 +1,11 @@
 cmake_minimum_required (VERSION 2.8.11)
 
-set(MANGO_ROOT /opt/mango)
-
 project(daemon LANGUAGES CXX)
 
-set(MANGO_ROOT /opt/mango)
+if (NOT MANGO_ROOT) 
+    message(FATAL_ERROR "You have to specify -DMANGO_ROOT=\"/path/to/mango\"!")
+endif (NOT MANGO_ROOT)
+
 set(CLIENT_LIB_DIR ${MANGO_ROOT}/lib/hhal_client)
 set(CLIENT_INCLUDE_DIR ${MANGO_ROOT}/include/hhal_client)
 set(CLIENT_EXPORT_DIR ${MANGO_ROOT}/lib/cmake/hhal_client)

@@ -2,13 +2,16 @@ cmake_minimum_required (VERSION 2.8.11)
 
 project(hhal-project LANGUAGES CXX)
 
+if (NOT MANGO_ROOT) 
+    message(FATAL_ERROR "You have to specify -DMANGO_ROOT=\"/path/to/mango\"!")
+endif (NOT MANGO_ROOT)
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose debug or release" FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
-set(MANGO_ROOT /opt/mango)
 set(LIB_DIR ${MANGO_ROOT}/lib/hhal)
 set(INCLUDE_DIR ${MANGO_ROOT}/include/hhal)
 set(EXPORT_DIR ${MANGO_ROOT}/lib/cmake/hhal)
@@ -67,8 +70,6 @@ if (CONFIG_DYNAMIC_COMPILER_LLVM_ENABLE)
 
 	target_link_libraries (hhal PRIVATE LLVM ${CLANG_DRIVER} ${CLANG_BASIC})
 endif (CONFIG_DYNAMIC_COMPILER_LLVM_ENABLE)
-
-set(PROFILING_MODE true)
 
 if(PROFILING_MODE)
     message("PROFILING MODE!")

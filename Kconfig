@@ -1,0 +1,35 @@
+comment "Target architectures"
+
+config HHAL_GN
+  bool "General-Purpose Node Emulation (GN)"
+  default y
+
+config HHAL_NVIDIA
+  bool "Nvidia CUDA"
+  default n
+  ---help---
+  Enable execution on Nvidia GPUs. Requires CUDA.
+
+config CUDA_COMPILER_ROOT
+  depends on HHAL_NVIDIA
+  string "CUDA compiler path"
+  ---help---
+  Full path to CUDA compiler (nvcc), if not present in PATH (may be required for running with sudo).
+
+comment "Building options"
+
+config HHAL_BUILD_DEBUG
+  bool "Debug version build"
+  default n
+
+config HHAL_PROFILING_MODE
+  bool "Profiling mode"
+  default n
+  ---help---
+  Enable the profiling mode to collect data from the HHAL performance counters.
+
+config DYNAMIC_COMPILER_LLVM_ENABLE
+  bool "LLVM kernel dynamic compilation"
+  default n
+  ---help---
+  Enable kernel dynamic compilation using LLVM and libclang.
