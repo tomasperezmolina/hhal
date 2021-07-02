@@ -17,6 +17,13 @@ set(INCLUDE_DIR ${MANGO_ROOT}/include/hhal)
 set(EXPORT_DIR ${MANGO_ROOT}/lib/cmake/hhal)
 set(CONFIG_DIR ${MANGO_ROOT}/etc)
 
+if(ENABLE_GN)
+    add_definitions(-DENABLE_GN)
+endif(ENABLE_GN)
+if(ENABLE_NVIDIA)
+    add_definitions(-DENABLE_NVIDIA)
+endif(ENABLE_NVIDIA)
+
 set(DINAMIC_COMPILER_SOURCES
     dynamic_compiler/config_reader.cpp
     dynamic_compiler/compiler.cpp
@@ -45,7 +52,15 @@ set(SOURCES
     hhal.cpp
 )
 
-set(SOURCES ${SOURCES} ${NVIDIA_SOURCES} ${GN_SOURCES} ${DINAMIC_COMPILER_SOURCES})
+set(SOURCES ${SOURCES} ${DINAMIC_COMPILER_SOURCES})
+
+if(ENABLE_NVIDIA)
+    set(SOURCES ${SOURCES} ${NVIDIA_SOURCES})
+endif(ENABLE_NVIDIA)
+
+if(ENABLE_GN)
+    set(SOURCES ${SOURCES} ${GN_SOURCES})
+endif(ENABLE_GN)
 
 set(HEADERS 
     hhal.h 
@@ -72,7 +87,6 @@ if (CONFIG_DYNAMIC_COMPILER_LLVM_ENABLE)
 endif (CONFIG_DYNAMIC_COMPILER_LLVM_ENABLE)
 
 if(PROFILING_MODE)
-    message("PROFILING MODE!")
     add_definitions(-DPROFILING_MODE)
     find_package(profiling CONFIG REQUIRED HINTS ${MANGO_ROOT}/lib/cmake)
     target_link_libraries(hhal PRIVATE profiling::profiling)
@@ -84,9 +98,11 @@ target_include_directories(hhal PUBLIC
     $<INSTALL_INTERFACE:${INCLUDE_DIR}>
 )
 
-find_package(cuda_compiler CONFIG REQUIRED HINTS /opt/mango/lib/cmake)
-find_package(cuda_manager CONFIG REQUIRED HINTS /opt/mango/lib/cmake)
-target_link_libraries(hhal PRIVATE cuda_compiler cuda_manager)
+if(ENABLE_NVIDIA)
+    find_package(cuda_compiler CONFIG REQUIRED HINTS /opt/mango/lib/cmake)
+    find_package(cuda_manager CONFIG REQUIRED HINTS /opt/mango/lib/cmake)
+    target_link_libraries(hhal PRIVATE cuda_compiler cuda_manager)
+endif(ENABLE_NVIDIA)
 
 install(TARGETS hhal EXPORT hhalConfig LIBRARY DESTINATION ${LIB_DIR})
 

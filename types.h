@@ -10,6 +10,14 @@ enum class Unit {
     NVIDIA
 };
 
+inline const char *unit_to_string(hhal::Unit unit) {
+    switch(unit) {
+        case hhal::Unit::GN:        return "GN";
+        case hhal::Unit::NVIDIA:    return "NVIDIA";
+        default:                    return "";
+    }
+}
+
 enum class source_type {
     BINARY,
     SOURCE,

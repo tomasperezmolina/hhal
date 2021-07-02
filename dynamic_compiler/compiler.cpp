@@ -29,7 +29,9 @@
 #include "dynamic_compiler/LLVMInstanceManager.h"
 #endif
 
+#ifdef ENABLE_NVIDIA
 #include "cuda_compiler.h"
+#endif
 
 #include "dynamic_compiler/compiler.h"
 #include "dynamic_compiler/mango_gen_kernel_entry.h"
@@ -48,7 +50,6 @@ namespace dynamic_compiler {
         if (res == 0) {
             for(unsigned int i = 0; i < glob_result.gl_pathc; ++i){
                 char* filename = glob_result.gl_pathv[i];
-                //printf("Compiler: found cached kernel %s\n", filename);
                 struct stat cached_bin;
                 int stat_res = stat(filename, &cached_bin);
                 if (stat_res == 0) {
@@ -61,14 +62,6 @@ namespace dynamic_compiler {
             }
         }
         globfree(&glob_result);
-    }
-
-    inline const char *unit_to_string(hhal::Unit unit) {
-        switch(unit) {
-            case hhal::Unit::GN:        return "GN";
-            case hhal::Unit::NVIDIA:    return "NVIDIA";
-            default:                    return "";
-        }
     }
 
     Compiler::Compiler() {
@@ -104,6 +97,7 @@ namespace dynamic_compiler {
             printf("Compiler: Kernel file [%s] compiling...\n", source.c_str());
 
             switch(arch) {
+#ifdef ENABLE_NVIDIA
                 case hhal::Unit::NVIDIA: 
                 {
                     cuda_compiler::CudaCompiler cuda_compiler;
@@ -114,6 +108,7 @@ namespace dynamic_compiler {
 
                     break;
                 }
+#endif
                 case hhal::Unit::GN: 
                 {
                     std::string entry_path = bin_path + "_entry.c";
